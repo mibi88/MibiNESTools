@@ -75,7 +75,8 @@ public abstract class Editor extends JPanel {
                             + "Do you really want to create a new file?",
                     "Unsaved changes",
                     JOptionPane.YES_NO_OPTION);
-            if(selected != JOptionPane.OK_OPTION){
+            if(selected != JOptionPane.OK_OPTION
+                        || askForNewFile.getValue() == null){
                 return false;
             }
         }
@@ -94,7 +95,8 @@ public abstract class Editor extends JPanel {
                             + "Do you really want to open this file?",
                     "Unsaved changes",
                     JOptionPane.YES_NO_OPTION);
-            if(selected != JOptionPane.OK_OPTION){
+            if(selected != JOptionPane.OK_OPTION
+                        || askForOpenFile.getValue() == null){
                 return false;
             }
         }

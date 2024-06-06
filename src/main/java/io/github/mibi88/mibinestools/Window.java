@@ -161,7 +161,8 @@ public class Window extends JFrame {
                         "The file " + file.getName() + " already exists!\n"
                                 + "Overwrite?", "Existing file",
                         JOptionPane.YES_NO_OPTION);
-                if(selected != JOptionPane.OK_OPTION){
+                if(selected != JOptionPane.OK_OPTION
+                        || askOverwrite.getValue() == null){
                     return;
                 }
             }
@@ -228,7 +229,8 @@ public class Window extends JFrame {
                                         + "Do you really want to quit?",
                                 "Unsaved changes",
                                 JOptionPane.YES_NO_OPTION);
-                if(selected != JOptionPane.OK_OPTION){
+                if(selected != JOptionPane.OK_OPTION
+                        || askToQuit.getValue() == null){
                     return;
                 }
             }
