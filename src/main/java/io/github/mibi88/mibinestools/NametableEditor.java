@@ -17,21 +17,53 @@
  */
 package io.github.mibi88.mibinestools;
 
+import java.awt.GridLayout;
 import javax.swing.JButton;
-import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 /**
  *
  * @author mibi88
  */
 public class NametableEditor extends Editor {
-
+    private NametableViewer nametableViewer;
+    private PatternTable patternTable;
+    private PaletteEditor paletteEditor;
+    private JScrollPane nametableViewerPane;
+    private JScrollPane patternTablePane;
+    private JButton loadCHR;
+    private CHRData chrData;
+    private int[][] currentPalette;
+    
     /**
      * Initialize the nametable editor
      */
-    public NametableEditor() {
-        super("Nametable Editor");
-        JButton button = new JButton("Nametable editor test");
-        add(button);
+    public NametableEditor(Window window) {
+        super("Nametable Editor", new GridLayout(1, 4));
+        currentPalette = new int[][]{
+            {0, 0, 0},
+            {79, 79, 79},
+            {184, 184, 184},
+            {254, 254, 254}
+        };
+        chrData = new CHRData();
+        nametableViewer = new NametableViewer(chrData, currentPalette,
+                window.getScale(), true);
+        nametableViewerPane = new JScrollPane(nametableViewer);
+        add(nametableViewerPane);
+        patternTable = new PatternTable(chrData, currentPalette,
+                window.getScale(), true);
+        patternTablePane = new JScrollPane(patternTable);
+        add(patternTablePane);
+        paletteEditor = new PaletteEditor(currentPalette,
+                this);
+        add(paletteEditor);
+        loadCHR = new JButton("Load CHR");
+        add(loadCHR);
+    }
+    
+    public void setPalette(int[][] palette) {
+        nametableViewer.setPalette(palette);
+        patternTable.setPalette(palette);
     }
 }

@@ -17,20 +17,10 @@
  */
 package io.github.mibi88.mibinestools;
 
-import javax.swing.JButton;
-
 /**
  *
  * @author mibi88
  */
-public class LevelEditor extends Editor {
-
-    /**
-     * Initialize the level editor
-     */
-    public LevelEditor(Window window) {
-        super("Level Editor");
-        JButton button = new JButton("Level editor");
-        add(button);
-    }
+public interface NametableViewerEvent {
+    public void tileChanged(int tx, int ty);
 }

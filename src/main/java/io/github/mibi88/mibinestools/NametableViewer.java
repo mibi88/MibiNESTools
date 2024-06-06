@@ -29,20 +29,22 @@ import javax.swing.JPanel;
  *
  * @author mibi88
  */
-public class PatternTable extends JPanel {
+public class NametableViewer extends JPanel {
     private CHRData chrData;
     private int[][] palette;
     private int scale;
     private boolean grid;
-    private PatternTableEvent event;
-    private int selectedX, selectedY;
-    public PatternTable(CHRData chrData, int[][] palette, int scale,
+    private NametableViewerEvent event;
+    private byte[] tiles;
+    private byte currentTile;
+    public NametableViewer(CHRData chrData, int[][] palette, int scale,
             boolean grid) {
         super();
         this.chrData = chrData;
         this.palette = palette;
         this.scale = scale;
         this.grid = grid;
+        tiles = new byte[32*30];
         Dimension size = new Dimension(scale*8*16+16,
                 scale*8*16*chrData.getChrBanks()+16);
         setPreferredSize(size);
@@ -51,12 +53,7 @@ public class PatternTable extends JPanel {
     }
     
     public void reset() {
-        selectedX = 0;
-        selectedY = 0;
-        if(event != null){
-            event.tileSelected(selectedX, selectedY);
-        }
-        repaint();
+        return;
     }
     
     public void setPalette(int[][] palette) {
@@ -82,16 +79,8 @@ public class PatternTable extends JPanel {
         repaint();
     }
     
-    public void setEventHandler(PatternTableEvent event) {
+    public void setEventHandler(NametableViewerEvent event) {
         this.event = event;
-    }
-    
-    public int getSelectedX() {
-        return selectedX;
-    }
-    
-    public int getSelectedY() {
-        return selectedY;
     }
     
     private void handleMouse() {
@@ -100,14 +89,14 @@ public class PatternTable extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 int tileX = e.getX()/(scale*8);
                 int tileY = e.getY()/(scale*8);
-                if(tileX != selectedX || tileY != selectedY){
-                    selectedX = tileX;
-                    selectedY = tileY;
-                    if(event != null){
-                        event.tileSelected(selectedX, selectedY);
+                if(event != null){
+                    event.tileChanged(tileX, tileY);
+                    int i = tileY*32+tileX;
+                    if(i >= 0 && i < tiles.length){
+                        tiles[i] = currentTile;
                     }
-                    repaint();
                 }
+                repaint();
             }
 
             @Override
@@ -142,8 +131,8 @@ public class PatternTable extends JPanel {
         g.setColor(Color.GRAY);
         for(int y=0;y<16*chrData.getChrBanks();y++){
             for(int x=0;x<16;x++){
-                BufferedImage image = chrData.generateTileImage(y*16+x, palette,
-                    scale);
+                BufferedImage image = chrData.generateTileImage(tiles[y*16+x],
+                        palette, scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }
             if(grid){
@@ -156,15 +145,5 @@ public class PatternTable extends JPanel {
                         16*chrData.getChrBanks()*8*scale);
             }
         }
-        // Show the selection
-        g.setColor(Color.WHITE);
-        g.drawLine(selectedX*8*scale, selectedY*8*scale, (selectedX+1)*8*scale,
-                selectedY*8*scale);
-        g.drawLine(selectedX*8*scale, (selectedY+1)*8*scale,
-                (selectedX+1)*8*scale, (selectedY+1)*8*scale);
-        g.drawLine(selectedX*8*scale, selectedY*8*scale, selectedX*8*scale,
-                (selectedY+1)*8*scale);
-        g.drawLine((selectedX+1)*8*scale, selectedY*8*scale,
-                (selectedX+1)*8*scale, (selectedY+1)*8*scale);
     }
 }

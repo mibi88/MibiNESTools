@@ -71,7 +71,8 @@ public class CHREditor extends Editor {
         tileEditor = new TileEditor(32, currentPalette,
                 (byte)1, this);
         add(tileEditor);
-        paletteEditor = new PaletteEditor(currentPalette, this);
+        paletteEditor = new PaletteEditor(currentPalette,
+                this);
         add(paletteEditor);
     }
     
@@ -198,5 +199,9 @@ public class CHREditor extends Editor {
     public void setPalette(int[][] palette) {
         patternTable.setPalette(palette);
         tileEditor.setPalette(palette);
+    }
+    
+    public int[][] getCurrentPalette() {
+        return paletteEditor.getCurrentPalette();
     }
 }

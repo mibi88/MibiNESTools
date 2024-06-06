@@ -77,8 +77,8 @@ public class Window extends JFrame {
         editors = new ArrayList<Editor>();
         
         editors.add(new CHREditor(this));
-        editors.add(new NametableEditor());
-        editors.add(new LevelEditor());
+        editors.add(new NametableEditor(this));
+        editors.add(new LevelEditor(this));
         
         addEditors();
         

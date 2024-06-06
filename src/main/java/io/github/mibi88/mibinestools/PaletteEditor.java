@@ -31,8 +31,9 @@ public class PaletteEditor extends JPanel {
     public PaletteList paletteList;
     public ColorList colorList;
     public PaletteChooser paletteChooser;
-    public CHREditor chrEditor;
-    public PaletteEditor(int[][] defaultPalette, CHREditor chrEditor) {
+    public Editor editor;
+    public int[][] currentPalette;
+    public PaletteEditor(int[][] defaultPalette, Editor editor) {
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
@@ -40,7 +41,7 @@ public class PaletteEditor extends JPanel {
         c.weighty = 0.75;
         c.gridx = 0;
         c.gridy = 0;
-        this.chrEditor = chrEditor;
+        this.editor = editor;
         colorList = new ColorList();
         add(colorList, c);
         c.gridx = 0;
@@ -52,6 +53,7 @@ public class PaletteEditor extends JPanel {
         c.gridy = 2;
         paletteChooser = new PaletteChooser(this);
         add(paletteChooser, c);
+        currentPalette = defaultPalette;
         handleEvents();
     }
     
@@ -72,10 +74,15 @@ public class PaletteEditor extends JPanel {
         try {
             // Adapt index of the palette to use 
             final int index = (i%4)*2+i/4;
-            chrEditor.setPalette(paletteList.getPaletteData(index));
+            currentPalette = paletteList.getPaletteData(index);
+            editor.setPalette(currentPalette);
         } catch (Exception ex) {
             Logger.getLogger(PaletteEditor.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
+    }
+    
+    public int[][] getCurrentPalette() {
+        return currentPalette;
     }
 }
