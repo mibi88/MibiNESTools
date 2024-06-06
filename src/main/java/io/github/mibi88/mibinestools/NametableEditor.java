@@ -24,13 +24,13 @@ import javax.swing.JPanel;
  *
  * @author mibi88
  */
-public class NametableEditor extends JPanel {
+public class NametableEditor extends Editor {
 
     /**
      * Initialize the nametable editor
      */
     public NametableEditor() {
-        super();
+        super("Nametable Editor");
         JButton button = new JButton("Nametable editor test");
         add(button);
     }

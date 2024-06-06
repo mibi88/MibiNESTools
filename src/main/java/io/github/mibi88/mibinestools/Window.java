@@ -20,6 +20,7 @@ package io.github.mibi88.mibinestools;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -41,13 +42,9 @@ public class Window extends JFrame {
     
     private JTabbedPane tabs;
     
-    private CHREditor chrEditor;
-    private NametableEditor nametableEditor;
-    private LevelEditor levelEditor;
+    private ArrayList<Editor> editors;
     
     private int scale;
-    
-    private File currentFile;
     
     /**
      * Initialize the GUI
@@ -70,15 +67,33 @@ public class Window extends JFrame {
         
         tabs = new JTabbedPane();
         
-        chrEditor = new CHREditor(this);
-        nametableEditor = new NametableEditor();
-        levelEditor = new LevelEditor();
+        editors = new ArrayList<Editor>();
         
-        tabs.addTab("CHR Editor", chrEditor);
-        tabs.addTab("Nametable Editor", nametableEditor);
-        tabs.addTab("Level Editor", levelEditor);
+        editors.add(new CHREditor(this));
+        editors.add(new NametableEditor());
+        editors.add(new LevelEditor());
+        
+        addEditors();
         
         add(tabs, BorderLayout.CENTER);
+    }
+    
+    private void addEditors() {
+        for(Editor editor : editors){
+            tabs.addTab(editor.getEditorName(), editor);
+        }
+        for(Editor editor : editors){
+            editor.updateTitle();
+        }
+    }
+    
+    private int getSelectedEditor() throws Exception {
+        for(int i=0;i<editors.size();i++){
+            if(editors.get(i).isSelected()){
+                return i;
+            }
+        }
+        throw new Exception("Failed to get selected editor!");
     }
     
     public void openFile() {
@@ -90,8 +105,7 @@ public class Window extends JFrame {
         if(out == JFileChooser.APPROVE_OPTION){
             File file = fileChooser.getSelectedFile();
             try {
-                chrEditor.loadFile(file);
-                currentFile = file;
+                editors.get(getSelectedEditor()).openFile(file);
             } catch (Exception ex) {
                 Logger.getLogger(Window.class.getName())
                         .log(Level.SEVERE, null, ex);
@@ -100,21 +114,30 @@ public class Window extends JFrame {
     }
     
     public void saveFile() {
-        if(currentFile != null){
-            try {
-                chrEditor.saveFile(currentFile);
-                return;
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
+        try {
+            if(editors.get(getSelectedEditor()).isEditingFile()){
+                try {
+                    editors.get(getSelectedEditor()).saveFile();
+                    return;
+                } catch (Exception ex) {
+                    Logger.getLogger(Window.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
             }
+            saveAsFile();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
         }
-        saveAsFile();
     }
     
     public void newFile() {
-        currentFile = null;
-        chrEditor.newFile();
+        try {
+            editors.get(getSelectedEditor()).newFile();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
     }
     
     public void saveAsFile() {
@@ -135,13 +158,22 @@ public class Window extends JFrame {
                     return;
                 }
             }
-            currentFile = file;
-            saveFile();
+            try {
+                editors.get(getSelectedEditor()).saveAsFile(file);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
         }
     }
     
     public void setGrid(boolean grid) {
-        chrEditor.setGrid(grid);
+        try {
+            editors.get(getSelectedEditor()).setGrid(grid);
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
     }
     
     public boolean getGrid() {
@@ -151,14 +183,24 @@ public class Window extends JFrame {
     public void zoomIn() {
         if(scale < MAX_SCALE){
             scale++;
-            chrEditor.setScale(scale);
+            try {
+                editors.get(getSelectedEditor()).setScale(scale);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
         }
     }
     
     public void zoomOut() {
         if(scale > 1){
             scale--;
-            chrEditor.setScale(scale);
+            try {
+                editors.get(getSelectedEditor()).setScale(scale);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
         }
     }
     

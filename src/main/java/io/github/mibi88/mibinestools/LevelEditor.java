@@ -24,13 +24,13 @@ import javax.swing.JPanel;
  *
  * @author mibi88
  */
-public class LevelEditor extends JPanel {
+public class LevelEditor extends Editor {
 
     /**
      * Initialize the level editor
      */
     public LevelEditor() {
-        super();
+        super("Level Editor");
         JButton button = new JButton("Level editor");
         add(button);
     }

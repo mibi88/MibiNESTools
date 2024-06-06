@@ -20,16 +20,16 @@ package io.github.mibi88.mibinestools;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 /**
  *
  * @author mibi88
  */
-public class CHREditor extends JPanel {
+public class CHREditor extends Editor {
     private CHRData chrData;
     private int[][] currentPalette;
     private int scale;
@@ -48,7 +48,7 @@ public class CHREditor extends JPanel {
      * @param window
      */
     public CHREditor(Window window) {
-        super(new GridLayout(1, 2));
+        super("CHR Editor", new GridLayout(1, 2));
         scale = window.getScale();
         chrData = new CHRData();
         currentPalette = new int[][]{
@@ -98,20 +98,60 @@ public class CHREditor extends JPanel {
      * Loads a CHR file from the disk
      * 
      * @param file The file to load the CHR from
-     * @throws Exception thrown when failing to load the file
      */
-    public void loadFile(File file) throws Exception {
-        chrData = new CHRData(file);
-        tilemap.setCHR(chrData);
-        tilemapPane.revalidate();
-        loadSelectedTile(tilemap.getSelectedX(), tilemap.getSelectedY());
+    @Override
+    public void openFile(File file) {
+        try {
+            chrData = new CHRData(file);
+            tilemap.setCHR(chrData);
+            tilemapPane.revalidate();
+            loadSelectedTile(tilemap.getSelectedX(),
+                    tilemap.getSelectedY());
+            super.openFile(file);
+        } catch (Exception ex) {
+            Logger.getLogger(CHREditor.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
     }
     
-    public void saveFile(File file) throws Exception {
-        chrData.saveCHRData(file);
+    /**
+     * Save the current file
+     */
+    @Override
+    public void saveFile() {
+        File file = getFile();
+        if(file != null){
+            try {
+                chrData.saveCHRData(file);
+                super.saveFile();
+            } catch (Exception ex) {
+                Logger.getLogger(CHREditor.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
     }
     
+    /**
+     * Save the file as...
+     * @param file The file to save the data to
+     */
+    @Override
+    public void saveAsFile(File file) {
+        try {
+            chrData.saveCHRData(file);
+            super.saveAsFile(file);
+        } catch (Exception ex) {
+            Logger.getLogger(CHREditor.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Create a new file
+     */
+    @Override
     public void newFile() {
+        super.newFile();
         chrData.resetCHRData(2);
         chrData.resetRawData(2);
         tilemap.reset();
@@ -123,12 +163,14 @@ public class CHREditor extends JPanel {
         try {
             chrData.setTile(data, ty*16+tx);
             tilemap.repaint();
+            fileEdited();
         } catch (Exception ex) {
             Logger.getLogger(CHREditor.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
     }
     
+    @Override
     public void setGrid(boolean grid) {
         if(tilemap != null){
             tilemap.setGrid(grid);
@@ -136,6 +178,7 @@ public class CHREditor extends JPanel {
         }
     }
     
+    @Override
     public void setScale(int scale) {
         this.scale = scale;
         if(tilemap != null){
