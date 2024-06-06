@@ -20,7 +20,6 @@ package io.github.mibi88.mibinestools;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JScrollPane;
@@ -34,8 +33,8 @@ public class CHREditor extends Editor {
     private int[][] currentPalette;
     private int scale;
     
-    private JScrollPane tilemapPane;
-    private Tilemap tilemap;
+    private JScrollPane patternTablePane;
+    private PatternTable patternTable;
     
     private TileEditor tileEditor;
     
@@ -63,12 +62,12 @@ public class CHREditor extends Editor {
     
     private void initEditor() {
         chrData = new CHRData();
-        tilemap = new Tilemap(chrData, currentPalette, scale,
+        patternTable = new PatternTable(chrData, currentPalette, scale,
                 window.getGrid());
-        initTilemap();
-        tilemapPane = new JScrollPane(tilemap);
-        add(tilemapPane, BorderLayout.CENTER);
-        tilemapPane.revalidate();
+        initPatternTable();
+        patternTablePane = new JScrollPane(patternTable);
+        add(patternTablePane, BorderLayout.CENTER);
+        patternTablePane.revalidate();
         tileEditor = new TileEditor(32, currentPalette,
                 (byte)1, this);
         add(tileEditor);
@@ -85,8 +84,8 @@ public class CHREditor extends Editor {
         }
     }
     
-    private void initTilemap() {
-        tilemap.setEventHandler(new TilemapEvent() {
+    private void initPatternTable() {
+        patternTable.setEventHandler(new PatternTableEvent() {
             @Override
             public void tileSelected(int tx, int ty) {
                 loadSelectedTile(tx, ty);
@@ -105,10 +104,10 @@ public class CHREditor extends Editor {
         try {
             if(super.openFile(file)){
                 chrData = new CHRData(file);
-                tilemap.setCHR(chrData);
-                tilemapPane.revalidate();
-                loadSelectedTile(tilemap.getSelectedX(),
-                        tilemap.getSelectedY());
+                patternTable.setCHR(chrData);
+                patternTablePane.revalidate();
+                loadSelectedTile(patternTable.getSelectedX(),
+                        patternTable.getSelectedY());
                 return true;
             }
         } catch (Exception ex) {
@@ -160,7 +159,7 @@ public class CHREditor extends Editor {
         if(super.newFile()){
             chrData.resetCHRData(2);
             chrData.resetRawData(2);
-            tilemap.reset();
+            patternTable.reset();
             tileEditor.reset();
             paletteEditor.reset();
             return true;
@@ -171,7 +170,7 @@ public class CHREditor extends Editor {
     public void updateTile(byte[] data, int tx, int ty) {
         try {
             chrData.setTile(data, ty*16+tx);
-            tilemap.repaint();
+            patternTable.repaint();
             fileEdited();
         } catch (Exception ex) {
             Logger.getLogger(CHREditor.class.getName()).log(
@@ -181,23 +180,23 @@ public class CHREditor extends Editor {
     
     @Override
     public void setGrid(boolean grid) {
-        if(tilemap != null){
-            tilemap.setGrid(grid);
-            tilemapPane.revalidate();
+        if(patternTable != null){
+            patternTable.setGrid(grid);
+            patternTablePane.revalidate();
         }
     }
     
     @Override
     public void setScale(int scale) {
         this.scale = scale;
-        if(tilemap != null){
-            tilemap.setScale(scale);
-            tilemapPane.revalidate();
+        if(patternTable != null){
+            patternTable.setScale(scale);
+            patternTablePane.revalidate();
         }
     }
     
     public void setPalette(int[][] palette) {
-        tilemap.setPalette(palette);
+        patternTable.setPalette(palette);
         tileEditor.setPalette(palette);
     }
 }

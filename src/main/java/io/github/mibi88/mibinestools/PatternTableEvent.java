@@ -21,6 +21,6 @@ package io.github.mibi88.mibinestools;
  *
  * @author mibi88
  */
-public interface TilemapEvent {
+public interface PatternTableEvent {
     public void tileSelected(int tx, int ty);
 }

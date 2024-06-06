@@ -29,14 +29,14 @@ import javax.swing.JPanel;
  *
  * @author mibi88
  */
-public class Tilemap extends JPanel {
+public class PatternTable extends JPanel {
     private CHRData chrData;
     private int[][] palette;
     private int scale;
     private boolean grid;
-    private TilemapEvent event;
+    private PatternTableEvent event;
     private int selectedX, selectedY;
-    public Tilemap(CHRData chrData, int[][] palette, int scale, boolean grid) {
+    public PatternTable(CHRData chrData, int[][] palette, int scale, boolean grid) {
         super();
         this.chrData = chrData;
         this.palette = palette;
@@ -81,7 +81,7 @@ public class Tilemap extends JPanel {
         repaint();
     }
     
-    public void setEventHandler(TilemapEvent event) {
+    public void setEventHandler(PatternTableEvent event) {
         this.event = event;
     }
     
