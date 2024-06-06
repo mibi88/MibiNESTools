@@ -98,20 +98,25 @@ public class CHREditor extends Editor {
      * Loads a CHR file from the disk
      * 
      * @param file The file to load the CHR from
+     * @return 
      */
     @Override
-    public void openFile(File file) {
+    public boolean openFile(File file) {
         try {
-            chrData = new CHRData(file);
-            tilemap.setCHR(chrData);
-            tilemapPane.revalidate();
-            loadSelectedTile(tilemap.getSelectedX(),
-                    tilemap.getSelectedY());
-            super.openFile(file);
+            if(super.openFile(file)){
+                chrData = new CHRData(file);
+                tilemap.setCHR(chrData);
+                tilemapPane.revalidate();
+                loadSelectedTile(tilemap.getSelectedX(),
+                        tilemap.getSelectedY());
+                return true;
+            }
         } catch (Exception ex) {
+            error();
             Logger.getLogger(CHREditor.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
+        return false;
     }
     
     /**
@@ -148,15 +153,19 @@ public class CHREditor extends Editor {
     
     /**
      * Create a new file
+     * @return 
      */
     @Override
-    public void newFile() {
-        super.newFile();
-        chrData.resetCHRData(2);
-        chrData.resetRawData(2);
-        tilemap.reset();
-        tileEditor.reset();
-        paletteEditor.reset();
+    public boolean newFile() {
+        if(super.newFile()){
+            chrData.resetCHRData(2);
+            chrData.resetRawData(2);
+            tilemap.reset();
+            tileEditor.reset();
+            paletteEditor.reset();
+            return true;
+        }
+        return false;
     }
     
     public void updateTile(byte[] data, int tx, int ty) {

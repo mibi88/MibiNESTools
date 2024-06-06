@@ -21,6 +21,7 @@ import java.awt.LayoutManager;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -51,16 +52,56 @@ public abstract class Editor extends JPanel {
         return editorName;
     }
     
-    public void newFile() {
+    protected void error() {
+        file = null;
+        fileSaved = false;
+    }
+    
+    public String getFileName() {
+        return file == null ? "Unsaved file" : file.getName();
+    }
+    
+    /**
+     * Create a new file.
+     * @return Returns true if a new file should be created. Else it returns
+     * false
+     */
+    public boolean newFile() {
+        String fileName = getFileName();
+        if(!fileSaved){
+            JOptionPane askForNewFile = new JOptionPane();
+            int selected = askForNewFile.showConfirmDialog(this,
+                    fileName + " is not saved!\n"
+                            + "Do you really want to create a new file?",
+                    "Unsaved changes",
+                    JOptionPane.YES_NO_OPTION);
+            if(selected != JOptionPane.OK_OPTION){
+                return false;
+            }
+        }
         file = null;
         fileSaved = true;
         updateTitle();
+        return true;
     }
     
-    public void openFile(File file) {
+    public boolean openFile(File file) {
+        String fileName = getFileName();
+        if(!fileSaved){
+            JOptionPane askForOpenFile = new JOptionPane();
+            int selected = askForOpenFile.showConfirmDialog(this,
+                    fileName + " is not saved!\n"
+                            + "Do you really want to open this file?",
+                    "Unsaved changes",
+                    JOptionPane.YES_NO_OPTION);
+            if(selected != JOptionPane.OK_OPTION){
+                return false;
+            }
+        }
         this.file = file;
         fileSaved = true;
         updateTitle();
+        return true;
     }
     
     public void saveFile() {
@@ -89,6 +130,10 @@ public abstract class Editor extends JPanel {
     
     public boolean isEditingFile() {
         return file != null;
+    }
+    
+    public boolean getFileSaved() {
+        return fileSaved;
     }
     
     protected File getFile() {

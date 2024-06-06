@@ -19,6 +19,8 @@
 package io.github.mibi88.mibinestools;
 
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -60,7 +62,12 @@ public class Window extends JFrame {
         
         setVisible(true);
         
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                quit();
+            }
+        });
         
         menubar = new Menubar(this);
         setJMenuBar(menubar);
@@ -212,6 +219,20 @@ public class Window extends JFrame {
      * Close the window
      */
     public void quit() {
+        for(Editor editor : editors) {
+            if(!editor.getFileSaved()){
+                String fileName = editor.getFileName();
+                JOptionPane askToQuit = new JOptionPane();
+                int selected = askToQuit.showConfirmDialog(this,
+                                fileName + " is not saved!\n"
+                                        + "Do you really want to quit?",
+                                "Unsaved changes",
+                                JOptionPane.YES_NO_OPTION);
+                if(selected != JOptionPane.OK_OPTION){
+                    return;
+                }
+            }
+        }
         dispose();
     }
 }
