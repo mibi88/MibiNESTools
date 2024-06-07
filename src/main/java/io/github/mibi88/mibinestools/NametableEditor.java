@@ -17,9 +17,12 @@
  */
 package io.github.mibi88.mibinestools;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 
 /**
  *
@@ -27,12 +30,11 @@ import javax.swing.JScrollPane;
  */
 public class NametableEditor extends Editor {
     private NametableViewer nametableViewer;
-    private PatternTable patternTable;
-    private PaletteEditor paletteEditor;
     private JScrollPane nametableViewerPane;
-    private JScrollPane patternTablePane;
-    private JButton loadCHR;
-    private CHRData chrData;
+    private PaletteEditor paletteEditor;
+    private JTabbedPane tilePane;
+    private JSplitPane splitPane;
+    private TilePicker tilePicker;
     private int[][] currentPalette;
     
     /**
@@ -46,24 +48,50 @@ public class NametableEditor extends Editor {
             {184, 184, 184},
             {254, 254, 254}
         };
-        chrData = new CHRData();
-        nametableViewer = new NametableViewer(chrData, currentPalette,
-                window.getScale(), true);
+        tilePicker = new TilePicker(this, window);
+        nametableViewer = new NametableViewer(tilePicker.getCHRData(),
+                currentPalette, window.getScale(), true);
         nametableViewerPane = new JScrollPane(nametableViewer);
-        add(nametableViewerPane);
-        patternTable = new PatternTable(chrData, currentPalette,
-                window.getScale(), true);
-        patternTablePane = new JScrollPane(patternTable);
-        add(patternTablePane);
+        nametableViewerPane.setMinimumSize(new Dimension(300, 0));
         paletteEditor = new PaletteEditor(currentPalette,
                 this);
-        add(paletteEditor);
-        loadCHR = new JButton("Load CHR");
-        add(loadCHR);
+        
+        tilePane = new JTabbedPane();
+        tilePane.addTab("Pattern Table", tilePicker);
+        tilePane.addTab("Palette Editor", paletteEditor);
+        tilePane.setMinimumSize(new Dimension(250, 0));
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false,
+                nametableViewerPane, tilePane);
+        add(splitPane);
+        
+        nametableViewer.setEventHandler(new NametableViewerEvent() {
+            @Override
+            public void tileChanged(int tx, int ty) {
+                return;
+            }
+        });
     }
     
     public void setPalette(int[][] palette) {
         nametableViewer.setPalette(palette);
-        patternTable.setPalette(palette);
+        tilePicker.setPalette(palette);
+    }
+    
+    public int[][] getCurrentPalette() {
+        return currentPalette;
+    }
+    
+    public void setCHR(CHRData chrData) {
+        nametableViewer.setCHR(chrData);
+    }
+    
+    public void setCurrentTile(byte currentTile) {
+        nametableViewer.setCurrentTile(currentTile);
+    }
+    
+    @Override
+    public void setScale(int scale) {
+        nametableViewer.setScale(scale);
+        tilePicker.setScale(scale);
     }
 }

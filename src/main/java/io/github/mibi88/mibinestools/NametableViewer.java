@@ -22,6 +22,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
@@ -83,30 +84,25 @@ public class NametableViewer extends JPanel {
         this.event = event;
     }
     
+    public void setCurrentTile(byte currentTile) {
+        this.currentTile = currentTile;
+    }
+    
     private void handleMouse() {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int tileX = e.getX()/(scale*8);
-                int tileY = e.getY()/(scale*8);
-                if(event != null){
-                    event.tileChanged(tileX, tileY);
-                    int i = tileY*32+tileX;
-                    if(i >= 0 && i < tiles.length){
-                        tiles[i] = currentTile;
-                    }
-                }
-                repaint();
+                return;
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                return;
+                setTile(e);
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                return;
+                setTile(e);
             }
 
             @Override
@@ -119,6 +115,30 @@ public class NametableViewer extends JPanel {
                 return;
             }
         });
+        addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                setTile(e);
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                return;
+            }
+        });
+    }
+    
+    private void setTile(MouseEvent e) {
+        int tileX = e.getX()/(scale*8);
+        int tileY = e.getY()/(scale*8);
+        System.out.println(scale);
+        if(event != null){
+            event.tileChanged(tileX, tileY);
+            if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
+                tiles[tileY*32+tileX] = currentTile;
+            }
+        }
+        repaint();
     }
     
     /**
@@ -131,7 +151,7 @@ public class NametableViewer extends JPanel {
         g.setColor(Color.GRAY);
         for(int y=0;y<30;y++){
             for(int x=0;x<32;x++){
-                BufferedImage image = chrData.generateTileImage(tiles[y*16+x],
+                BufferedImage image = chrData.generateTileImage(tiles[y*32+x],
                         palette, scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }
