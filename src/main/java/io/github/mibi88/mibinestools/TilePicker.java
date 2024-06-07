@@ -28,7 +28,11 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JToolBar;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -42,6 +46,9 @@ public class TilePicker extends JPanel {
     private JToolBar toolBar;
     private JButton loadCHR;
     private JButton reloadCHR;
+    private SpinnerNumberModel chrBankModel;
+    private JSpinner chrBank;
+    
     private CHRData chrData;
     
     private File file;
@@ -66,6 +73,11 @@ public class TilePicker extends JPanel {
         toolBar.add(loadCHR);
         reloadCHR = new JButton("Reload CHR");
         toolBar.add(reloadCHR);
+        
+        chrBankModel = new SpinnerNumberModel(0, 0,
+                chrData.getChrBanks()-1, 1);
+        chrBank = new JSpinner(chrBankModel);
+        toolBar.add(chrBank);
         
         c.gridx = 0;
         c.gridy = 0;
@@ -108,6 +120,12 @@ public class TilePicker extends JPanel {
                 updateCHR();
             }
         });
+        chrBank.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                editor.setCHRBank((int)chrBank.getValue());
+            }
+        });
     }
     
     private void openCHR() {
@@ -133,6 +151,9 @@ public class TilePicker extends JPanel {
                 chrData = new CHRData(file);
                 patternTable.setCHR(chrData);
                 editor.setCHR(chrData);
+                chrBankModel = new SpinnerNumberModel(0, 0,
+                        chrData.getChrBanks()-1, 1);
+                chrBank.setModel(chrBankModel);
                 
             } catch (Exception ex) {
                 Logger.getLogger(TilePicker.class.getName()).log(

@@ -19,6 +19,10 @@ package io.github.mibi88.mibinestools;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -93,5 +97,34 @@ public class NametableEditor extends Editor {
     public void setScale(int scale) {
         nametableViewer.setScale(scale);
         tilePicker.setScale(scale);
+    }
+    
+    @Override
+    public boolean openFile(File file) {
+        if(super.openFile(file)){
+            try {
+                nametableViewer.open(file);
+            } catch (IOException ex) {
+                Logger.getLogger(NametableEditor.class.getName()).log(
+                        Level.SEVERE, null, ex);
+                error();
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public void saveFile() {
+        try {
+            nametableViewer.save(this.getFile());
+            super.saveFile();
+        } catch (IOException ex) {
+            Logger.getLogger(NametableEditor.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void setCHRBank(int chrBank) {
+        nametableViewer.setCHRBank(chrBank);
     }
 }
