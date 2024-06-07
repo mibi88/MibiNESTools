@@ -24,6 +24,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import javax.swing.JPanel;
 
 /**
@@ -45,7 +46,9 @@ public class NametableViewer extends JPanel {
         this.palette = palette;
         this.scale = scale;
         this.grid = grid;
+        currentTile = Byte.MIN_VALUE;
         tiles = new byte[32*30];
+        Arrays.fill(tiles, Byte.MIN_VALUE);
         Dimension size = new Dimension(scale*8*32+16,
                 scale*8*30+16);
         setPreferredSize(size);
@@ -84,8 +87,10 @@ public class NametableViewer extends JPanel {
         this.event = event;
     }
     
-    public void setCurrentTile(byte currentTile) {
-        this.currentTile = currentTile;
+    public void setCurrentTile(int currentTile) {
+        this.currentTile = (byte)(currentTile-Byte.MIN_VALUE);
+        System.out.println(this.currentTile);
+        System.out.println(Byte.MIN_VALUE);
     }
     
     private void handleMouse() {
@@ -131,7 +136,6 @@ public class NametableViewer extends JPanel {
     private void setTile(MouseEvent e) {
         int tileX = e.getX()/(scale*8);
         int tileY = e.getY()/(scale*8);
-        System.out.println(scale);
         if(event != null){
             event.tileChanged(tileX, tileY);
             if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
@@ -151,7 +155,8 @@ public class NametableViewer extends JPanel {
         g.setColor(Color.GRAY);
         for(int y=0;y<30;y++){
             for(int x=0;x<32;x++){
-                BufferedImage image = chrData.generateTileImage(tiles[y*32+x],
+                BufferedImage image = chrData
+                        .generateTileImage((int)tiles[y*32+x]-Byte.MIN_VALUE,
                         palette, scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }

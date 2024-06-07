@@ -93,7 +93,7 @@ public class TilePicker extends JPanel {
         patternTable.setEventHandler(new PatternTableEvent() {
             @Override
             public void tileSelected(int tx, int ty) {
-                editor.setCurrentTile((byte)(ty*16+tx));
+                editor.setCurrentTile(ty*16+tx);
             }
         });
         loadCHR.addActionListener(new ActionListener() {

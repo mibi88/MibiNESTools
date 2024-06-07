@@ -85,7 +85,7 @@ public class NametableEditor extends Editor {
         nametableViewer.setCHR(chrData);
     }
     
-    public void setCurrentTile(byte currentTile) {
+    public void setCurrentTile(int currentTile) {
         nametableViewer.setCurrentTile(currentTile);
     }
     
