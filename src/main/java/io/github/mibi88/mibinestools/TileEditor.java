@@ -52,10 +52,10 @@ public class TileEditor extends JPanel {
         canvasPane.revalidate();
         colorPicker = new ColorPicker(palette, tileCanvas);
         
-        c.fill = GridBagConstraints.BOTH;
+        c.fill = GridBagConstraints.VERTICAL;
         c.gridx = 0;
         c.gridy = 0;
-        c.weightx = 0.25;
+        c.weightx = 0;
         c.weighty = 0.90;
         add(toolPanel, c);
         c = new GridBagConstraints();

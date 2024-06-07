@@ -18,11 +18,14 @@
 package io.github.mibi88.mibinestools;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 
 /**
  *
@@ -32,6 +35,9 @@ public class CHREditor extends Editor {
     private CHRData chrData;
     private int[][] currentPalette;
     private int scale;
+    
+    private JSplitPane splitPane;
+    private JTabbedPane editorPane;
     
     private JScrollPane patternTablePane;
     private PatternTable patternTable;
@@ -66,14 +72,21 @@ public class CHREditor extends Editor {
                 window.getGrid());
         initPatternTable();
         patternTablePane = new JScrollPane(patternTable);
-        add(patternTablePane, BorderLayout.CENTER);
         patternTablePane.revalidate();
+        patternTablePane.setMinimumSize(new Dimension(300, 0));
         tileEditor = new TileEditor(32, currentPalette,
                 (byte)1, this);
-        add(tileEditor);
         paletteEditor = new PaletteEditor(currentPalette,
                 this);
-        add(paletteEditor);
+        
+        editorPane = new JTabbedPane();
+        editorPane.addTab("Tile Editor", tileEditor);
+        editorPane.addTab("Palette Editor", paletteEditor);
+        editorPane.setMinimumSize(new Dimension(250, 0));
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false,
+                patternTablePane, editorPane);
+        
+        add(splitPane);
     }
     
     private void loadSelectedTile(int tx, int ty) {

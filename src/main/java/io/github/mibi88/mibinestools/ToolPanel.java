@@ -20,16 +20,22 @@ package io.github.mibi88.mibinestools;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 
 /**
  *
  * @author mibi88
  */
-public class ToolPanel extends JPanel {
+public class ToolPanel extends JToolBar {
     private final int TOOL_AMOUNT = 4;
     private ButtonGroup buttonGroup;
     private JButton zoomIn;
@@ -39,12 +45,18 @@ public class ToolPanel extends JPanel {
     
     private TileEditor tileEditor;
     public ToolPanel(TileEditor tileEditor) {
-        super();
-        setLayout(new GridLayout(TOOL_AMOUNT, 1));
-        zoomIn = new JButton("Zoom In");
-        zoomOut = new JButton("Zoom Out");
-        penTool = new JToggleButton("Pen");
-        lineTool = new JToggleButton("Line");
+        super("Tools", JToolBar.VERTICAL);
+        setFloatable(false);
+        setRollover(true);
+        //setLayout(new GridLayout(TOOL_AMOUNT, 1));
+        zoomIn = new JButton(getIcon("zoom_in.png"));
+        zoomIn.setToolTipText("Zoom In");
+        zoomOut = new JButton(getIcon("zoom_out.png"));
+        zoomOut.setToolTipText("Zoom Out");
+        penTool = new JToggleButton(getIcon("pen.png"));
+        penTool.setToolTipText("Pen");
+        lineTool = new JToggleButton(getIcon("line.png"));
+        lineTool.setToolTipText("Line");
         buttonGroup = new ButtonGroup();
         buttonGroup.add(penTool);
         buttonGroup.add(lineTool);
@@ -55,6 +67,17 @@ public class ToolPanel extends JPanel {
         
         this.tileEditor = tileEditor;
         addActions();
+    }
+    
+    private ImageIcon getIcon(String image) {
+        try {
+            return new ImageIcon(ImageIO
+                    .read(ClassLoader.getSystemResource(image)));
+        } catch (IOException ex) {
+            Logger.getLogger(ToolPanel.class.getName()).log(
+                    Level.SEVERE, null, ex);
+            return new ImageIcon();
+        }
     }
     
     private void addActions() {

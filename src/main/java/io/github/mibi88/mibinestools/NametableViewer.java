@@ -45,8 +45,8 @@ public class NametableViewer extends JPanel {
         this.scale = scale;
         this.grid = grid;
         tiles = new byte[32*30];
-        Dimension size = new Dimension(scale*8*16+16,
-                scale*8*16*chrData.getChrBanks()+16);
+        Dimension size = new Dimension(scale*8*32+16,
+                scale*8*30+16);
         setPreferredSize(size);
         repaint();
         handleMouse();
@@ -73,8 +73,8 @@ public class NametableViewer extends JPanel {
     
     public void setScale(int scale) {
         this.scale = scale;
-        Dimension size = new Dimension(scale*8*16+16,
-                scale*8*16*chrData.getChrBanks()+16);
+        Dimension size = new Dimension(scale*8*32+16,
+                scale*8*30+16);
         setPreferredSize(size);
         repaint();
     }
@@ -129,20 +129,19 @@ public class NametableViewer extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.setColor(Color.GRAY);
-        for(int y=0;y<16*chrData.getChrBanks();y++){
-            for(int x=0;x<16;x++){
+        for(int y=0;y<30;y++){
+            for(int x=0;x<32;x++){
                 BufferedImage image = chrData.generateTileImage(tiles[y*16+x],
                         palette, scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }
             if(grid){
-                g.drawLine(0, y*8*scale, 16*8*scale, y*8*scale);
+                g.drawLine(0, y*8*scale, 32*8*scale, y*8*scale);
             }
         }
         if(grid){
-            for(int x=0;x<16;x++){
-                g.drawLine(x*8*scale, 0, x*8*scale,
-                        16*chrData.getChrBanks()*8*scale);
+            for(int x=0;x<32;x++){
+                g.drawLine(x*8*scale, 0, x*8*scale, 30*8*scale);
             }
         }
     }

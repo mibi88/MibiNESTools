@@ -21,6 +21,7 @@ import java.awt.GridLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JToolBar;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -29,11 +30,13 @@ import javax.swing.event.ChangeListener;
  *
  * @author mibi88
  */
-public class PaletteChooser extends JPanel {
+public class PaletteChooser extends JToolBar {
     private JLabel label;
     private JSpinner chooser;
     public PaletteChooser(PaletteEditor paletteEditor) {
-        super(new GridLayout(1, 2));
+        super("Palette selection");
+        setFloatable(false);
+        setRollover(true);
         label = new JLabel("Palette:");
         add(label);
         SpinnerNumberModel spinnerModel = new SpinnerNumberModel(0, 0,
