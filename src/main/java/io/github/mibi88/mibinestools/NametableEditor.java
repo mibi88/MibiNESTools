@@ -41,6 +41,8 @@ public class NametableEditor extends Editor {
     private int paletteIndex;
     private Window window;
     private UndoManager undoManager;
+    private byte[] clipboard;
+    private int clipboardW, clipboardH;
     
     /**
      * Initialize the nametable editor
@@ -187,5 +189,12 @@ public class NametableEditor extends Editor {
     
     public void addEdit(NametableEdit edit) {
         undoManager.addEdit(edit);
+    }
+    
+    @Override
+    public void copy() {
+        clipboard = nametablePane.getSelection();
+        clipboardW = nametablePane.getSelectionW();
+        clipboardH = nametablePane.getSelectionH();
     }
 }

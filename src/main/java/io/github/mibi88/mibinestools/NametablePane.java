@@ -36,6 +36,8 @@ public class NametablePane extends JPanel {
     private byte[] oldAttributes;
     private byte[] oldNametable;
     
+    int startX, startY;
+    
     public NametablePane(NametableEditor editor){
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -59,15 +61,29 @@ public class NametablePane extends JPanel {
         
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
-            public void beforeChange() {
+            public void beforeChange(int tx, int ty) {
                 oldNametable = nametableViewer.getNametable().clone();
                 oldAttributes = nametableViewer.getAttributes().clone();
+                startX = tx;
+                startY = ty;
                 return;
             }
             
             @Override
             public void tileChanged(int tx, int ty, boolean end) {
                 switch(getCurrentTool()){
+                    case SELECTION:
+                        if(tx == startX && ty == startY){
+                            nametableViewer.setSelection(startX,
+                                    startY, tx+1, ty+1);
+                        }else{
+                            nametableViewer.setSelection(startX
+                                    +(tx < startX ? 1 : 0),
+                                    startY+(ty < startY ? 1 : 0),
+                                    tx < startX ? tx : tx+1,
+                                    ty < startY ? ty : ty+1);
+                        }
+                        break;
                     case COLOR:
                         nametableViewer.setPalette(tx, ty,
                                 editor.getPaletteEditor()
@@ -83,7 +99,9 @@ public class NametablePane extends JPanel {
                         }
                         break;
                 }
-                editor.fileEdited();
+                if(getCurrentTool() != Tool.SELECTION){
+                    editor.fileEdited();
+                }
             }
         });
     }
@@ -133,5 +151,17 @@ public class NametablePane extends JPanel {
     
     public void setData(byte[] nametable, byte[] attributes) {
         nametableViewer.setData(nametable, attributes);
+    }
+    
+    public byte[] getSelection() {
+        return nametableViewer.getSelection();
+    }
+    
+    public int getSelectionW() {
+        return nametableViewer.getSelectionW();
+    }
+    
+    public int getSelectionH() {
+        return nametableViewer.getSelectionH();
     }
 }

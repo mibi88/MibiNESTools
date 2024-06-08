@@ -33,6 +33,7 @@ import javax.swing.JToolBar;
  * @author mibi88
  */
 public class NametableToolbar extends JToolBar {
+    private JToggleButton selection;
     private JToggleButton color;
     private JToggleButton pen;
     private JToggleButton rectangle;
@@ -44,7 +45,9 @@ public class NametableToolbar extends JToolBar {
         setFloatable(false);
         setRollover(true);
         
-        currentTool = Tool.COLOR;
+        currentTool = Tool.SELECTION;
+        selection = new JToggleButton(getIcon("selection.png"));
+        selection.setToolTipText("Selection");
         color = new JToggleButton(getIcon("color.png"));
         color.setToolTipText("Color");
         pen = new JToggleButton(getIcon("pen.png"));
@@ -54,15 +57,17 @@ public class NametableToolbar extends JToolBar {
         line = new JToggleButton(getIcon("line.png"));
         line.setToolTipText("Line");
         buttonGroup = new ButtonGroup();
+        buttonGroup.add(selection);
         buttonGroup.add(color);
         buttonGroup.add(pen);
         buttonGroup.add(rectangle);
         buttonGroup.add(line);
+        add(selection);
         add(color);
         add(pen);
         add(rectangle);
         add(line);
-        color.setSelected(true);
+        selection.setSelected(true);
         addActions();
     }
     

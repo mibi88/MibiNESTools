@@ -47,6 +47,7 @@ public class NametableViewer extends JPanel {
     private byte[] attributes;
     private byte currentTile;
     private int chrBank;
+    private int selectX, selectY, selectW, selectH;
     public NametableViewer(CHRData chrData, PaletteEditor paletteEditor,
             int scale, boolean grid) {
         super();
@@ -84,6 +85,19 @@ public class NametableViewer extends JPanel {
         Dimension size = new Dimension(scale*8*32+16,
                 scale*8*30+16);
         setPreferredSize(size);
+        repaint();
+    }
+    
+    public void setSelection(int selectX1, int selectY1, int selectX2,
+            int selectY2) {
+        selectX1 = selectX1 >= 32 ? 31 : selectX1;
+        selectY1 = selectY1 >= 30 ? 29 : selectY1;
+        selectX2 = selectX2 >= 32 ? 31 : selectX2;
+        selectY2 = selectY2 >= 30 ? 29 : selectY2;
+        selectX = Math.min(selectX1, selectX2);
+        selectY = Math.min(selectY1, selectY2);
+        selectW = Math.max(selectX1, selectX2)-selectX;
+        selectH = Math.max(selectY1, selectY2)-selectY;
         repaint();
     }
     
@@ -135,6 +149,36 @@ public class NametableViewer extends JPanel {
         return attributes;
     }
     
+    public byte[] getSelection() {
+        if(selectW != 0 && selectH != 0){
+            byte[] data = new byte[selectW*selectH];
+            for(int y=0;y<selectH;y++){
+                for(int x=0;x<selectW;x++){
+                    data[y*selectW+x] = tiles[(selectY+y)*selectW+(selectX+x)];
+                }
+            }
+            return data;
+        }
+        return null;
+    }
+    
+    public void fillSelection(int tile) {
+        for(int y=0;y<selectH;y++){
+            for(int x=0;x<selectW;x++){
+                tiles[(selectY+y)*selectW+(selectX+x)] =
+                        (byte)(tile-Byte.MIN_VALUE);
+            }
+        }
+    }
+    
+    public int getSelectionW() {
+        return selectW;
+    }
+    
+    public int getSelectionH() {
+        return selectH;
+    }
+    
     private void handleMouse() {
         addMouseListener(new MouseListener() {
             @Override
@@ -145,7 +189,9 @@ public class NametableViewer extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if(event != null){
-                    event.beforeChange();
+                    int tileX = e.getX()/(scale*8);
+                    int tileY = e.getY()/(scale*8);
+                    event.beforeChange(tileX, tileY);
                 }
                 setTile(e, false);
             }
@@ -239,6 +285,19 @@ public class NametableViewer extends JPanel {
             for(int x=0;x<32;x++){
                 g.drawLine(x*8*scale, 0, x*8*scale, 30*8*scale);
             }
+        }
+        
+        if(selectW != 0 && selectH != 0){
+            // Show the selection
+            g.setColor(Color.WHITE);
+            g.drawLine(selectX*8*scale, selectY*8*scale,
+                    (selectX+selectW)*8*scale, selectY*8*scale);
+            g.drawLine(selectX*8*scale, (selectY+selectH)*8*scale,
+                    (selectX+selectW)*8*scale, (selectY+selectH)*8*scale);
+            g.drawLine(selectX*8*scale, selectY*8*scale, selectX*8*scale,
+                    (selectY+selectH)*8*scale);
+            g.drawLine((selectX+selectW)*8*scale, selectY*8*scale,
+                    (selectX+selectW)*8*scale, (selectY+selectH)*8*scale);
         }
     }
 }

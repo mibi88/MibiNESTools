@@ -25,5 +25,6 @@ public enum Tool {
     PEN,
     LINE,
     RECTANGLE,
-    COLOR
+    COLOR,
+    SELECTION
 }
