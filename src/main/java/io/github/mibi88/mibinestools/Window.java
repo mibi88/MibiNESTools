@@ -191,11 +191,8 @@ public class Window extends JFrame {
     public void zoomIn() {
         if(scale < MAX_SCALE){
             scale++;
-            try {
-                editors.get(getSelectedEditor()).setScale(scale);
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
+            for(Editor editor : editors) {
+                editor.setScale(scale);
             }
         }
     }
@@ -203,11 +200,8 @@ public class Window extends JFrame {
     public void zoomOut() {
         if(scale > 1){
             scale--;
-            try {
-                editors.get(getSelectedEditor()).setScale(scale);
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
+            for(Editor editor : editors) {
+                editor.setScale(scale);
             }
         }
     }

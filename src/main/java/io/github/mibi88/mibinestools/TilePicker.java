@@ -164,5 +164,6 @@ public class TilePicker extends JPanel {
     
     public void setScale(int scale) {
         patternTable.setScale(scale);
+        patternTablePane.revalidate();
     }
 }

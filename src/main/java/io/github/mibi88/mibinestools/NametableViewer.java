@@ -92,7 +92,11 @@ public class NametableViewer extends JPanel {
     
     public void save(File file) throws IOException {
         FileOutputStream fileStream = new FileOutputStream(file);
-        fileStream.write(tiles);
+        byte[] fixedTiles = tiles.clone();
+        for(int i=0;i<fixedTiles.length;i++){
+            fixedTiles[i] += Byte.MIN_VALUE;
+        }
+        fileStream.write(fixedTiles);
         fileStream.write(attributes);
         fileStream.close();
     }

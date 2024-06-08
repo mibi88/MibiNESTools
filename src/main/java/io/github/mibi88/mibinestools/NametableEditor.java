@@ -71,7 +71,7 @@ public class NametableEditor extends Editor {
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
             public void tileChanged(int tx, int ty) {
-                return;
+                fileEdited();
             }
         });
     }
@@ -96,6 +96,7 @@ public class NametableEditor extends Editor {
     @Override
     public void setScale(int scale) {
         nametableViewer.setScale(scale);
+        nametableViewerPane.revalidate();
         tilePicker.setScale(scale);
     }
     
@@ -115,9 +116,23 @@ public class NametableEditor extends Editor {
     
     @Override
     public void saveFile() {
+        File file = getFile();
+        if(file != null){
+            try {
+                nametableViewer.save(file);
+                super.saveFile();
+            } catch (IOException ex) {
+                Logger.getLogger(NametableEditor.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    @Override
+    public void saveAsFile(File file) {
         try {
-            nametableViewer.save(this.getFile());
-            super.saveFile();
+            nametableViewer.save(file);
+            super.saveAsFile(file);
         } catch (IOException ex) {
             Logger.getLogger(NametableEditor.class.getName()).log(
                     Level.SEVERE, null, ex);
