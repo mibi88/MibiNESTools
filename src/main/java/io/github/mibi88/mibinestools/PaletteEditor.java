@@ -28,11 +28,12 @@ import javax.swing.JPanel;
  * @author mibi88
  */
 public class PaletteEditor extends JPanel {
-    public PaletteList paletteList;
-    public ColorList colorList;
-    public PaletteChooser paletteChooser;
-    public Editor editor;
-    public int[][] currentPalette;
+    private PaletteList paletteList;
+    private ColorList colorList;
+    private PaletteChooser paletteChooser;
+    private Editor editor;
+    private int[][] currentPalette;
+    private int currentPaletteIndex;
     public PaletteEditor(int[][] defaultPalette, Editor editor) {
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -76,6 +77,7 @@ public class PaletteEditor extends JPanel {
             final int index = (i%4)*2+i/4;
             currentPalette = paletteList.getPaletteData(index);
             editor.setPalette(currentPalette);
+            currentPaletteIndex = i;
             editor.setPalette(i);
         } catch (Exception ex) {
             Logger.getLogger(PaletteEditor.class.getName()).log(
@@ -90,5 +92,9 @@ public class PaletteEditor extends JPanel {
     public int[][] getPalette(int i) throws Exception {
         final int index = (i%4)*2+i/4;
         return paletteList.getPaletteData(index);
+    }
+    
+    public int getCurrentPaletteIndex() {
+        return currentPaletteIndex;
     }
 }

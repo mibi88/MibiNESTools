@@ -103,6 +103,15 @@ public class NametableEditor extends Editor {
     }
     
     @Override
+    public boolean newFile() {
+        if(super.newFile()){
+            nametablePane.reset();
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
     public boolean openFile(File file) {
         if(super.openFile(file)){
             try {

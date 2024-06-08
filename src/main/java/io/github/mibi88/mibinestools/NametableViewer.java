@@ -55,8 +55,7 @@ public class NametableViewer extends JPanel {
         this.scale = scale;
         this.grid = grid;
         currentTile = Byte.MIN_VALUE;
-        tiles = new byte[32*30];
-        attributes = new byte[64];
+        reset();
         Arrays.fill(tiles, Byte.MIN_VALUE);
         Dimension size = new Dimension(scale*8*32+16,
                 scale*8*30+16);
@@ -66,7 +65,8 @@ public class NametableViewer extends JPanel {
     }
     
     public void reset() {
-        return;
+        tiles = new byte[32*30];
+        attributes = new byte[64];
     }
     
     public void setCHR(CHRData chrData) {
@@ -161,14 +161,27 @@ public class NametableViewer extends JPanel {
         });
     }
     
+    public void setTile(int tileX, int tileY) {
+        if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
+            tiles[tileY*32+tileX] = currentTile;
+        }
+    }
+    
+    public void setPalette(int tileX, int tileY, int palette) {
+        if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
+            palette &= 0b00000011;
+            int attrPos = (tileY/4)*8+(tileX/4);
+            int pos = (tileY/2%2)*2+(tileX/2%2);
+            attributes[attrPos] &= ~(0b11<<pos*2);
+            attributes[attrPos] |= palette<<pos*2;
+        }
+    }
+    
     private void setTile(MouseEvent e) {
         int tileX = e.getX()/(scale*8);
         int tileY = e.getY()/(scale*8);
         if(event != null){
             event.tileChanged(tileX, tileY);
-            if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
-                tiles[tileY*32+tileX] = currentTile;
-            }
         }
         repaint();
     }
@@ -187,10 +200,10 @@ public class NametableViewer extends JPanel {
                 int attrPos = (y/4)*8+(x/4);
                 int pos = (y/2%2)*2+(x/2%2);
                 int bit1 = 1<<pos*2;
-                System.out.println(Integer.toBinaryString(bit1|bit1<<1));
+                //System.out.println(Integer.toBinaryString(bit1|bit1<<1));
                 int palette = attributes[attrPos]&(bit1|bit1<<1);
                 palette >>= pos*2;
-                System.out.println(palette%4);
+                //System.out.println(palette%4);
                 try {
                     BufferedImage image = chrData.generateTileImage(
                             tile,

@@ -57,9 +57,23 @@ public class NametablePane extends JPanel {
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
             public void tileChanged(int tx, int ty) {
+                switch(getCurrentTool()){
+                    case COLOR:
+                        nametableViewer.setPalette(tx, ty,
+                                editor.getPaletteEditor()
+                                        .getCurrentPaletteIndex());
+                        break;
+                    case PEN:
+                        nametableViewer.setTile(tx, ty);
+                        break;
+                }
                 editor.fileEdited();
             }
         });
+    }
+    
+    public void reset() {
+        nametableViewer.reset();
     }
     
     public void setScale(int scale) {
@@ -89,5 +103,9 @@ public class NametablePane extends JPanel {
     
     public void paletteChanged() {
         nametableViewer.repaint();
+    }
+    
+    public Tool getCurrentTool() {
+        return nametableToolbar.getCurrentTool();
     }
 }

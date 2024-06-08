@@ -17,6 +17,8 @@
  */
 package io.github.mibi88.mibinestools;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,11 +38,13 @@ public class NametableToolbar extends JToolBar {
     private JToggleButton rectangle;
     private JToggleButton line;
     private ButtonGroup buttonGroup;
+    private Tool currentTool;
     public NametableToolbar() {
         super("Tools", JToolBar.VERTICAL);
         setFloatable(false);
         setRollover(true);
         
+        currentTool = Tool.COLOR;
         color = new JToggleButton(getIcon("color.png"));
         color.setToolTipText("Color");
         pen = new JToggleButton(getIcon("pen.png"));
@@ -59,6 +63,34 @@ public class NametableToolbar extends JToolBar {
         add(rectangle);
         add(line);
         color.setSelected(true);
+        addActions();
+    }
+    
+    private void addActions() {
+        color.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.COLOR;
+            }
+        });
+        pen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.PEN;
+            }
+        });
+        rectangle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.RECTANGLE;
+            }
+        });
+        line.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.LINE;
+            }
+        });
     }
     
     private ImageIcon getIcon(String image) {
@@ -70,5 +102,9 @@ public class NametableToolbar extends JToolBar {
                     Level.SEVERE, null, ex);
             return new ImageIcon();
         }
+    }
+    
+    public Tool getCurrentTool() {
+        return currentTool;
     }
 }
