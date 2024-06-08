@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
@@ -33,13 +31,14 @@ import javax.swing.JTabbedPane;
  * @author mibi88
  */
 public class NametableEditor extends Editor {
-    private NametableViewer nametableViewer;
-    private JScrollPane nametableViewerPane;
+    private NametablePane nametablePane;
     private PaletteEditor paletteEditor;
     private JTabbedPane tilePane;
     private JSplitPane splitPane;
     private TilePicker tilePicker;
     private int[][] currentPalette;
+    private int paletteIndex;
+    private Window window;
     
     /**
      * Initialize the nametable editor
@@ -53,32 +52,36 @@ public class NametableEditor extends Editor {
             {254, 254, 254}
         };
         tilePicker = new TilePicker(this, window);
-        nametableViewer = new NametableViewer(tilePicker.getCHRData(),
-                currentPalette, window.getScale(), true);
-        nametableViewerPane = new JScrollPane(nametableViewer);
-        nametableViewerPane.setMinimumSize(new Dimension(300, 0));
+        this.window = window;
         paletteEditor = new PaletteEditor(currentPalette,
                 this);
+        nametablePane = new NametablePane(this);
+        nametablePane.setMinimumSize(new Dimension(300, 0));
         
         tilePane = new JTabbedPane();
         tilePane.addTab("Pattern Table", tilePicker);
         tilePane.addTab("Palette Editor", paletteEditor);
         tilePane.setMinimumSize(new Dimension(250, 0));
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false,
-                nametableViewerPane, tilePane);
+                nametablePane, tilePane);
         add(splitPane);
-        
-        nametableViewer.setEventHandler(new NametableViewerEvent() {
-            @Override
-            public void tileChanged(int tx, int ty) {
-                fileEdited();
-            }
-        });
     }
     
+    @Override
     public void setPalette(int[][] palette) {
-        nametableViewer.setPalette(palette);
         tilePicker.setPalette(palette);
+    }
+    
+    @Override
+    public void setPalette(int i) {
+        paletteIndex = i;
+        if(nametablePane != null){
+            nametablePane.paletteChanged();
+        }
+    }
+    
+    public PaletteEditor getPaletteEditor() {
+        return paletteEditor;
     }
     
     public int[][] getCurrentPalette() {
@@ -86,17 +89,16 @@ public class NametableEditor extends Editor {
     }
     
     public void setCHR(CHRData chrData) {
-        nametableViewer.setCHR(chrData);
+        nametablePane.setCHR(chrData);
     }
     
     public void setCurrentTile(int currentTile) {
-        nametableViewer.setCurrentTile(currentTile);
+        nametablePane.setCurrentTile(currentTile);
     }
     
     @Override
     public void setScale(int scale) {
-        nametableViewer.setScale(scale);
-        nametableViewerPane.revalidate();
+        nametablePane.setScale(scale);
         tilePicker.setScale(scale);
     }
     
@@ -104,7 +106,7 @@ public class NametableEditor extends Editor {
     public boolean openFile(File file) {
         if(super.openFile(file)){
             try {
-                nametableViewer.open(file);
+                nametablePane.open(file);
             } catch (IOException ex) {
                 Logger.getLogger(NametableEditor.class.getName()).log(
                         Level.SEVERE, null, ex);
@@ -119,7 +121,7 @@ public class NametableEditor extends Editor {
         File file = getFile();
         if(file != null){
             try {
-                nametableViewer.save(file);
+                nametablePane.save(file);
                 super.saveFile();
             } catch (IOException ex) {
                 Logger.getLogger(NametableEditor.class.getName()).log(
@@ -131,7 +133,7 @@ public class NametableEditor extends Editor {
     @Override
     public void saveAsFile(File file) {
         try {
-            nametableViewer.save(file);
+            nametablePane.save(file);
             super.saveAsFile(file);
         } catch (IOException ex) {
             Logger.getLogger(NametableEditor.class.getName()).log(
@@ -140,6 +142,14 @@ public class NametableEditor extends Editor {
     }
     
     public void setCHRBank(int chrBank) {
-        nametableViewer.setCHRBank(chrBank);
+        nametablePane.setCHRBank(chrBank);
+    }
+    
+    public int getScale() {
+        return window.getScale();
+    }
+    
+    public CHRData getCHRData() {
+        return tilePicker.getCHRData();
     }
 }

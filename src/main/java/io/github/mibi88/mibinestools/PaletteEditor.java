@@ -76,6 +76,7 @@ public class PaletteEditor extends JPanel {
             final int index = (i%4)*2+i/4;
             currentPalette = paletteList.getPaletteData(index);
             editor.setPalette(currentPalette);
+            editor.setPalette(i);
         } catch (Exception ex) {
             Logger.getLogger(PaletteEditor.class.getName()).log(
                     Level.SEVERE, null, ex);
@@ -84,5 +85,10 @@ public class PaletteEditor extends JPanel {
     
     public int[][] getCurrentPalette() {
         return currentPalette;
+    }
+    
+    public int[][] getPalette(int i) throws Exception {
+        final int index = (i%4)*2+i/4;
+        return paletteList.getPaletteData(index);
     }
 }

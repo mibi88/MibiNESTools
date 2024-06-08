@@ -64,6 +64,7 @@ public class ToolPanel extends JToolBar {
         add(zoomOut);
         add(penTool);
         add(lineTool);
+        penTool.setSelected(true);
         
         this.tileEditor = tileEditor;
         addActions();

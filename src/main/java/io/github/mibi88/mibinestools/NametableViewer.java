@@ -29,6 +29,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 /**
@@ -37,7 +39,7 @@ import javax.swing.JPanel;
  */
 public class NametableViewer extends JPanel {
     private CHRData chrData;
-    private int[][] palette;
+    private PaletteEditor paletteEditor;
     private int scale;
     private boolean grid;
     private NametableViewerEvent event;
@@ -45,11 +47,11 @@ public class NametableViewer extends JPanel {
     private byte[] attributes;
     private byte currentTile;
     private int chrBank;
-    public NametableViewer(CHRData chrData, int[][] palette, int scale,
-            boolean grid) {
+    public NametableViewer(CHRData chrData, PaletteEditor paletteEditor,
+            int scale, boolean grid) {
         super();
         this.chrData = chrData;
-        this.palette = palette;
+        this.paletteEditor = paletteEditor;
         this.scale = scale;
         this.grid = grid;
         currentTile = Byte.MIN_VALUE;
@@ -65,11 +67,6 @@ public class NametableViewer extends JPanel {
     
     public void reset() {
         return;
-    }
-    
-    public void setPalette(int[][] palette) {
-        this.palette = palette;
-        repaint();
     }
     
     public void setCHR(CHRData chrData) {
@@ -117,8 +114,6 @@ public class NametableViewer extends JPanel {
     
     public void setCurrentTile(int currentTile) {
         this.currentTile = (byte)(currentTile-Byte.MIN_VALUE);
-        System.out.println(this.currentTile);
-        System.out.println(Byte.MIN_VALUE);
     }
     
     public void setCHRBank(int chrBank) {
@@ -189,9 +184,22 @@ public class NametableViewer extends JPanel {
         for(int y=0;y<30;y++){
             for(int x=0;x<32;x++){
                 int tile = chrBank*256+(int)tiles[y*32+x]-Byte.MIN_VALUE;
-                BufferedImage image = chrData.generateTileImage(tile,
-                        palette, scale);
-                g.drawImage(image, x*8*scale, y*8*scale, this);
+                int attrPos = (y/4)*8+(x/4);
+                int pos = (y/2%2)*2+(x/2%2);
+                int bit1 = 1<<pos*2;
+                System.out.println(Integer.toBinaryString(bit1|bit1<<1));
+                int palette = attributes[attrPos]&(bit1|bit1<<1);
+                palette >>= pos*2;
+                System.out.println(palette%4);
+                try {
+                    BufferedImage image = chrData.generateTileImage(
+                            tile,
+                            paletteEditor.getPalette(palette%4), scale);
+                    g.drawImage(image, x*8*scale, y*8*scale, this);
+                } catch (Exception ex) {
+                    Logger.getLogger(NametableViewer.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
             }
             if(grid){
                 g.drawLine(0, y*8*scale, 32*8*scale, y*8*scale);

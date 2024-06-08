@@ -129,6 +129,10 @@ public abstract class Editor extends JPanel {
         return;
     }
     
+    public void setPalette(int i) {
+        return;
+    }
+    
     public void fileEdited() {
         fileSaved = false;
         updateTitle();
