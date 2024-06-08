@@ -33,6 +33,9 @@ public class NametablePane extends JPanel {
     private JScrollPane nametableViewerPane;
     private NametableToolbar nametableToolbar;
     
+    private byte[] oldAttributes;
+    private byte[] oldNametable;
+    
     public NametablePane(NametableEditor editor){
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -56,20 +59,39 @@ public class NametablePane extends JPanel {
         
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
+            public void beforeChange() {
+                oldNametable = nametableViewer.getNametable().clone();
+                oldAttributes = nametableViewer.getAttributes().clone();
+                return;
+            }
+            
+            @Override
             public void tileChanged(int tx, int ty, boolean end) {
                 switch(getCurrentTool()){
                     case COLOR:
                         nametableViewer.setPalette(tx, ty,
                                 editor.getPaletteEditor()
                                         .getCurrentPaletteIndex());
+                        if(end){
+                            addEdit(editor);
+                        }
                         break;
                     case PEN:
                         nametableViewer.setTile(tx, ty);
+                        if(end){
+                            addEdit(editor);
+                        }
                         break;
                 }
                 editor.fileEdited();
             }
         });
+    }
+    
+    private void addEdit(NametableEditor editor) {
+        editor.addEdit(new NametableEdit(editor, oldAttributes, oldNametable,
+                nametableViewer.getAttributes(),
+                nametableViewer.getNametable()));
     }
     
     public void reset() {
@@ -107,5 +129,9 @@ public class NametablePane extends JPanel {
     
     public Tool getCurrentTool() {
         return nametableToolbar.getCurrentTool();
+    }
+    
+    public void setData(byte[] nametable, byte[] attributes) {
+        nametableViewer.setData(nametable, attributes);
     }
 }

@@ -108,6 +108,12 @@ public class NametableViewer extends JPanel {
         fileStream.close();
     }
     
+    public void setData(byte[] nametable, byte[] attributes) {
+        tiles = nametable;
+        this.attributes = attributes;
+        repaint();
+    }
+    
     public void setEventHandler(NametableViewerEvent event) {
         this.event = event;
     }
@@ -121,6 +127,14 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    public byte[] getNametable() {
+        return tiles;
+    }
+    
+    public byte[] getAttributes() {
+        return attributes;
+    }
+    
     private void handleMouse() {
         addMouseListener(new MouseListener() {
             @Override
@@ -130,6 +144,9 @@ public class NametableViewer extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
+                if(event != null){
+                    event.beforeChange();
+                }
                 setTile(e, false);
             }
 

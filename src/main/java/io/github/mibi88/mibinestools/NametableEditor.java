@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.undo.UndoManager;
 
 /**
  *
@@ -39,12 +40,14 @@ public class NametableEditor extends Editor {
     private int[][] currentPalette;
     private int paletteIndex;
     private Window window;
+    private UndoManager undoManager;
     
     /**
      * Initialize the nametable editor
      */
     public NametableEditor(Window window) {
         super("Nametable Editor", new GridLayout(1, 4));
+        undoManager = new UndoManager();
         currentPalette = new int[][]{
             {0, 0, 0},
             {79, 79, 79},
@@ -106,6 +109,7 @@ public class NametableEditor extends Editor {
     public boolean newFile() {
         if(super.newFile()){
             nametablePane.reset();
+            undoManager.die();
             return true;
         }
         return false;
@@ -116,6 +120,7 @@ public class NametableEditor extends Editor {
         if(super.openFile(file)){
             try {
                 nametablePane.open(file);
+                undoManager.die();
             } catch (IOException ex) {
                 Logger.getLogger(NametableEditor.class.getName()).log(
                         Level.SEVERE, null, ex);
@@ -160,5 +165,27 @@ public class NametableEditor extends Editor {
     
     public CHRData getCHRData() {
         return tilePicker.getCHRData();
+    }
+    
+    @Override
+    public void undo() {
+        if(undoManager.canUndo()){
+            undoManager.undo();
+        }
+    }
+    
+    @Override
+    public void redo() {
+        if(undoManager.canRedo()){
+            undoManager.redo();
+        }
+    }
+    
+    public void setData(byte[] nametable, byte[] attributes) {
+        nametablePane.setData(nametable, attributes);
+    }
+    
+    public void addEdit(NametableEdit edit) {
+        undoManager.addEdit(edit);
     }
 }
