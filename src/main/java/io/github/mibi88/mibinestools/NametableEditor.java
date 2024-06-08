@@ -197,4 +197,12 @@ public class NametableEditor extends Editor {
         clipboardW = nametablePane.getSelectionW();
         clipboardH = nametablePane.getSelectionH();
     }
+    
+    @Override
+    public void paste() {
+        if(clipboard != null){
+            nametablePane.fillSelection(clipboard, clipboardW,
+                    clipboardH);
+        }
+    }
 }

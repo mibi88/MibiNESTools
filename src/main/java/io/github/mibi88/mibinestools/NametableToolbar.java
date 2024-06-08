@@ -72,6 +72,12 @@ public class NametableToolbar extends JToolBar {
     }
     
     private void addActions() {
+        selection.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.SELECTION;
+            }
+        });
         color.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

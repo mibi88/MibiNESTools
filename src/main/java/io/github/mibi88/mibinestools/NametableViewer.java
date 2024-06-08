@@ -171,6 +171,14 @@ public class NametableViewer extends JPanel {
         }
     }
     
+    public void fillSelection(byte[] data, int w, int h) {
+        for(int y=0;y<Math.min(selectH, h);y++){
+            for(int x=0;x<Math.min(selectW, w);x++){
+                tiles[(selectY+y)*selectW+(selectX+x)] = data[y*w+x];
+            }
+        }
+    }
+    
     public int getSelectionW() {
         return selectW;
     }
