@@ -17,7 +17,6 @@
  */
 package io.github.mibi88.mibinestools;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.io.File;
@@ -26,6 +25,7 @@ import java.util.logging.Logger;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.undo.UndoManager;
 
 /**
  *
@@ -48,6 +48,8 @@ public class CHREditor extends Editor {
     
     private Window window;
     
+    private UndoManager undoManager;
+    
     /**
      * Initialize the CHR Editor
      * @param window
@@ -63,6 +65,7 @@ public class CHREditor extends Editor {
             {254, 254, 254}
         };
         this.window = window;
+        undoManager = new UndoManager();
         initEditor();
     }
     
@@ -122,6 +125,7 @@ public class CHREditor extends Editor {
                 patternTablePane.revalidate();
                 loadSelectedTile(patternTable.getSelectedX(),
                         patternTable.getSelectedY());
+                undoManager.die();
                 return true;
             }
         } catch (Exception ex) {
@@ -176,6 +180,7 @@ public class CHREditor extends Editor {
             patternTable.reset();
             tileEditor.reset();
             paletteEditor.reset();
+            undoManager.die();
             return true;
         }
         return false;
@@ -185,6 +190,9 @@ public class CHREditor extends Editor {
         try {
             chrData.setTile(data, ty*16+tx);
             patternTable.repaint();
+            if(tileEditor.getTileX() == tx && tileEditor.getTileY() == ty){
+                tileEditor.loadTile(data, tx, ty);
+            }
             fileEdited();
         } catch (Exception ex) {
             Logger.getLogger(CHREditor.class.getName()).log(
@@ -216,5 +224,21 @@ public class CHREditor extends Editor {
     
     public int[][] getCurrentPalette() {
         return paletteEditor.getCurrentPalette();
+    }
+    
+    public void addEdit(CHREdit edit) {
+        undoManager.addEdit(edit);
+    }
+    
+    public void undo() {
+        if(undoManager.canUndo()){
+            undoManager.undo();
+        }
+    }
+    
+    public void redo() {
+        if(undoManager.canRedo()){
+            undoManager.redo();
+        }
     }
 }

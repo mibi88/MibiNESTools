@@ -231,4 +231,22 @@ public class Window extends JFrame {
         }
         dispose();
     }
+    
+    public void undo() {
+        try {
+            editors.get(getSelectedEditor()).undo();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void redo() {
+        try {
+            editors.get(getSelectedEditor()).redo();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
 }

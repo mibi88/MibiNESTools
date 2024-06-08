@@ -22,5 +22,5 @@ package io.github.mibi88.mibinestools;
  * @author mibi88
  */
 public interface NametableViewerEvent {
-    public void tileChanged(int tx, int ty);
+    public void tileChanged(int tx, int ty, boolean end);
 }

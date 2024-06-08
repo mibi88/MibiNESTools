@@ -17,11 +17,36 @@
  */
 package io.github.mibi88.mibinestools;
 
+import javax.swing.undo.AbstractUndoableEdit;
+
 /**
  *
  * @author mibi88
  */
-public interface CanvasEvent {
-    public void beforeChange();
-    public void canvasUpdate(boolean end);
+public class CHREdit extends AbstractUndoableEdit {
+    private byte[] tileData;
+    private byte[] newData;
+    private int tx, ty;
+    private CHREditor editor;
+    public CHREdit(CHREditor editor, byte[] tileData, byte[] newData, int tx,
+            int ty) {
+        super();
+        this.tileData = tileData.clone();
+        this.newData = newData.clone();
+        this.tx = tx;
+        this.ty = ty;
+        this.editor = editor;
+    }
+    
+    @Override
+    public void undo() {
+        super.undo();
+        editor.updateTile(tileData, tx, ty);
+    }
+    
+    @Override
+    public void redo() {
+        super.redo();
+        editor.updateTile(newData, tx, ty);
+    }
 }

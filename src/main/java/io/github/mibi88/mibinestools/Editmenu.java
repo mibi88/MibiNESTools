@@ -18,6 +18,8 @@
 package io.github.mibi88.mibinestools;
 
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -67,5 +69,17 @@ public class Editmenu extends JMenu {
     
     private void addActions(Window window) {
         // TODO: Add actions
+        undo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.undo();
+            }
+        });
+        redo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.redo();
+            }
+        });
     }
 }

@@ -34,6 +34,7 @@ public class TileEditor extends JPanel {
     private TileCanvas tileCanvas;
     private ColorPicker colorPicker;
     private int tx, ty;
+    private byte[] oldData;
     public TileEditor(int scale, int[][] palette, byte currentColor,
             CHREditor editor) {
         super(new GridBagLayout());
@@ -44,8 +45,16 @@ public class TileEditor extends JPanel {
         tileCanvas = new TileCanvas(scale, 8,  8, palette, currentColor);
         tileCanvas.setEventHandler(new CanvasEvent() {
             @Override
-            public void canvasUpdate() {
+            public void beforeChange() {
+                oldData = tileCanvas.getData().clone();
+            }
+            @Override
+            public void canvasUpdate(boolean end) {
                 editor.updateTile(tileCanvas.getData(), tx, ty);
+                if(end){
+                    editor.addEdit(new CHREdit(editor, oldData,
+                            tileCanvas.getData(), tx, ty));
+                }
             }
         });
         canvasPane = new JScrollPane(tileCanvas);
@@ -103,5 +112,13 @@ public class TileEditor extends JPanel {
     public void setPalette(int[][] palette) {
         colorPicker.updatePalette(palette);
         tileCanvas.setPalette(palette);
+    }
+    
+    public int getTileX() {
+        return tx;
+    }
+    
+    public int getTileY() {
+        return ty;
     }
 }

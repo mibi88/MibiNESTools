@@ -130,12 +130,12 @@ public class NametableViewer extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                setTile(e);
+                setTile(e, false);
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                setTile(e);
+                setTile(e, true);
             }
 
             @Override
@@ -151,7 +151,7 @@ public class NametableViewer extends JPanel {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                setTile(e);
+                setTile(e, false);
             }
 
             @Override
@@ -177,11 +177,11 @@ public class NametableViewer extends JPanel {
         }
     }
     
-    private void setTile(MouseEvent e) {
+    private void setTile(MouseEvent e, boolean end) {
         int tileX = e.getX()/(scale*8);
         int tileY = e.getY()/(scale*8);
         if(event != null){
-            event.tileChanged(tileX, tileY);
+            event.tileChanged(tileX, tileY, end);
         }
         repaint();
     }

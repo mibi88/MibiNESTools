@@ -56,7 +56,7 @@ public class NametablePane extends JPanel {
         
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
-            public void tileChanged(int tx, int ty) {
+            public void tileChanged(int tx, int ty, boolean end) {
                 switch(getCurrentTool()){
                     case COLOR:
                         nametableViewer.setPalette(tx, ty,

@@ -194,4 +194,11 @@ public abstract class Editor extends JPanel {
         JTabbedPane tabbedPane = getTabbedPane();
         tabbedPane.setTitleAt(i, title);
     }
+    
+    public void undo() {
+        return;
+    }
+    public void redo() {
+        return;
+    }
 }

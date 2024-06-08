@@ -60,7 +60,10 @@ public class TileCanvas extends JPanel {
             public void mousePressed(MouseEvent e) {
                 int tileX = e.getX()/scale;
                 int tileY = e.getY()/scale;
-                setPixel(tileX, tileY, currentColor);
+                if(event != null){
+                    event.beforeChange();
+                }
+                setPixel(tileX, tileY, currentColor, false);
                 return;
             }
 
@@ -68,7 +71,7 @@ public class TileCanvas extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 int tileX = e.getX()/scale;
                 int tileY = e.getY()/scale;
-                setPixel(tileX, tileY, currentColor);
+                setPixel(tileX, tileY, currentColor, true);
                 return;
             }
 
@@ -87,7 +90,7 @@ public class TileCanvas extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 int tileX = e.getX()/scale;
                 int tileY = e.getY()/scale;
-                setPixel(tileX, tileY, currentColor);
+                setPixel(tileX, tileY, currentColor, false);
             }
 
             @Override
@@ -101,12 +104,12 @@ public class TileCanvas extends JPanel {
         this.currentColor = currentColor;
     }
     
-    public void setPixel(int x, int y, byte value) {
+    public void setPixel(int x, int y, byte value, boolean end) {
         if(x >= 0 && x < w && y >= 0 && y < h){
             data[y*w+x] = (byte)(value&0b00000011);
             repaint();
             if(event != null){
-                event.canvasUpdate();
+                event.canvasUpdate(end);
             }
         }
     }
