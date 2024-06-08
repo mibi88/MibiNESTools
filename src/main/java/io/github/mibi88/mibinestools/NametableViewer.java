@@ -123,6 +123,7 @@ public class NametableViewer extends JPanel {
     
     public void setCHRBank(int chrBank) {
         this.chrBank = chrBank;
+        repaint();
     }
     
     private void handleMouse() {

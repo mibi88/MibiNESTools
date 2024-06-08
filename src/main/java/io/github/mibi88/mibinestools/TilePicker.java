@@ -43,11 +43,7 @@ public class TilePicker extends JPanel {
     private PatternTable patternTable;
     private JScrollPane patternTablePane;
     
-    private JToolBar toolBar;
-    private JButton loadCHR;
-    private JButton reloadCHR;
-    private SpinnerNumberModel chrBankModel;
-    private JSpinner chrBank;
+    private TilePickerTools tools;
     
     private CHRData chrData;
     
@@ -65,26 +61,14 @@ public class TilePicker extends JPanel {
                 true);
         patternTablePane = new JScrollPane(patternTable);
         
-        toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-        toolBar.setRollover(true);
-        
-        loadCHR = new JButton("Load CHR");
-        toolBar.add(loadCHR);
-        reloadCHR = new JButton("Reload CHR");
-        toolBar.add(reloadCHR);
-        
-        chrBankModel = new SpinnerNumberModel(0, 0,
-                chrData.getChrBanks()-1, 1);
-        chrBank = new JSpinner(chrBankModel);
-        toolBar.add(chrBank);
+        tools = new TilePickerTools(this);
         
         c.gridx = 0;
         c.gridy = 0;
         c.weighty = 0;
         c.weightx = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        add(toolBar, c);
+        add(tools, c);
         c.gridx = 0;
         c.gridy = 1;
         c.weighty = 1;
@@ -108,27 +92,9 @@ public class TilePicker extends JPanel {
                 editor.setCurrentTile(ty*16+tx);
             }
         });
-        loadCHR.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openCHR();
-            }
-        });
-        reloadCHR.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateCHR();
-            }
-        });
-        chrBank.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                editor.setCHRBank((int)chrBank.getValue());
-            }
-        });
     }
     
-    private void openCHR() {
+    public void openCHR() {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter chrFilter =
                 new FileNameExtensionFilter("CHR Files", "chr");
@@ -145,15 +111,13 @@ public class TilePicker extends JPanel {
         }
     }
     
-    private void updateCHR() {
+    public void updateCHR() {
         if(file != null){
             try {
                 chrData = new CHRData(file);
                 patternTable.setCHR(chrData);
                 editor.setCHR(chrData);
-                chrBankModel = new SpinnerNumberModel(0, 0,
-                        chrData.getChrBanks()-1, 1);
-                chrBank.setModel(chrBankModel);
+                tools.setCHRBanks(chrData.getChrBanks());
                 
             } catch (Exception ex) {
                 Logger.getLogger(TilePicker.class.getName()).log(
@@ -165,5 +129,13 @@ public class TilePicker extends JPanel {
     public void setScale(int scale) {
         patternTable.setScale(scale);
         patternTablePane.revalidate();
+    }
+    
+    public void setCHRBank(int value) {
+        editor.setCHRBank(value);
+    }
+    
+    public int getCHRBanks() {
+        return chrData.getChrBanks();
     }
 }
