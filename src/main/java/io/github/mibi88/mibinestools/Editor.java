@@ -198,7 +198,20 @@ public abstract class Editor extends JPanel {
     public void undo() {
         return;
     }
+    
     public void redo() {
+        return;
+    }
+    
+    public void copy() {
+        return;
+    }
+    
+    public void cut() {
+        return;
+    }
+    
+    public void paste() {
         return;
     }
 }

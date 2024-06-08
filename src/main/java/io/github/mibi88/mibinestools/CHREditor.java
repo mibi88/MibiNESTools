@@ -50,6 +50,10 @@ public class CHREditor extends Editor {
     
     private UndoManager undoManager;
     
+    // It seems complicated to use the clipboard for binary data, so I'm just
+    // storing it that way
+    private byte[] clipboard;
+    
     /**
      * Initialize the CHR Editor
      * @param window
@@ -240,5 +244,32 @@ public class CHREditor extends Editor {
         if(undoManager.canRedo()){
             undoManager.redo();
         }
+    }
+    
+    @Override
+    public void copy() {
+        clipboard = tileEditor.getTile().clone();
+    }
+    
+    @Override
+    public void cut() {
+        clipboard = tileEditor.getTile().clone();
+        byte[] oldTile = clipboard.clone();
+        byte[] newTile = new byte[8*8];
+        updateTile(newTile, patternTable.getSelectedX(),
+                patternTable.getSelectedY());
+        addEdit(new CHREdit(this, oldTile, newTile,
+                patternTable.getSelectedX(),
+                patternTable.getSelectedY()));
+    }
+    
+    @Override
+    public void paste() {
+        byte[] oldTile = tileEditor.getTile();
+        updateTile(clipboard, patternTable.getSelectedX(),
+                patternTable.getSelectedY());
+        addEdit(new CHREdit(this, oldTile, clipboard,
+                patternTable.getSelectedX(),
+                patternTable.getSelectedY()));
     }
 }

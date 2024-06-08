@@ -249,4 +249,31 @@ public class Window extends JFrame {
                     Level.SEVERE, null, ex);
         }
     }
+    
+    public void copy() {
+        try {
+            editors.get(getSelectedEditor()).copy();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void cut() {
+        try {
+            editors.get(getSelectedEditor()).cut();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void paste() {
+        try {
+            editors.get(getSelectedEditor()).paste();
+        } catch (Exception ex) {
+            Logger.getLogger(Window.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+    }
 }

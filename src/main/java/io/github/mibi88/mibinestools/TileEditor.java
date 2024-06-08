@@ -121,4 +121,8 @@ public class TileEditor extends JPanel {
     public int getTileY() {
         return ty;
     }
+    
+    public byte[] getTile() {
+        return tileCanvas.getData();
+    }
 }

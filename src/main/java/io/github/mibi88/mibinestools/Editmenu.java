@@ -81,5 +81,23 @@ public class Editmenu extends JMenu {
                 window.redo();
             }
         });
+        copy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.copy();
+            }
+        });
+        cut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.cut();
+            }
+        });
+        paste.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.paste();
+            }
+        });
     }
 }
