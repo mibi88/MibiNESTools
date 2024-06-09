@@ -28,6 +28,12 @@ import java.awt.event.ActionListener;
 public class EditablePalette extends Palette {
     private int[][] paletteData;
     private PaletteEvent event;
+
+    /**
+     * Create a new editable palette.
+     * @param palette The colors of the palette.
+     * @param colorList The color list to use with it.
+     */
     public EditablePalette(int[][] palette, ColorList colorList) {
         super(palette);
         paletteData = palette.clone();
@@ -49,10 +55,18 @@ public class EditablePalette extends Palette {
         }
     }
     
+    /**
+     * Set the event handler to call when the palette has changed.
+     * @param event The event handler.
+     */
     public void setEventHandler(PaletteEvent event) {
         this.event = event;
     }
     
+    /**
+     * Get the palette data.
+     * @return The palette data.
+     */
     public int[][] getPaletteData() {
         return paletteData;
     }

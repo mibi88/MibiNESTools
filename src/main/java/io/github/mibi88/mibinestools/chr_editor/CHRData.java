@@ -24,7 +24,7 @@ import java.io.FileOutputStream;
 import java.util.Arrays;
 
 /**
- *
+ * This class stores the pattern table.
  * @author mibi88
  */
 public class CHRData {
@@ -32,11 +32,19 @@ public class CHRData {
     int chrBanks;
     byte[] rawData;
     
+    /**
+     * Initialize the data with a new pattern table.
+     */
     public CHRData() {
         resetCHRData(2);
         rawData = new byte[2*256*16];
     }
     
+    /**
+     * Load the pattern table from a file.
+     * @param file The file to load the pattern table from.
+     * @throws Exception Gets thrown if the loading failed.
+     */
     public CHRData(File file) throws Exception {
         FileInputStream fileStream = new FileInputStream(file);
         rawData = new byte[fileStream.available()];
@@ -45,12 +53,21 @@ public class CHRData {
         fileStream.close();
     }
     
+    /**
+     * Save the pattern table to a file.
+     * @param file The file to save the pattern table to.
+     * @throws Exception Gets thrown on failure.
+     */
     public void saveCHRData(File file) throws Exception {
         FileOutputStream fileStream = new FileOutputStream(file);
         fileStream.write(rawData);
         fileStream.close();
     }
     
+    /**
+     * Load the CHR data from a byte array.
+     * @param rawData The byte array that contains the CHR data.
+     */
     public void loadCHRData(byte[] rawData) {
         // Each tile is made out of 16 bytes and each bank out of 256 tiles.
         resetCHRData(rawData.length/(256*16));
@@ -60,15 +77,28 @@ public class CHRData {
         }
     }
     
+    /**
+     * Reset the raw CHR data.
+     * @param chrBanks The number of banks of the CHR data.
+     */
     public void resetRawData(int chrBanks) {
         rawData = new byte[chrBanks*256*16];
     }
     
+    /**
+     * Reset the CHR data.
+     * @param chrBanks The number of banks of the CHR data.
+     */
     public void resetCHRData(int chrBanks) {
         chrData = new byte[256*chrBanks][8*8];
         this.chrBanks = chrBanks;
     }
     
+    /**
+     * Load a tile from the raw CHR data.
+     * @param rawTile The tile to load.
+     * @return The tile data.
+     */
     public byte[] loadTile(byte[] rawTile) {
         byte[] out = new byte[8*8];
         
@@ -83,6 +113,12 @@ public class CHRData {
         return out;
     }
     
+    /**
+     * Set a tile in the CHR data.
+     * @param tile The tile data.
+     * @param tileIndex The position of the tile in the pattern table.
+     * @throws Exception Gets thrown if the tile index is out of bounds.
+     */
     public void setTile(byte[] tile, int tileIndex) throws Exception {
         if(tileIndex >= 0 && tileIndex < chrData.length){
             if(chrData[tileIndex].length == tile.length){
@@ -94,6 +130,10 @@ public class CHRData {
         throw new Exception("Cannot set tile!");
     }
     
+    /**
+     * Save a tile as raw CHR data.
+     * @param tileIndex The index of the tile in the pattern table.
+     */
     public void saveTile(int tileIndex) {
         if(tileIndex >= 0 && tileIndex < chrData.length){
             for(int y=0;y<8;y++){
@@ -110,6 +150,13 @@ public class CHRData {
         }
     }
     
+    /**
+     * Generate a buffered image of the tile.
+     * @param tileIndex The index of the tile.
+     * @param palette The palette to use.
+     * @param scale The scale of the image.
+     * @return Returns the BufferedImage.
+     */
     public BufferedImage generateTileImage(int tileIndex, int[][] palette,
             int scale) {
         BufferedImage image = new BufferedImage(8*scale, 8*scale,
@@ -131,6 +178,12 @@ public class CHRData {
         return image;
     }
     
+    /**
+     * Get the tile data.
+     * @param tileIndex The index of the tile.
+     * @return The tile data.
+     * @throws Exception Gets thrown if the index is out of bounds.
+     */
     public byte[] getTile(int tileIndex) throws Exception {
         if(tileIndex >= 0 && tileIndex < chrBanks*256) {
             return chrData[tileIndex];
@@ -157,6 +210,10 @@ public class CHRData {
         }
     }
     
+    /**
+     * Get the number of CHR banks that compose this pattern table.
+     * @return The number of CHR banks.
+     */
     public int getChrBanks() {
         return chrBanks;
     }

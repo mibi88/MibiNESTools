@@ -42,6 +42,10 @@ public class NametableToolbar extends JToolBar {
     private JToggleButton line;
     private ButtonGroup buttonGroup;
     private Tool currentTool;
+
+    /**
+     * Create the toolbar.
+     */
     public NametableToolbar() {
         super("Tools", JToolBar.VERTICAL);
         setFloatable(false);
@@ -117,6 +121,10 @@ public class NametableToolbar extends JToolBar {
         }
     }
     
+    /**
+     * Get the selected tool.
+     * @return Returns the selected tool.
+     */
     public Tool getCurrentTool() {
         return currentTool;
     }

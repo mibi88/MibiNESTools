@@ -39,6 +39,10 @@ public class TilePickerTools extends JToolBar {
     private JSpinner chrBank;
     private TilePicker tilePicker;
     
+    /**
+     * Create a new toolbar for a tile picker.
+     * @param tilePicker The tile picker to create the toolbar for.
+     */
     public TilePickerTools(TilePicker tilePicker) {
         super();
         setFloatable(false);
@@ -80,6 +84,10 @@ public class TilePickerTools extends JToolBar {
         });
     }
     
+    /**
+     * Set the number of CHR banks in the CHR data.
+     * @param value The number of CHR banks.
+     */
     public void setCHRBanks(int value) {
         chrBankModel.setMaximum(value);
     }

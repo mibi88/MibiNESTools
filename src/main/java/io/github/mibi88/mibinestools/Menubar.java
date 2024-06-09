@@ -30,7 +30,7 @@ public class Menubar extends JMenuBar {
 
     /**
      * Initialize the menubar
-     * @param window Tool window
+     * @param window The editor window
      */
     public Menubar(Window window) {
         createMenus(window);
@@ -45,6 +45,10 @@ public class Menubar extends JMenuBar {
         add(viewMenu);
     }
     
+    /**
+     * Get the View menu.
+     * @return The view menu
+     */
     public Viewmenu getViewMenu() {
         return viewMenu;
     }

@@ -25,6 +25,11 @@ import javax.swing.SwingUtilities;
  * @author mibi88
  */
 public class MibiNESTools {
+
+    /**
+     * The main method
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override

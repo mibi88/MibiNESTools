@@ -44,6 +44,14 @@ public class TileEditor extends JPanel {
     private Rectangle overlayRectangle;
     private Rectangle renderRectangle;
     private int startX, startY;
+
+    /**
+     * Create a new tile editor.
+     * @param scale The scale of the content.
+     * @param palette The palette to use.
+     * @param currentColor The currently selected color.
+     * @param editor The CHR editor to use this tile editor with.
+     */
     public TileEditor(int scale, int[][] palette, byte currentColor,
             CHREditor editor) {
         super(new GridBagLayout());
@@ -143,20 +151,35 @@ public class TileEditor extends JPanel {
         renderRectangle = new Rectangle(renderEvent);
     }
     
+    /**
+     * Reset the tile editor.
+     */
     public void reset() {
         tileCanvas.repaint();
     }
     
+    /**
+     * Increase the scale of the content.
+     */
     public void zoomIn() {
         tileCanvas.zoomIn();
         canvasPane.revalidate();
     }
     
+    /**
+     * Decrease the scale of the content.
+     */
     public void zoomOut() {
         tileCanvas.zoomOut();
         canvasPane.revalidate();
     }
     
+    /**
+     * Load a tile in the tile editor.
+     * @param tile The tile to load.
+     * @param tx The tile position in the pattern table.
+     * @param ty The tile position in the pattern table.
+     */
     public void loadTile(byte[] tile, int tx, int ty) {
         try {
             tileCanvas.loadData(tile);
@@ -168,19 +191,35 @@ public class TileEditor extends JPanel {
         }
     }
     
+    /**
+     * Set the palette to use to display the tile.
+     * @param palette The palette to use to display the tile.
+     */
     public void setPalette(int[][] palette) {
         colorPicker.updatePalette(palette);
         tileCanvas.setPalette(palette);
     }
     
+    /**
+     * Get the tile position on the X axis in the pattern table.
+     * @return The position of the tile on the X axis.
+     */
     public int getTileX() {
         return tx;
     }
     
+    /**
+     * Get the tile position on the Y axis in the pattern table.
+     * @return The position of the tile on the Y axis.
+     */
     public int getTileY() {
         return ty;
     }
     
+    /**
+     * Get tile that is currently edited in this tile editor
+     * @return The tile data.
+     */
     public byte[] getTile() {
         return tileCanvas.getData();
     }

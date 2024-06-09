@@ -22,9 +22,29 @@ package io.github.mibi88.mibinestools;
  * @author mibi88
  */
 public enum Tool {
+
+    /**
+     * The pen tool.
+     */
     PEN,
+
+    /**
+     * The line tool.
+     */
     LINE,
+
+    /**
+     * The rectangle tool.
+     */
     RECTANGLE,
+
+    /**
+     * The tool to set color attributes.
+     */
     COLOR,
+
+    /**
+     * The selection tool.
+     */
     SELECTION
 }

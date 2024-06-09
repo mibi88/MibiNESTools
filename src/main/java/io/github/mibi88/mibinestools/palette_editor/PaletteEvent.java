@@ -18,9 +18,13 @@
 package io.github.mibi88.mibinestools.palette_editor;
 
 /**
- *
+ * Methods that get called when the palette is changed.
  * @author mibi88
  */
 public interface PaletteEvent {
+
+    /**
+     * Gets called if the palette has changed.
+     */
     public void paletteChanged();
 }

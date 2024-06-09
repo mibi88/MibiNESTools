@@ -51,6 +51,15 @@ public class NametableViewer extends JPanel {
     private int chrBank;
     private int selectX, selectY, selectW, selectH;
     private boolean[] overlay;
+
+    /**
+     * Create a nametable viewer.
+     * @param chrData The CHR data that contains the tiles.
+     * @param paletteEditor The palette editor used to edit the palettes used to
+     * display the nametable.
+     * @param scale The scale of the content.
+     * @param grid True if a grid should be drawn.
+     */
     public NametableViewer(CHRData chrData, PaletteEditor paletteEditor,
             int scale, boolean grid) {
         super();
@@ -68,22 +77,37 @@ public class NametableViewer extends JPanel {
         handleMouse();
     }
     
+    /**
+     * Reset the nametable viewer.
+     */
     public void reset() {
         tiles = new byte[32*30];
         overlay = new boolean[32*30];
         attributes = new byte[64];
     }
     
+    /**
+     * Set the CHR data to use to display the nametable.
+     * @param chrData The CHR data to use.
+     */
     public void setCHR(CHRData chrData) {
         this.chrData = chrData;
         repaint();
     }
     
+    /**
+     * Set if a grid should be drawn.
+     * @param grid True if a grid should be displayed.
+     */
     public void setGrid(boolean grid) {
         this.grid = grid;
         repaint();
     }
     
+    /**
+     * Set the scale of the content.
+     * @param scale The scale.
+     */
     public void setScale(int scale) {
         this.scale = scale;
         Dimension size = new Dimension(scale*8*32+16,
@@ -92,6 +116,13 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    /**
+     * Set the selection
+     * @param selectX1 The selection starting position.
+     * @param selectY1 The selection starting position.
+     * @param selectX2 The selection end position.
+     * @param selectY2 The selection end position.
+     */
     public void setSelection(int selectX1, int selectY1, int selectX2,
             int selectY2) {
         selectX1 = Math.max(0, Math.min(selectX1, 32));
@@ -105,6 +136,11 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    /**
+     * Save the nametable.
+     * @param file The file to save the nametable to.
+     * @throws IOException Gets thrown on failure.
+     */
     public void save(File file) throws IOException {
         FileOutputStream fileStream = new FileOutputStream(file);
         byte[] fixedTiles = tiles.clone();
@@ -116,6 +152,11 @@ public class NametableViewer extends JPanel {
         fileStream.close();
     }
     
+    /**
+     * Load a nametable from a file.
+     * @param file The file to load the nametable from.
+     * @throws IOException Gets thrown on failure.
+     */
     public void open(File file) throws IOException {
         FileInputStream fileStream = new FileInputStream(file);
         fileStream.read(tiles);
@@ -126,33 +167,62 @@ public class NametableViewer extends JPanel {
         fileStream.close();
     }
     
+    /**
+     * Set the content of the nametable viewer from byte arrays.
+     * @param nametable The nametable data.
+     * @param attributes The attribute table.
+     */
     public void setData(byte[] nametable, byte[] attributes) {
         tiles = nametable;
         this.attributes = attributes;
         repaint();
     }
     
+    /**
+     * Set the event handler that handles editing the nametable.
+     * @param event The event handler.
+     */
     public void setEventHandler(NametableViewerEvent event) {
         this.event = event;
     }
     
+    /**
+     * Set the current tile.
+     * @param currentTile The number of the current tile.
+     */
     public void setCurrentTile(int currentTile) {
         this.currentTile = (byte)(currentTile-Byte.MIN_VALUE);
     }
     
+    /**
+     * Set the CHR bank to use to display this nametable.
+     * @param chrBank The CHR bank to use.
+     */
     public void setCHRBank(int chrBank) {
         this.chrBank = chrBank;
         repaint();
     }
     
+    /**
+     * Get the nametable data.
+     * @return The nametable data.
+     */
     public byte[] getNametable() {
         return tiles;
     }
     
+    /**
+     * Get the attribute table.
+     * @return The attribute table.
+     */
     public byte[] getAttributes() {
         return attributes;
     }
     
+    /**
+     * Get the tiles in the selection.
+     * @return The tiles in the selection.
+     */
     public byte[] getSelection() {
         if(selectW != 0 && selectH != 0){
             byte[] data = new byte[selectW*selectH];
@@ -166,6 +236,10 @@ public class NametableViewer extends JPanel {
         return null;
     }
     
+    /**
+     * Fill the selection
+     * @param tile The tile to fill the selection with.
+     */
     public void fillSelection(int tile) {
         for(int y=0;y<selectH;y++){
             for(int x=0;x<selectW;x++){
@@ -176,6 +250,12 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    /**
+     * Fill the selection.
+     * @param data The data to load in the selected area of the nametable.
+     * @param w The width of the area.
+     * @param h The height of the area.
+     */
     public void fillSelection(byte[] data, int w, int h) {
         for(int y=0;y<Math.min(selectH, h);y++){
             for(int x=0;x<Math.min(selectW, w);x++){
@@ -185,10 +265,18 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    /**
+     * Get the width of the selection.
+     * @return The width of the selection.
+     */
     public int getSelectionW() {
         return selectW;
     }
     
+    /**
+     * Get the height of the selection.
+     * @return The height of the selection.
+     */
     public int getSelectionH() {
         return selectH;
     }
@@ -238,12 +326,25 @@ public class NametableViewer extends JPanel {
         });
     }
     
+    /**
+     * Set a tile of the nametable
+     * @param tileX The position of the tile.
+     * @param tileY The position of the tile.
+     */
     public void setTile(int tileX, int tileY) {
         if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
             tiles[tileY*32+tileX] = currentTile;
         }
     }
     
+    /**
+     * Set the palette to use to draw a specific part of the nametable
+     * @param tileX The position of the tile that should be drawn with this
+     * palette.
+     * @param tileY The position of the tile that should be drawn with this
+     * palette.
+     * @param palette The index of the palette to use.
+     */
     public void setPalette(int tileX, int tileY, int palette) {
         if(tileX >= 0 && tileX < 32 && tileY >= 0 && tileY < 30){
             palette &= 0b00000011;
@@ -263,19 +364,28 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    /**
+     * Set a pixel of the overlay.
+     * @param x The position of the pixel.
+     * @param y The position of the pixel.
+     * @param value If the pixel should be on or off.
+     */
     public void setOverlayPixel(int x, int y, boolean value) {
         if(x >= 0 && x < 32 && y >= 0 && y < 30){
             overlay[y*32+x] = value;
         }
     }
     
+    /**
+     * Turn all tiles of the overlay off.
+     */
     public void clearOverlay() {
         Arrays.fill(overlay, false);
     }
     
     /**
-     *
-     * @param g
+     * Draw this widget.
+     * @param g The awt Graphics.
      */
     @Override
     protected void paintComponent(Graphics g) {

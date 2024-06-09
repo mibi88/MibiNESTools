@@ -35,28 +35,47 @@ public abstract class Editor extends JPanel {
     private File file;
     private boolean fileSaved;
     
+    /**
+     * Create a new editor
+     * @param editorName The name of the editor.
+     */
     public Editor(String editorName) {
         super();
         fileSaved = true;
         this.editorName = editorName;
     }
     
+    /**
+     * Create an editor with a specific LayoutManager
+     * @param editorName The name of the editor
+     * @param lm The LayoutManager to use
+     */
     public Editor(String editorName, LayoutManager lm) {
         super(lm);
         fileSaved = true;
         this.editorName = editorName;
     }
     
-    
+    /**
+     * Get the name of the editor
+     * @return The name of the editor.
+     */
     public String getEditorName() {
         return editorName;
     }
     
+    /**
+     * Call it when the editor encounters an error
+     */
     protected void error() {
         file = null;
         fileSaved = false;
     }
     
+    /**
+     * Get the name of the file.
+     * @return The name of the file, or "Unsaved file" if the file isn't saved.
+     */
     public String getFileName() {
         return file == null ? "Unsaved file" : file.getName();
     }
@@ -86,6 +105,11 @@ public abstract class Editor extends JPanel {
         return true;
     }
     
+    /**
+     * Open a file
+     * @param file The file to open
+     * @return Returns true if the file should be opened
+     */
     public boolean openFile(File file) {
         String fileName = getFileName();
         if(!fileSaved){
@@ -106,50 +130,93 @@ public abstract class Editor extends JPanel {
         return true;
     }
     
+    /**
+     * Save the current file
+     */
     public void saveFile() {
         fileSaved = true;
         updateTitle();
     }
     
+    /**
+     * Save the file as
+     * @param file The file to save the data to.
+     */
     public void saveAsFile(File file) {
         this.file = file;
         fileSaved = true;
         updateTitle();
     }
     
+    /**
+     * Sets if a grid should be displayed ot not in tilemaps etc.
+     * @param grid True if the grid should be displayed
+     */
     public void setGrid(boolean grid) {
         return;
     }
     
+    /**
+     * Sets the scale of the editor content.
+     * @param scale The scale of the content
+     */
     public void setScale(int scale) {
         return;
     }
     
+    /**
+     * Sets the palette to use to display graphics.
+     * @param palette The palette to use
+     */
     public void setPalette(int[][] palette) {
         return;
     }
     
+    /**
+     * Sets the number of the palette to use.
+     * @param i The number of the palette
+     */
     public void setPalette(int i) {
         return;
     }
     
+    /**
+     * Call it when the file was edited.
+     */
     public void fileEdited() {
         fileSaved = false;
         updateTitle();
     }
     
+    /**
+     * Check if a file is opened
+     * @return Returns editor is not editing a file.
+     */
     public boolean isEditingFile() {
         return file != null;
     }
     
+    /**
+     * Check if the file the editor is editing is saved.
+     * @return Returns true if the file is saved.
+     */
     public boolean getFileSaved() {
         return fileSaved;
     }
     
+    /**
+     * Get the file the editor is editing.
+     * @return Returns the file the editor is currently editing, or null if no
+     * file is opened.
+     */
     protected File getFile() {
         return file;
     }
     
+    /**
+     * Check if the editor is currently used by the player
+     * @return Returns true if the user has selected this editor tab.
+     */
     public boolean isSelected() {
         JTabbedPane tabbedPane = getTabbedPane();
         if(SwingUtilities.isDescendingFrom(this,
@@ -159,6 +226,9 @@ public abstract class Editor extends JPanel {
         return false;
     }
     
+    /**
+     * Update the title of the editor tab.
+     */
     public void updateTitle() {
         String title = fileSaved ? "" : "*";
         if(file != null){
@@ -195,22 +265,37 @@ public abstract class Editor extends JPanel {
         tabbedPane.setTitleAt(i, title);
     }
     
+    /**
+     * Gets called when the editor should undo the last action.
+     */
     public void undo() {
         return;
     }
     
+    /**
+     * Gets called when the editor should redo the last action.
+     */
     public void redo() {
         return;
     }
     
+    /**
+     * Gets called if the user wants to copy something.
+     */
     public void copy() {
         return;
     }
     
+    /**
+     * Gets called if the user wants to cut something.
+     */
     public void cut() {
         return;
     }
     
+    /**
+     * Gets called if the user wants to paste something.
+     */
     public void paste() {
         return;
     }

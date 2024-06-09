@@ -27,6 +27,11 @@ import javax.swing.JPanel;
  */
 public class Palette extends JPanel {
     protected ColorButton[] colors;
+
+    /**
+     * Initialize the palette.
+     * @param palette The colors of the palette.
+     */
     public Palette(int[][] palette) {
         super(new GridLayout(1, 3));
         colors = new ColorButton[4];
@@ -39,6 +44,10 @@ public class Palette extends JPanel {
         }
     }
     
+    /**
+     * Update the colors of the palette.
+     * @param palette The new colors.
+     */
     public void updatePalette(int[][] palette) {
         for(int i=0;i<4;i++){
             Color color = new Color(palette[i][0], palette[i][1],

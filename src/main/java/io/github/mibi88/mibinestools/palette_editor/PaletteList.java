@@ -27,6 +27,12 @@ import javax.swing.JPanel;
 public class PaletteList extends JPanel {
     private EditablePalette[] palettes;
     private PaletteListEvent event;
+
+    /**
+     * Create a new palette list.
+     * @param defaultPalette The default palette
+     * @param colorList The color list used to edit the palettes.
+     */
     public PaletteList(int[][] defaultPalette, ColorList colorList) {
         super(new GridLayout(4, 2));
         palettes = new EditablePalette[8];
@@ -45,10 +51,20 @@ public class PaletteList extends JPanel {
         }
     }
     
+    /**
+     * Set the event handler to call when a palette is edited.
+     * @param event The event handler.
+     */
     public void setEventHandler(PaletteListEvent event) {
         this.event = event;
     }
     
+    /**
+     * Get the palette data.
+     * @param i The index of the palette.
+     * @return The palette data.
+     * @throws Exception Gets thrown if the index is out of bounds.
+     */
     public int[][] getPaletteData(int i) throws Exception {
         if(i >= 0 && i < 8){
             return palettes[i].getPaletteData();

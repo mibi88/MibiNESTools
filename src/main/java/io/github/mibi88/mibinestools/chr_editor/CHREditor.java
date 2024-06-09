@@ -58,8 +58,8 @@ public class CHREditor extends Editor {
     private byte[] clipboard;
     
     /**
-     * Initialize the CHR Editor
-     * @param window
+     * Initialize the CHR Editor.
+     * @param window The window in which the editor is.
      */
     public CHREditor(Window window) {
         super("CHR Editor", new GridLayout(1, 2));
@@ -118,10 +118,10 @@ public class CHREditor extends Editor {
     }
     
     /**
-     * Loads a CHR file from the disk
+     * Loads a CHR file from the disk.
      * 
-     * @param file The file to load the CHR from
-     * @return 
+     * @param file The file to load the CHR from.
+     * @return Returns true if the file was opened.
      */
     @Override
     public boolean openFile(File file) {
@@ -144,7 +144,7 @@ public class CHREditor extends Editor {
     }
     
     /**
-     * Save the current file
+     * Save the current file.
      */
     @Override
     public void saveFile() {
@@ -162,7 +162,7 @@ public class CHREditor extends Editor {
     
     /**
      * Save the file as...
-     * @param file The file to save the data to
+     * @param file The file to save the data to.
      */
     @Override
     public void saveAsFile(File file) {
@@ -176,8 +176,8 @@ public class CHREditor extends Editor {
     }
     
     /**
-     * Create a new file
-     * @return 
+     * Create a new file.
+     * @return Returns true if the file was created.
      */
     @Override
     public boolean newFile() {
@@ -193,6 +193,12 @@ public class CHREditor extends Editor {
         return false;
     }
     
+    /**
+     * Update a tile in the pattern table.
+     * @param data The data of the tile.
+     * @param tx The position of the tile.
+     * @param ty The position of the tile.
+     */
     public void updateTile(byte[] data, int tx, int ty) {
         try {
             chrData.setTile(data, ty*16+tx);
@@ -207,6 +213,10 @@ public class CHREditor extends Editor {
         }
     }
     
+    /**
+     * Enable or disable the grid in tilemaps etc.
+     * @param grid True if the grid should be displayed.
+     */
     @Override
     public void setGrid(boolean grid) {
         if(patternTable != null){
@@ -215,6 +225,10 @@ public class CHREditor extends Editor {
         }
     }
     
+    /**
+     * Set the scale of the content.
+     * @param scale The scale.
+     */
     @Override
     public void setScale(int scale) {
         this.scale = scale;
@@ -224,36 +238,63 @@ public class CHREditor extends Editor {
         }
     }
     
+    /**
+     * Set the palette to draw the tiles with.
+     * @param palette The palette.
+     */
+    @Override
     public void setPalette(int[][] palette) {
         patternTable.setPalette(palette);
         tileEditor.setPalette(palette);
     }
     
+    /**
+     * Get the currently used palette.
+     * @return The currently used palette.
+     */
     public int[][] getCurrentPalette() {
         return paletteEditor.getCurrentPalette();
     }
     
+    /**
+     * Add an edit to the undoManager.
+     * @param edit The edit to add.
+     */
     public void addEdit(CHREdit edit) {
         undoManager.addEdit(edit);
     }
     
+    /**
+     * Undo the last action.
+     */
+    @Override
     public void undo() {
         if(undoManager.canUndo()){
             undoManager.undo();
         }
     }
     
+    /**
+     * Redo the last action.
+     */
+    @Override
     public void redo() {
         if(undoManager.canRedo()){
             undoManager.redo();
         }
     }
     
+    /**
+     * Copy the selected tile.
+     */
     @Override
     public void copy() {
         clipboard = tileEditor.getTile().clone();
     }
     
+    /**
+     * Cut the selected tile.
+     */
     @Override
     public void cut() {
         clipboard = tileEditor.getTile().clone();
@@ -266,6 +307,9 @@ public class CHREditor extends Editor {
                 patternTable.getSelectedY()));
     }
     
+    /**
+     * Paste a tile to the selected tile.
+     */
     @Override
     public void paste() {
         byte[] oldTile = tileEditor.getTile();

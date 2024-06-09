@@ -106,6 +106,9 @@ public class Window extends JFrame {
         throw new Exception("Failed to get selected editor!");
     }
     
+    /**
+     * Open a file in the selected editor.
+     */
     public void openFile() {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter chrFilter =
@@ -123,6 +126,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Save a file in the selected editor.
+     */
     public void saveFile() {
         try {
             if(editors.get(getSelectedEditor()).isEditingFile()){
@@ -141,6 +147,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Create a new file in the selected editor.
+     */
     public void newFile() {
         try {
             editors.get(getSelectedEditor()).newFile();
@@ -150,6 +159,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Save the file as in the selected editor.
+     */
     public void saveAsFile() {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter chrFilter =
@@ -178,16 +190,27 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Enable or disable the grid in tilemaps etc.
+     * @param grid True if the grid should be drawn.
+     */
     public void setGrid(boolean grid) {
         for(Editor editor : editors) {
             editor.setGrid(grid);
         }
     }
     
+    /**
+     * Check if the grid should be drawn.
+     * @return Returns true if the grid should be drawn
+     */
     public boolean getGrid() {
         return menubar.getViewMenu().getGrid();
     }
     
+    /**
+     * Increase the scale of the content of the editors.
+     */
     public void zoomIn() {
         if(scale < MAX_SCALE){
             scale++;
@@ -197,6 +220,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Decrease the scale of the content of the editors.
+     */
     public void zoomOut() {
         if(scale > 1){
             scale--;
@@ -206,6 +232,10 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Returns the scale of the content of the editors.
+     * @return The scale.
+     */
     public int getScale() {
         return scale;
     }
@@ -232,6 +262,9 @@ public class Window extends JFrame {
         dispose();
     }
     
+    /**
+     * Undo the last action in the selected editor.
+     */
     public void undo() {
         try {
             editors.get(getSelectedEditor()).undo();
@@ -241,6 +274,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Redo the last action in the selected editor.
+     */
     public void redo() {
         try {
             editors.get(getSelectedEditor()).redo();
@@ -250,6 +286,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Copy some data in the selected editor.
+     */
     public void copy() {
         try {
             editors.get(getSelectedEditor()).copy();
@@ -259,6 +298,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Cut some data in the selected editor.
+     */
     public void cut() {
         try {
             editors.get(getSelectedEditor()).cut();
@@ -268,6 +310,9 @@ public class Window extends JFrame {
         }
     }
     
+    /**
+     * Paste some data in the selected editor.
+     */
     public void paste() {
         try {
             editors.get(getSelectedEditor()).paste();

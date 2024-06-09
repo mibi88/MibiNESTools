@@ -94,6 +94,10 @@ public class ColorList extends JPanel {
     };
     
     private ColorButton[] colors;
+
+    /**
+     * Create a new color list.
+     */
     public ColorList() {
         super(new GridLayout(4, 14));
         currentColor = new int[3];
@@ -113,6 +117,10 @@ public class ColorList extends JPanel {
         }
     }
     
+    /**
+     * Get the selected color.
+     * @return The selected color.
+     */
     public int[] getCurrentColor() {
         return currentColor;
     }

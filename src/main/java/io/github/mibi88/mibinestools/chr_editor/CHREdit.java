@@ -20,7 +20,7 @@ package io.github.mibi88.mibinestools.chr_editor;
 import javax.swing.undo.AbstractUndoableEdit;
 
 /**
- *
+ * This class stores an action made in the CHR editor.
  * @author mibi88
  */
 public class CHREdit extends AbstractUndoableEdit {
@@ -28,6 +28,15 @@ public class CHREdit extends AbstractUndoableEdit {
     private byte[] newData;
     private int tx, ty;
     private CHREditor editor;
+
+    /**
+     * Create a new edit.
+     * @param editor The CHR editor used.
+     * @param tileData The data of the tile before the edition.
+     * @param newData The new tile data.
+     * @param tx The position of the tile in the pattern table.
+     * @param ty The position of the tile in the pattern table.
+     */
     public CHREdit(CHREditor editor, byte[] tileData, byte[] newData, int tx,
             int ty) {
         super();
@@ -38,12 +47,18 @@ public class CHREdit extends AbstractUndoableEdit {
         this.editor = editor;
     }
     
+    /**
+     * Undo this action.
+     */
     @Override
     public void undo() {
         super.undo();
         editor.updateTile(tileData, tx, ty);
     }
     
+    /**
+     * Redo this action.
+     */
     @Override
     public void redo() {
         super.redo();

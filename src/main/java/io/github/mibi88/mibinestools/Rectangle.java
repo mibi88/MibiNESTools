@@ -23,10 +23,22 @@ package io.github.mibi88.mibinestools;
  */
 public class Rectangle {
     private DrawEvent event;
+
+    /**
+     * Draw a rectangle.
+     * @param event The DrawEvent to use to draw the rectangle.
+     */
     public Rectangle(DrawEvent event) {
         this.event = event;
     }
     
+    /**
+     * Draw a rectangle.
+     * @param x1 The starting position of the rectangle.
+     * @param y1 The starting position of the rectangle.
+     * @param x2 The end position of the rectangle.
+     * @param y2 The end position of the rectangle.
+     */
     public void drawRectangle(int x1, int y1, int x2, int y2) {
         int ix = x1 < x2 ? 1 : -1;
         int iy = y1 < y2 ? 1 : -1;

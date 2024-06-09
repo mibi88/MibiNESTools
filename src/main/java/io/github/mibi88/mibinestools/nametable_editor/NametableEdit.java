@@ -27,6 +27,15 @@ public class NametableEdit extends AbstractUndoableEdit {
     private NametableEditor editor;
     private byte[] oldAttributes, oldNametable;
     private byte[] newAttributes, newNametable;
+
+    /**
+     * Create a new nametable edit.
+     * @param editor The editor used.
+     * @param oldAttributes The attribute table before editing.
+     * @param oldNametable The nametable before editing.
+     * @param newAttributes The new attribute table.
+     * @param newNametable The new nametable.
+     */
     public NametableEdit(NametableEditor editor, byte[] oldAttributes,
             byte[] oldNametable, byte[] newAttributes, byte[] newNametable) {
         super();
@@ -37,6 +46,9 @@ public class NametableEdit extends AbstractUndoableEdit {
         this.newNametable = newNametable.clone();
     }
     
+    /**
+     * Undo the edit.
+     */
     @Override
     public void undo() {
         super.undo();
@@ -44,6 +56,9 @@ public class NametableEdit extends AbstractUndoableEdit {
         editor.fileEdited();
     }
     
+    /**
+     * Redo the edit.
+     */
     @Override
     public void redo() {
         super.redo();

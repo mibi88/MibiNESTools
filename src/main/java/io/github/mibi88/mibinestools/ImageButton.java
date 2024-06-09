@@ -26,6 +26,11 @@ import javax.swing.JButton;
  * @author mibi88
  */
 public class ImageButton extends JButton {
+
+    /**
+     * Create a button with an icon
+     * @param image The image to use as an icon
+     */
     public ImageButton(BufferedImage image) {
         super(new ImageIcon(image));
     }

@@ -37,6 +37,14 @@ public class PatternTable extends JPanel {
     private boolean grid;
     private PatternTableEvent event;
     private int selectedX, selectedY;
+
+    /**
+     * Creates a pattern table widget.
+     * @param chrData The CHR data to display.
+     * @param palette The palette to use.
+     * @param scale The scale of the content.
+     * @param grid True if a grid should be drawn.
+     */
     public PatternTable(CHRData chrData, int[][] palette, int scale,
             boolean grid) {
         super();
@@ -51,6 +59,9 @@ public class PatternTable extends JPanel {
         handleMouse();
     }
     
+    /**
+     * Reset the pattern table.
+     */
     public void reset() {
         selectedX = 0;
         selectedY = 0;
@@ -60,21 +71,37 @@ public class PatternTable extends JPanel {
         repaint();
     }
     
+    /**
+     * Set the palette to use to display the tiles.
+     * @param palette The palette to use.
+     */
     public void setPalette(int[][] palette) {
         this.palette = palette;
         repaint();
     }
     
+    /**
+     * Set the CHR data to display.
+     * @param chrData The CHR data to display.
+     */
     public void setCHR(CHRData chrData) {
         this.chrData = chrData;
         repaint();
     }
     
+    /**
+     * Enable or disable the grid in the CHR editor.
+     * @param grid True if the grid should be drawn.
+     */
     public void setGrid(boolean grid) {
         this.grid = grid;
         repaint();
     }
     
+    /**
+     * Set the scale of the content.
+     * @param scale The scale.
+     */
     public void setScale(int scale) {
         this.scale = scale;
         Dimension size = new Dimension(scale*8*16+16,
@@ -83,14 +110,26 @@ public class PatternTable extends JPanel {
         repaint();
     }
     
+    /**
+     * Set the event handler to call when the selection changes.
+     * @param event
+     */
     public void setEventHandler(PatternTableEvent event) {
         this.event = event;
     }
     
+    /**
+     * Get the position of the selection on the X axis.
+     * @return The position of the selection on the X axis.
+     */
     public int getSelectedX() {
         return selectedX;
     }
     
+    /**
+     * Get the position of the selection on the Y axis.
+     * @return Get the position of the selection on the Y axis.
+     */
     public int getSelectedY() {
         return selectedY;
     }
@@ -134,8 +173,8 @@ public class PatternTable extends JPanel {
     }
     
     /**
-     *
-     * @param g
+     * Draw this widget
+     * @param g The awt Graphics.
      */
     @Override
     protected void paintComponent(Graphics g) {

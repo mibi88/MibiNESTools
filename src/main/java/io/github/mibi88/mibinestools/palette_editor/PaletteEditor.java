@@ -35,6 +35,12 @@ public class PaletteEditor extends JPanel {
     private Editor editor;
     private int[][] currentPalette;
     private int currentPaletteIndex;
+
+    /**
+     * Initialize the palette editor.
+     * @param defaultPalette The default palette.
+     * @param editor The editor it is used with.
+     */
     public PaletteEditor(int[][] defaultPalette, Editor editor) {
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -59,11 +65,14 @@ public class PaletteEditor extends JPanel {
         handleEvents();
     }
     
+    /**
+     * Reset the palette editor.
+     */
     public void reset() {
         //
     }
     
-    public void handleEvents() {
+    private void handleEvents() {
         paletteList.setEventHandler(new PaletteListEvent() {
             @Override
             public void paletteChanged(int i) {
@@ -72,6 +81,10 @@ public class PaletteEditor extends JPanel {
         });
     }
     
+    /**
+     * Set the palette to use when rendering graphics.
+     * @param i The palette index.
+     */
     public void usePalette(int i) {
         try {
             // Adapt index of the palette to use 
@@ -86,15 +99,29 @@ public class PaletteEditor extends JPanel {
         }
     }
     
+    /**
+     * Get the selected palette.
+     * @return The palette data.
+     */
     public int[][] getCurrentPalette() {
         return currentPalette;
     }
     
+    /**
+     * Get the palette at a specific index.
+     * @param i The palette index.
+     * @return The palette data.
+     * @throws Exception Gets thrown if the index is out of bounds.
+     */
     public int[][] getPalette(int i) throws Exception {
         final int index = (i%4)*2+i/4;
         return paletteList.getPaletteData(index);
     }
     
+    /**
+     * Get the index of the selected palette.
+     * @return The palette index.
+     */
     public int getCurrentPaletteIndex() {
         return currentPaletteIndex;
     }

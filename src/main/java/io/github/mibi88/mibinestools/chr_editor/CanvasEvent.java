@@ -18,10 +18,23 @@
 package io.github.mibi88.mibinestools.chr_editor;
 
 /**
- *
+ * Methods that get called when the canvas should be edited.
  * @author mibi88
  */
 public interface CanvasEvent {
+
+    /**
+     * Gets called before the canvas gets edited.
+     * @param x The pixel at the mouse position.
+     * @param y The pixel at the mouse position.
+     */
     public void beforeChange(int x, int y);
+
+    /**
+     * Gets called when the canvas should be edited.
+     * @param x The pixel at the mouse position.
+     * @param y The pixel at the mouse position.
+     * @param end If the mouse got released.
+     */
     public void canvasUpdate(int x, int y, boolean end);
 }

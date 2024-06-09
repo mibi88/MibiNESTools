@@ -46,6 +46,11 @@ public class ToolPanel extends JToolBar {
     
     private TileEditor tileEditor;
     private Tool currentTool;
+
+    /**
+     * Create a toolbar for a tile editor
+     * @param tileEditor The tile editor to use with the toolbar.
+     */
     public ToolPanel(TileEditor tileEditor) {
         super("Tools", JToolBar.VERTICAL);
         setFloatable(false);
@@ -122,6 +127,10 @@ public class ToolPanel extends JToolBar {
         });
     }
     
+    /**
+     * Get the selected tool
+     * @return The currently selected tool.
+     */
     public Tool getCurrentTool() {
         return currentTool;
     }

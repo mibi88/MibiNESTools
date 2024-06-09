@@ -39,6 +39,15 @@ public class TileCanvas extends JPanel {
     private int w, h;
     private byte currentColor;
     private CanvasEvent event;
+
+    /**
+     * Create a new tile canvas.
+     * @param scale The scale of the content.
+     * @param w The width of the tile.
+     * @param h The height of the tile.
+     * @param palette The palette to use.
+     * @param currentColor The currently selected color.
+     */
     public TileCanvas(int scale, int w, int h, int[][] palette,
             byte currentColor) {
         super();
@@ -102,10 +111,18 @@ public class TileCanvas extends JPanel {
         });
     }
     
+    /**
+     * Set the color to use for drawing.
+     * @param currentColor The color to use.
+     */
     public void setCurrentColor(byte currentColor) {
         this.currentColor = currentColor;
     }
     
+    /**
+     * Get the currently used color for drawing.
+     * @return The currently used color.
+     */
     public byte getCurrentColor() {
         return currentColor;
     }
@@ -116,6 +133,12 @@ public class TileCanvas extends JPanel {
         }
     }
     
+    /**
+     * Set the color of a pixel in the canvas
+     * @param x The position of the pixel.
+     * @param y The position of the pixel.
+     * @param value The color of the pixel.
+     */
     public void setPixel(int x, int y, byte value) {
         if(x >= 0 && x < w && y >= 0 && y < h){
             data[y*w+x] = (byte)(value&0b00000011);
@@ -123,6 +146,9 @@ public class TileCanvas extends JPanel {
         }
     }
     
+    /**
+     * Increase the scale of the content.
+     */
     public void zoomIn() {
         if(scale < MAX_SCALE){
             scale++;
@@ -131,6 +157,9 @@ public class TileCanvas extends JPanel {
         }
     }
     
+    /**
+     * Decrease the scale of the content.
+     */
     public void zoomOut() {
         if(scale > 1){
             scale--;
@@ -139,6 +168,11 @@ public class TileCanvas extends JPanel {
         }
     }
     
+    /**
+     * Update the size of the tile
+     * @param w The width of the tile.
+     * @param h The height of the tile.
+     */
     public void updateSize(int w, int h) {
         // TODO: Keep data when resizing?
         data = new byte[w*h];
@@ -148,10 +182,20 @@ public class TileCanvas extends JPanel {
         setPreferredSize(new Dimension(h*scale, w*scale));
     }
     
+    /**
+     * Set the event handler to call when the tile needs to get edited.
+     * @param event The event handler
+     */
     public void setEventHandler(CanvasEvent event) {
         this.event = event;
     }
     
+    /**
+     * Load a tile in the canvas.
+     * @param data The data of the tile to load.
+     * @throws Exception Gets thrown the size of the tile is not equal to the
+     * size of the canvas.
+     */
     public void loadData(byte[] data) throws Exception {
         if(this.data.length == data.length){
             this.data = data;
@@ -161,25 +205,47 @@ public class TileCanvas extends JPanel {
         }
     }
     
+    /**
+     * Get the tile that is edited in this canvas.
+     * @return The data of the tile.
+     */
     public byte[] getData() {
         return data;
     }
     
+    /**
+     * Set the palette to use to display the tile.
+     * @param palette
+     */
     public void setPalette(int[][] palette) {
         this.palette = palette;
         repaint();
     }
     
+    /**
+     * Clear the overlay.
+     * This methods turns all the pixels of the overlay off.
+     */
     public void clearOverlay() {
         Arrays.fill(overlay, false);
     }
     
+    /**
+     * Set a pixel in the overlay.
+     * @param x The position of the pixel
+     * @param y The position of the pixel
+     * @param value If the pixel should be on or off.
+     */
     public void setOverlayPixel(int x, int y, boolean value) {
         if(x >= 0 && x < w && y >= 0 && y < h){
             overlay[y*w+x] = value;
         }
     }
     
+    /**
+     * Draws the canvas.
+     * @param g The awt Graphics
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

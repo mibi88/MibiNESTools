@@ -18,9 +18,17 @@
 package io.github.mibi88.mibinestools;
 
 /**
- *
+ * Methods that get called when drawing with classes like Line or Rectangle.
  * @author mibi88
  */
 public interface DrawEvent {
+
+    /**
+     * Do something for the pixel at (x, y)
+     * This method gets called when a drawing method like Line.drawLine gets
+     * called.
+     * @param x The position of the pixel
+     * @param y The position of the pixel
+     */
     public void setPixel(int x, int y);
 }

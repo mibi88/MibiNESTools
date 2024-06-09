@@ -76,11 +76,19 @@ public class NametableEditor extends Editor {
         add(splitPane);
     }
     
+    /**
+     * Set the palette to use to display the pattern table.
+     * @param palette The palette to use.
+     */
     @Override
     public void setPalette(int[][] palette) {
         tilePicker.setPalette(palette);
     }
     
+    /**
+     * Set the index of the pakette to use.
+     * @param i The index of the palette.
+     */
     @Override
     public void setPalette(int i) {
         paletteIndex = i;
@@ -89,28 +97,52 @@ public class NametableEditor extends Editor {
         }
     }
     
+    /**
+     * Get the palette editor.
+     * @return The palette editor.
+     */
     public PaletteEditor getPaletteEditor() {
         return paletteEditor;
     }
     
+    /**
+     * Get the currently used palette.
+     * @return The currently used palette.
+     */
     public int[][] getCurrentPalette() {
         return currentPalette;
     }
     
+    /**
+     * Set the CHR data to use to display the nametable.
+     * @param chrData The CHR data to use.
+     */
     public void setCHR(CHRData chrData) {
         nametablePane.setCHR(chrData);
     }
     
+    /**
+     * Set the tile to use to edit the nametable.
+     * @param currentTile The tile to use.
+     */
     public void setCurrentTile(int currentTile) {
         nametablePane.setCurrentTile(currentTile);
     }
     
+    /**
+     * Set the scale of the content.
+     * @param scale The scale.
+     */
     @Override
     public void setScale(int scale) {
         nametablePane.setScale(scale);
         tilePicker.setScale(scale);
     }
     
+    /**
+     * Create a new nametable.
+     * @return Returns true if the nametable was created.
+     */
     @Override
     public boolean newFile() {
         if(super.newFile()){
@@ -121,6 +153,11 @@ public class NametableEditor extends Editor {
         return false;
     }
     
+    /**
+     * Open a nametable.
+     * @param file The file to open the nametable from.
+     * @return Returns true if the file was opened.
+     */
     @Override
     public boolean openFile(File file) {
         if(super.openFile(file)){
@@ -136,6 +173,9 @@ public class NametableEditor extends Editor {
         return true;
     }
     
+    /**
+     * Save the nametable.
+     */
     @Override
     public void saveFile() {
         File file = getFile();
@@ -150,6 +190,10 @@ public class NametableEditor extends Editor {
         }
     }
     
+    /**
+     * Save the nametable to a specific file.
+     * @param file The file to save the nametable to.
+     */
     @Override
     public void saveAsFile(File file) {
         try {
@@ -161,24 +205,43 @@ public class NametableEditor extends Editor {
         }
     }
     
+    /**
+     * Set the CHR bank to use to display the nametable.
+     * @param chrBank The CHR bank to use.
+     */
     public void setCHRBank(int chrBank) {
         nametablePane.setCHRBank(chrBank);
     }
     
+    /**
+     * Get the scale of the content.
+     * @return Returns the scale.
+     */
     public int getScale() {
         return window.getScale();
     }
     
+    /**
+     * Enable or disable the grid.
+     * @param grid True if the grid should be drawn.
+     */
     @Override
     public void setGrid(boolean grid) {
         nametablePane.setGrid(grid);
         tilePicker.setGrid(grid);
     }
     
+    /**
+     * Get the CHR data used to display the nametable.
+     * @return
+     */
     public CHRData getCHRData() {
         return tilePicker.getCHRData();
     }
     
+    /**
+     * Undo the last action.
+     */
     @Override
     public void undo() {
         if(undoManager.canUndo()){
@@ -186,6 +249,9 @@ public class NametableEditor extends Editor {
         }
     }
     
+    /**
+     * Redo the last action.
+     */
     @Override
     public void redo() {
         if(undoManager.canRedo()){
@@ -193,14 +259,26 @@ public class NametableEditor extends Editor {
         }
     }
     
+    /**
+     * Set the nametable data from arrays.
+     * @param nametable The nametable.
+     * @param attributes The attribute table.
+     */
     public void setData(byte[] nametable, byte[] attributes) {
         nametablePane.setData(nametable, attributes);
     }
     
+    /**
+     * Add an edit to the undoManager.
+     * @param edit The edit to add.
+     */
     public void addEdit(NametableEdit edit) {
         undoManager.addEdit(edit);
     }
     
+    /**
+     * Copy the selection.
+     */
     @Override
     public void copy() {
         clipboard = nametablePane.getSelection();
@@ -208,6 +286,9 @@ public class NametableEditor extends Editor {
         clipboardH = nametablePane.getSelectionH();
     }
     
+    /**
+     * Cut the selection.
+     */
     @Override
     public void cut() {
         copy();
@@ -219,6 +300,9 @@ public class NametableEditor extends Editor {
                 nametablePane.getNametable()));
     }
     
+    /**
+     * Paste the selection.
+     */
     @Override
     public void paste() {
         if(clipboard != null){

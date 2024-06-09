@@ -34,6 +34,11 @@ public class Viewmenu extends JMenu {
     private JMenuItem zoomIn;
     private JMenuItem zoomOut;
     private JCheckBoxMenuItem grid;
+
+    /**
+     * Creates the View menu.
+     * @param window The editor window.
+     */
     public Viewmenu(Window window) {
         super("View");
         int modifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();

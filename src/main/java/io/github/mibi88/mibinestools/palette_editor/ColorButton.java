@@ -29,11 +29,20 @@ import javax.swing.JButton;
 public class ColorButton extends JButton {
     private BufferedImage image;
     private ComponentAdapter componentAdapter;
+
+    /**
+     * Create a new colored button.
+     * @param color The color of the button.
+     */
     public ColorButton(Color color) {
         super();
         updateColor(color);
     }
     
+    /**
+     * Change the color of the button.
+     * @param color The new color of the button.
+     */
     public void updateColor(Color color) {
         setBackground(color);
     }

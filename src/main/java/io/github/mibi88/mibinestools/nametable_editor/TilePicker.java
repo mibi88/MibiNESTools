@@ -55,6 +55,11 @@ public class TilePicker extends JPanel {
     
     private NametableEditor editor;
     
+    /**
+     * Create a new TilePicker.
+     * @param editor The nametable editor to create the tile picker for.
+     * @param window The window that contains the editor.
+     */
     public TilePicker(NametableEditor editor, Window window) {
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -81,10 +86,18 @@ public class TilePicker extends JPanel {
         addActions();
     }
     
+    /**
+     * Get the CHR data this tile picker displays.
+     * @return The CHR data.
+     */
     public CHRData getCHRData() {
         return chrData;
     }
     
+    /**
+     * Set the palette to use to display the CHR data.
+     * @param palette
+     */
     public void setPalette(int[][] palette) {
         patternTable.setPalette(palette);
     }
@@ -98,6 +111,9 @@ public class TilePicker extends JPanel {
         });
     }
     
+    /**
+     * Open CHR data from the disk.
+     */
     public void openCHR() {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter chrFilter =
@@ -115,6 +131,9 @@ public class TilePicker extends JPanel {
         }
     }
     
+    /**
+     * Reload the CHR data.
+     */
     public void updateCHR() {
         if(file != null){
             try {
@@ -130,19 +149,35 @@ public class TilePicker extends JPanel {
         }
     }
     
+    /**
+     * Set the scale to display the pattern table content at.
+     * @param scale The scale.
+     */
     public void setScale(int scale) {
         patternTable.setScale(scale);
         patternTablePane.revalidate();
     }
     
+    /**
+     * Set the number of CHR banks that compose the displayed CHR data.
+     * @param value The number of CHR banks.
+     */
     public void setCHRBank(int value) {
         editor.setCHRBank(value);
     }
     
+    /**
+     * Get the number of CHR banks that compose the CHR data.
+     * @return The number of CHR banks.
+     */
     public int getCHRBanks() {
         return chrData.getChrBanks();
     }
     
+    /**
+     * Set if the grid should be displayed.
+     * @param grid True if a grid should be drawn.
+     */
     public void setGrid(boolean grid) {
         patternTable.setGrid(grid);
     }

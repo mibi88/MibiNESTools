@@ -23,11 +23,23 @@ package io.github.mibi88.mibinestools;
  */
 public class Line {
     private DrawEvent event;
+
+    /**
+     * Draw a line.
+     * @param event The DrawEvent to use to draw the line.
+     */
     public Line(DrawEvent event) {
         this.event = event;
     }
-    // Bresenham's line algorithm as shown in
-    // https://en.wikipedia.org/wiki/Bresenham's_line_algorithm#All_cases
+
+    /**
+     * This method implements Bresenham's line algorithm as shown in
+     * https://en.wikipedia.org/wiki/Bresenham's_line_algorithm#All_cases
+     * @param x1 The starting position of the line.
+     * @param y1 The starting position of the line.
+     * @param x2 The end position of the line.
+     * @param y2 The end position of the line.
+     */
     public void drawLine(int x1, int y1, int x2, int y2) {
         int dx = Math.abs(x2-x1);
         int sx = x1 < x2 ? 1 : -1;

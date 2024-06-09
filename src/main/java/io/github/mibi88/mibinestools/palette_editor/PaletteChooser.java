@@ -33,6 +33,11 @@ import javax.swing.event.ChangeListener;
 public class PaletteChooser extends JToolBar {
     private JLabel label;
     private JSpinner chooser;
+
+    /**
+     * Initialize the palette chooser.
+     * @param paletteEditor The palette editor to use with this palette chooser.
+     */
     public PaletteChooser(PaletteEditor paletteEditor) {
         super("Palette selection");
         setFloatable(false);
@@ -52,6 +57,10 @@ public class PaletteChooser extends JToolBar {
         });
     }
     
+    /**
+     * Get the index of the selected palette.
+     * @return The index of the selected palette.
+     */
     public int getValue() {
         return (int)chooser.getValue();
     }

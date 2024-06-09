@@ -22,5 +22,11 @@ package io.github.mibi88.mibinestools.chr_editor;
  * @author mibi88
  */
 public interface PatternTableEvent {
+
+    /**
+     * This method gets called when a tile gets selected in the pattern table.
+     * @param tx The position of the tile.
+     * @param ty The position of the tile.
+     */
     public void tileSelected(int tx, int ty);
 }

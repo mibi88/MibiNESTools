@@ -27,6 +27,12 @@ import java.awt.event.ActionListener;
  */
 public class ColorPicker extends Palette {
     private byte currentColor;
+
+    /**
+     * Create a new color picker.
+     * @param palette The default palette.
+     * @param tileCanvas The tile canvas to use with it.
+     */
     public ColorPicker(int[][] palette, TileCanvas tileCanvas) {
         super(palette);
         for(int i=0;i<4;i++){
