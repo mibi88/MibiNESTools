@@ -37,6 +37,8 @@ public class TileEditor extends JPanel {
     private byte[] oldData;
     private Line overlayLine;
     private Line renderLine;
+    private Rectangle overlayRectangle;
+    private Rectangle renderRectangle;
     private int startX, startY;
     public TileEditor(int scale, int[][] palette, byte currentColor,
             CHREditor editor) {
@@ -46,18 +48,7 @@ public class TileEditor extends JPanel {
         
         toolPanel = new ToolPanel(this);
         tileCanvas = new TileCanvas(scale, 8,  8, palette, currentColor);
-        overlayLine = new Line(new DrawEvent() {
-            @Override
-            public void setPixel(int x, int y) {
-                tileCanvas.setOverlayPixel(x, y, true);
-            }
-        });
-        renderLine = new Line(new DrawEvent() {
-            @Override
-            public void setPixel(int x, int y) {
-                tileCanvas.setPixel(x, y, tileCanvas.getCurrentColor());
-            }
-        });
+        initShapes();
         tileCanvas.setEventHandler(new CanvasEvent() {
             @Override
             public void beforeChange(int x, int y) {
@@ -81,6 +72,17 @@ public class TileEditor extends JPanel {
                             tileCanvas.clearOverlay();
                             overlayLine.drawLine(startX, startY, x,
                                     y);
+                        }
+                        break;
+                    case RECTANGLE:
+                        if(end){
+                            tileCanvas.clearOverlay();
+                            renderRectangle.drawRectangle(startX, startY,
+                                    x, y);
+                        }else{
+                            tileCanvas.clearOverlay();
+                            overlayRectangle.drawRectangle(startX, startY,
+                                    x, y);
                         }
                         break;
                 }
@@ -116,6 +118,25 @@ public class TileEditor extends JPanel {
         c.weightx = 1;
         c.weighty = 0.25;
         add(colorPicker, c);
+    }
+    
+    private void initShapes() {
+        DrawEvent renderEvent = new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                tileCanvas.setPixel(x, y, tileCanvas.getCurrentColor());
+            }
+        };
+        DrawEvent overlayEvent = new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                tileCanvas.setOverlayPixel(x, y, true);
+            }
+        };
+        overlayLine = new Line(overlayEvent);
+        renderLine = new Line(renderEvent);
+        overlayRectangle = new Rectangle(overlayEvent);
+        renderRectangle = new Rectangle(renderEvent);
     }
     
     public void reset() {
