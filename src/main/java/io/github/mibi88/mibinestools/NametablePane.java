@@ -36,6 +36,9 @@ public class NametablePane extends JPanel {
     private byte[] oldAttributes;
     private byte[] oldNametable;
     
+    private Line overlayLine;
+    private Line renderLine;
+    
     int startX, startY;
     
     public NametablePane(NametableEditor editor){
@@ -59,6 +62,20 @@ public class NametablePane extends JPanel {
         c.weightx = 1;
         add(nametableViewerPane, c);
         
+        overlayLine = new Line(new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                nametableViewer.setOverlayPixel(x, y, true);
+            }
+        });
+        
+        renderLine = new Line(new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                nametableViewer.setTile(x, y);
+            }
+        });
+        
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
             public void beforeChange(int tx, int ty) {
@@ -66,6 +83,7 @@ public class NametablePane extends JPanel {
                 oldAttributes = nametableViewer.getAttributes().clone();
                 startX = tx;
                 startY = ty;
+                nametableViewer.clearOverlay();
                 return;
             }
             
@@ -88,18 +106,28 @@ public class NametablePane extends JPanel {
                         nametableViewer.setPalette(tx, ty,
                                 editor.getPaletteEditor()
                                         .getCurrentPaletteIndex());
-                        if(end){
-                            addEdit(editor);
-                        }
                         break;
                     case PEN:
                         nametableViewer.setTile(tx, ty);
+                        break;
+                    case LINE:
+                        System.out.println("line");
                         if(end){
-                            addEdit(editor);
+                            nametableViewer.clearOverlay();
+                            renderLine.drawLine(startX, startY,
+                                    tx, ty);
+                        }else{
+                            nametableViewer.clearOverlay();
+                            overlayLine.drawLine(startX, startY,
+                                    tx, ty);
+                            nametableViewer.repaint();
                         }
                         break;
                 }
                 if(getCurrentTool() != Tool.SELECTION){
+                    if(end){
+                        addEdit(editor);
+                    }
                     editor.fileEdited();
                 }
             }

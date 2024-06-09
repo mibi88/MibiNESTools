@@ -48,6 +48,7 @@ public class NametableViewer extends JPanel {
     private byte currentTile;
     private int chrBank;
     private int selectX, selectY, selectW, selectH;
+    private boolean[] overlay;
     public NametableViewer(CHRData chrData, PaletteEditor paletteEditor,
             int scale, boolean grid) {
         super();
@@ -67,6 +68,7 @@ public class NametableViewer extends JPanel {
     
     public void reset() {
         tiles = new byte[32*30];
+        overlay = new boolean[32*30];
         attributes = new byte[64];
     }
     
@@ -259,6 +261,16 @@ public class NametableViewer extends JPanel {
         repaint();
     }
     
+    public void setOverlayPixel(int x, int y, boolean value) {
+        if(x >= 0 && x < 32 && y >= 0 && y < 30){
+            overlay[y*32+x] = value;
+        }
+    }
+    
+    public void clearOverlay() {
+        Arrays.fill(overlay, false);
+    }
+    
     /**
      *
      * @param g
@@ -266,7 +278,6 @@ public class NametableViewer extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.GRAY);
         for(int y=0;y<30;y++){
             for(int x=0;x<32;x++){
                 int tile = chrBank*256+(int)tiles[y*32+x]-Byte.MIN_VALUE;
@@ -286,11 +297,17 @@ public class NametableViewer extends JPanel {
                     Logger.getLogger(NametableViewer.class.getName()).log(
                             Level.SEVERE, null, ex);
                 }
+                if(overlay[y*32+x]){
+                    g.setColor(new Color(255, 255, 255, 127));
+                    g.fillRect(x*8*scale, y*8*scale, 8*scale, 8*scale);
+                }
             }
             if(grid){
+                g.setColor(Color.GRAY);
                 g.drawLine(0, y*8*scale, 32*8*scale, y*8*scale);
             }
         }
+        g.setColor(Color.GRAY);
         if(grid){
             for(int x=0;x<32;x++){
                 g.drawLine(x*8*scale, 0, x*8*scale, 30*8*scale);
