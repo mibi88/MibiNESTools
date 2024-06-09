@@ -112,7 +112,7 @@ public class PatternTable extends JPanel {
     
     /**
      * Set the event handler to call when the selection changes.
-     * @param event
+     * @param event The event handler.
      */
     public void setEventHandler(PatternTableEvent event) {
         this.event = event;

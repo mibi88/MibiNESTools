@@ -17,42 +17,37 @@
  */
 package io.github.mibi88.mibinestools;
 
-import javax.swing.JMenuBar;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 
 /**
  *
  * @author mibi88
  */
-public class Menubar extends JMenuBar {
-    private Filemenu fileMenu;
-    private Editmenu editMenu;
-    private Viewmenu viewMenu;
-    private Aboutmenu aboutMenu;
+public class Aboutmenu extends JMenu {
+    JMenuItem about;
+    AboutPopup aboutPopup;
 
     /**
-     * Initialize the menubar
-     * @param window The editor window
+     * Create the About menu.
+     * @param window The editor window.
      */
-    public Menubar(Window window) {
-        createMenus(window);
+    public Aboutmenu(Window window) {
+        super("About");
+        about = new JMenuItem("About");
+        add(about);
+        addActions(window);
     }
     
-    private void createMenus(Window window) {
-        fileMenu = new Filemenu(window);
-        add(fileMenu);
-        editMenu = new Editmenu(window);
-        add(editMenu);
-        viewMenu = new Viewmenu(window);
-        add(viewMenu);
-        aboutMenu = new Aboutmenu(window);
-        add(aboutMenu);
-    }
-    
-    /**
-     * Get the View menu.
-     * @return The view menu
-     */
-    public Viewmenu getViewMenu() {
-        return viewMenu;
+    private void addActions(Window window) {
+        aboutPopup = new AboutPopup();
+        about.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aboutPopup.show(window);
+            }
+        });
     }
 }

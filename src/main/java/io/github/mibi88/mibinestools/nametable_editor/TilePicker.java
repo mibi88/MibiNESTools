@@ -96,7 +96,7 @@ public class TilePicker extends JPanel {
     
     /**
      * Set the palette to use to display the CHR data.
-     * @param palette
+     * @param palette The palette to use.
      */
     public void setPalette(int[][] palette) {
         patternTable.setPalette(palette);

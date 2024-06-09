@@ -29,6 +29,7 @@ public class LevelEditor extends Editor {
 
     /**
      * Initialize the level editor
+     * @param window The editor window.
      */
     public LevelEditor(Window window) {
         super("Level Editor");

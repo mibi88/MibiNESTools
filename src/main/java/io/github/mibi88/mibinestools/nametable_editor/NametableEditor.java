@@ -50,6 +50,7 @@ public class NametableEditor extends Editor {
     
     /**
      * Initialize the nametable editor
+     * @param window The editor window
      */
     public NametableEditor(Window window) {
         super("Nametable Editor", new GridLayout(1, 4));
@@ -233,7 +234,7 @@ public class NametableEditor extends Editor {
     
     /**
      * Get the CHR data used to display the nametable.
-     * @return
+     * @return The CHR data.
      */
     public CHRData getCHRData() {
         return tilePicker.getCHRData();

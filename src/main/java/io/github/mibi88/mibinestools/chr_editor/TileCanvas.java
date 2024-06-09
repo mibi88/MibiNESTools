@@ -215,7 +215,7 @@ public class TileCanvas extends JPanel {
     
     /**
      * Set the palette to use to display the tile.
-     * @param palette
+     * @param palette The palette to use.
      */
     public void setPalette(int[][] palette) {
         this.palette = palette;
