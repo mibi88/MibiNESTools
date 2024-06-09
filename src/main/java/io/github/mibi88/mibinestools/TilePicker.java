@@ -138,4 +138,8 @@ public class TilePicker extends JPanel {
     public int getCHRBanks() {
         return chrData.getChrBanks();
     }
+    
+    public void setGrid(boolean grid) {
+        patternTable.setGrid(grid);
+    }
 }

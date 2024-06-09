@@ -176,11 +176,8 @@ public class Window extends JFrame {
     }
     
     public void setGrid(boolean grid) {
-        try {
-            editors.get(getSelectedEditor()).setGrid(grid);
-        } catch (Exception ex) {
-            Logger.getLogger(Window.class.getName()).log(
-                    Level.SEVERE, null, ex);
+        for(Editor editor : editors) {
+            editor.setGrid(grid);
         }
     }
     

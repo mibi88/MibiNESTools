@@ -229,4 +229,8 @@ public class NametablePane extends JPanel {
     public byte[] getAttributes() {
         return nametableViewer.getAttributes();
     }
+    
+    public void setGrid(boolean grid) {
+        nametableViewer.setGrid(grid);
+    }
 }

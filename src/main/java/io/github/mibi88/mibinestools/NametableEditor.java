@@ -165,6 +165,12 @@ public class NametableEditor extends Editor {
         return window.getScale();
     }
     
+    @Override
+    public void setGrid(boolean grid) {
+        nametablePane.setGrid(grid);
+        tilePicker.setGrid(grid);
+    }
+    
     public CHRData getCHRData() {
         return tilePicker.getCHRData();
     }
