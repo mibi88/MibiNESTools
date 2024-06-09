@@ -15,22 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
-
-import javax.swing.JButton;
+package io.github.mibi88.mibinestools.palette_editor;
 
 /**
  *
  * @author mibi88
  */
-public class LevelEditor extends Editor {
-
-    /**
-     * Initialize the level editor
-     */
-    public LevelEditor(Window window) {
-        super("Level Editor");
-        JButton button = new JButton("Level editor");
-        add(button);
-    }
+public interface PaletteEvent {
+    public void paletteChanged();
 }

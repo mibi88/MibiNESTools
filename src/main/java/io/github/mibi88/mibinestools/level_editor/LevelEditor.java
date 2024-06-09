@@ -15,26 +15,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.level_editor;
 
-import java.awt.Color;
-import java.awt.event.ComponentAdapter;
-import java.awt.image.BufferedImage;
+import io.github.mibi88.mibinestools.Editor;
+import io.github.mibi88.mibinestools.Window;
 import javax.swing.JButton;
 
 /**
  *
  * @author mibi88
  */
-public class ColorButton extends JButton {
-    private BufferedImage image;
-    private ComponentAdapter componentAdapter;
-    public ColorButton(Color color) {
-        super();
-        updateColor(color);
-    }
-    
-    public void updateColor(Color color) {
-        setBackground(color);
+public class LevelEditor extends Editor {
+
+    /**
+     * Initialize the level editor
+     */
+    public LevelEditor(Window window) {
+        super("Level Editor");
+        JButton button = new JButton("Level editor");
+        add(button);
     }
 }

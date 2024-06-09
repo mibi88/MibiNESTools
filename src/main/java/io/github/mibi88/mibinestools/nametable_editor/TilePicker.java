@@ -15,8 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.nametable_editor;
 
+import io.github.mibi88.mibinestools.chr_editor.PatternTable;
+import io.github.mibi88.mibinestools.chr_editor.PatternTableEvent;
+import io.github.mibi88.mibinestools.Window;
+import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;

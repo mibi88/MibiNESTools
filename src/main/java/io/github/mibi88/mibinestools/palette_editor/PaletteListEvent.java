@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.palette_editor;
 
 /**
  *
  * @author mibi88
  */
-public interface PatternTableEvent {
-    public void tileSelected(int tx, int ty);
+public interface PaletteListEvent {
+    public void paletteChanged(int i);
 }

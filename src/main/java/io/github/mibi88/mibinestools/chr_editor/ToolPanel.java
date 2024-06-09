@@ -15,8 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.chr_editor;
 
+import io.github.mibi88.mibinestools.Tool;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

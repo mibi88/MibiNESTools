@@ -15,28 +15,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.palette_editor;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.GridLayout;
+import javax.swing.JPanel;
 
 /**
  *
  * @author mibi88
  */
-public class ColorPicker extends Palette {
-    private byte currentColor;
-    public ColorPicker(int[][] palette, TileCanvas tileCanvas) {
-        super(palette);
+public class Palette extends JPanel {
+    protected ColorButton[] colors;
+    public Palette(int[][] palette) {
+        super(new GridLayout(1, 3));
+        colors = new ColorButton[4];
         for(int i=0;i<4;i++){
             final byte nesColor = (byte)i;
-            colors[i].addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    currentColor = nesColor;
-                    tileCanvas.setCurrentColor(currentColor);
-                }
-            });
+            Color color = new Color(palette[i][0], palette[i][1],
+                    palette[i][2]);
+            colors[i] = new ColorButton(color);
+            add(colors[i]);
+        }
+    }
+    
+    public void updatePalette(int[][] palette) {
+        for(int i=0;i<4;i++){
+            Color color = new Color(palette[i][0], palette[i][1],
+                    palette[i][2]);
+            colors[i].updateColor(color);
         }
     }
 }

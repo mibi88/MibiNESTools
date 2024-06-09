@@ -15,8 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.chr_editor;
 
+import io.github.mibi88.mibinestools.Editor;
+import io.github.mibi88.mibinestools.palette_editor.PaletteEditor;
+import io.github.mibi88.mibinestools.Window;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.io.File;

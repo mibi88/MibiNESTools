@@ -15,38 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.palette_editor;
 
-import javax.swing.undo.AbstractUndoableEdit;
+import java.awt.Color;
+import java.awt.event.ComponentAdapter;
+import java.awt.image.BufferedImage;
+import javax.swing.JButton;
 
 /**
  *
  * @author mibi88
  */
-public class CHREdit extends AbstractUndoableEdit {
-    private byte[] tileData;
-    private byte[] newData;
-    private int tx, ty;
-    private CHREditor editor;
-    public CHREdit(CHREditor editor, byte[] tileData, byte[] newData, int tx,
-            int ty) {
+public class ColorButton extends JButton {
+    private BufferedImage image;
+    private ComponentAdapter componentAdapter;
+    public ColorButton(Color color) {
         super();
-        this.tileData = tileData.clone();
-        this.newData = newData.clone();
-        this.tx = tx;
-        this.ty = ty;
-        this.editor = editor;
+        updateColor(color);
     }
     
-    @Override
-    public void undo() {
-        super.undo();
-        editor.updateTile(tileData, tx, ty);
-    }
-    
-    @Override
-    public void redo() {
-        super.redo();
-        editor.updateTile(newData, tx, ty);
+    public void updateColor(Color color) {
+        setBackground(color);
     }
 }

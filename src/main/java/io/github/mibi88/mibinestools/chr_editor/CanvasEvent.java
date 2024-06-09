@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.chr_editor;
 
 /**
  *
  * @author mibi88
  */
-public interface NametableViewerEvent {
-    public void beforeChange(int tx, int ty);
-    public void tileChanged(int tx, int ty, boolean end);
+public interface CanvasEvent {
+    public void beforeChange(int x, int y);
+    public void canvasUpdate(int x, int y, boolean end);
 }

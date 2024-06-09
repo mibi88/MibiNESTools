@@ -18,6 +18,9 @@
 
 package io.github.mibi88.mibinestools;
 
+import io.github.mibi88.mibinestools.level_editor.LevelEditor;
+import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
+import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

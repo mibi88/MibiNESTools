@@ -15,12 +15,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools;
+package io.github.mibi88.mibinestools.palette_editor;
+
+import io.github.mibi88.mibinestools.chr_editor.TileCanvas;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  *
  * @author mibi88
  */
-public interface PaletteListEvent {
-    public void paletteChanged(int i);
+public class ColorPicker extends Palette {
+    private byte currentColor;
+    public ColorPicker(int[][] palette, TileCanvas tileCanvas) {
+        super(palette);
+        for(int i=0;i<4;i++){
+            final byte nesColor = (byte)i;
+            colors[i].addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    currentColor = nesColor;
+                    tileCanvas.setCurrentColor(currentColor);
+                }
+            });
+        }
+    }
 }
