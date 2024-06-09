@@ -36,18 +36,20 @@ import javax.swing.JToolBar;
  * @author mibi88
  */
 public class ToolPanel extends JToolBar {
-    private final int TOOL_AMOUNT = 4;
     private ButtonGroup buttonGroup;
     private JButton zoomIn;
     private JButton zoomOut;
     private JToggleButton penTool;
     private JToggleButton lineTool;
+    private JToggleButton rectangleTool;
     
     private TileEditor tileEditor;
+    private Tool currentTool;
     public ToolPanel(TileEditor tileEditor) {
         super("Tools", JToolBar.VERTICAL);
         setFloatable(false);
         setRollover(true);
+        currentTool = Tool.PEN;
         //setLayout(new GridLayout(TOOL_AMOUNT, 1));
         zoomIn = new JButton(getIcon("zoom_in.png"));
         zoomIn.setToolTipText("Zoom In");
@@ -57,13 +59,17 @@ public class ToolPanel extends JToolBar {
         penTool.setToolTipText("Pen");
         lineTool = new JToggleButton(getIcon("line.png"));
         lineTool.setToolTipText("Line");
+        rectangleTool = new JToggleButton(getIcon("rectangle.png"));
+        rectangleTool.setToolTipText("Rectangle");
         buttonGroup = new ButtonGroup();
         buttonGroup.add(penTool);
         buttonGroup.add(lineTool);
+        buttonGroup.add(rectangleTool);
         add(zoomIn);
         add(zoomOut);
         add(penTool);
         add(lineTool);
+        add(rectangleTool);
         penTool.setSelected(true);
         
         this.tileEditor = tileEditor;
@@ -94,5 +100,28 @@ public class ToolPanel extends JToolBar {
                 tileEditor.zoomOut();
             }
         });
+        
+        penTool.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.PEN;
+            }
+        });
+        lineTool.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.LINE;
+            }
+        });
+        rectangleTool.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTool = Tool.RECTANGLE;
+            }
+        });
+    }
+    
+    public Tool getCurrentTool() {
+        return currentTool;
     }
 }

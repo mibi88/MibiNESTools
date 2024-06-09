@@ -22,6 +22,6 @@ package io.github.mibi88.mibinestools;
  * @author mibi88
  */
 public interface CanvasEvent {
-    public void beforeChange();
-    public void canvasUpdate(boolean end);
+    public void beforeChange(int x, int y);
+    public void canvasUpdate(int x, int y, boolean end);
 }

@@ -35,6 +35,9 @@ public class TileEditor extends JPanel {
     private ColorPicker colorPicker;
     private int tx, ty;
     private byte[] oldData;
+    private Line overlayLine;
+    private Line renderLine;
+    private int startX, startY;
     public TileEditor(int scale, int[][] palette, byte currentColor,
             CHREditor editor) {
         super(new GridBagLayout());
@@ -43,13 +46,44 @@ public class TileEditor extends JPanel {
         
         toolPanel = new ToolPanel(this);
         tileCanvas = new TileCanvas(scale, 8,  8, palette, currentColor);
+        overlayLine = new Line(new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                tileCanvas.setOverlayPixel(x, y, true);
+            }
+        });
+        renderLine = new Line(new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                tileCanvas.setPixel(x, y, tileCanvas.getCurrentColor());
+            }
+        });
         tileCanvas.setEventHandler(new CanvasEvent() {
             @Override
-            public void beforeChange() {
+            public void beforeChange(int x, int y) {
                 oldData = tileCanvas.getData().clone();
+                startX = x;
+                startY = y;
             }
             @Override
-            public void canvasUpdate(boolean end) {
+            public void canvasUpdate(int x, int y, boolean end) {
+                switch(toolPanel.getCurrentTool()){
+                    case PEN:
+                        tileCanvas.setPixel(x, y,
+                                tileCanvas.getCurrentColor());
+                        break;
+                    case LINE:
+                        if(end){
+                            tileCanvas.clearOverlay();
+                            renderLine.drawLine(startX, startY, x,
+                                    y);
+                        }else{
+                            tileCanvas.clearOverlay();
+                            overlayLine.drawLine(startX, startY, x,
+                                    y);
+                        }
+                        break;
+                }
                 editor.updateTile(tileCanvas.getData(), tx, ty);
                 if(end){
                     editor.addEdit(new CHREdit(editor, oldData,
