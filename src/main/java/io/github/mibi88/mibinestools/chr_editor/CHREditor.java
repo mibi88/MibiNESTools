@@ -313,7 +313,7 @@ public class CHREditor extends Editor {
     @Override
     public void paste() {
         byte[] oldTile = tileEditor.getTile();
-        updateTile(clipboard, patternTable.getSelectedX(),
+        updateTile(clipboard.clone(), patternTable.getSelectedX(),
                 patternTable.getSelectedY());
         addEdit(new CHREdit(this, oldTile, clipboard,
                 patternTable.getSelectedX(),

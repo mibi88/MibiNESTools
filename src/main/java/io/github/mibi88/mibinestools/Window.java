@@ -65,6 +65,8 @@ public class Window extends JFrame {
         
         setVisible(true);
         
+        
+        setDefaultCloseOperation(Window.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
@@ -256,6 +258,8 @@ public class Window extends JFrame {
                 if(selected != JOptionPane.OK_OPTION
                         || askToQuit.getValue() == null){
                     return;
+                }else{
+                    break;
                 }
             }
         }
