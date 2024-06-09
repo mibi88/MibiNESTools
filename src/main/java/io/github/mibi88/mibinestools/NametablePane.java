@@ -38,6 +38,8 @@ public class NametablePane extends JPanel {
     
     private Line overlayLine;
     private Line renderLine;
+    private Rectangle overlayRectangle;
+    private Rectangle renderRectangle;
     
     int startX, startY;
     
@@ -62,19 +64,7 @@ public class NametablePane extends JPanel {
         c.weightx = 1;
         add(nametableViewerPane, c);
         
-        overlayLine = new Line(new DrawEvent() {
-            @Override
-            public void setPixel(int x, int y) {
-                nametableViewer.setOverlayPixel(x, y, true);
-            }
-        });
-        
-        renderLine = new Line(new DrawEvent() {
-            @Override
-            public void setPixel(int x, int y) {
-                nametableViewer.setTile(x, y);
-            }
-        });
+        initShapes();
         
         nametableViewer.setEventHandler(new NametableViewerEvent() {
             @Override
@@ -111,7 +101,6 @@ public class NametablePane extends JPanel {
                         nametableViewer.setTile(tx, ty);
                         break;
                     case LINE:
-                        System.out.println("line");
                         if(end){
                             nametableViewer.clearOverlay();
                             renderLine.drawLine(startX, startY,
@@ -119,6 +108,18 @@ public class NametablePane extends JPanel {
                         }else{
                             nametableViewer.clearOverlay();
                             overlayLine.drawLine(startX, startY,
+                                    tx, ty);
+                            nametableViewer.repaint();
+                        }
+                        break;
+                    case RECTANGLE:
+                        if(end){
+                            nametableViewer.clearOverlay();
+                            renderRectangle.drawRectangle(startX, startY,
+                                    tx, ty);
+                        }else{
+                            nametableViewer.clearOverlay();
+                            overlayRectangle.drawRectangle(startX, startY,
                                     tx, ty);
                             nametableViewer.repaint();
                         }
@@ -132,6 +133,26 @@ public class NametablePane extends JPanel {
                 }
             }
         });
+    }
+    
+    private void initShapes() {
+        DrawEvent overlayEvent = new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                nametableViewer.setOverlayPixel(x, y, true);
+            }
+        };
+        DrawEvent renderEvent = new DrawEvent() {
+            @Override
+            public void setPixel(int x, int y) {
+                nametableViewer.setTile(x, y);
+            }
+        };
+        
+        overlayLine = new Line(overlayEvent);
+        renderLine = new Line(renderEvent);
+        overlayRectangle = new Rectangle(overlayEvent);
+        renderRectangle = new Rectangle(renderEvent);
     }
     
     private void addEdit(NametableEditor editor) {
