@@ -168,4 +168,16 @@ public class NametablePane extends JPanel {
     public void fillSelection(byte[] data, int w, int h) {
         nametableViewer.fillSelection(data, w, h);
     }
+    
+    public void fillSelection(int tile) {
+        nametableViewer.fillSelection(tile);
+    }
+    
+    public byte[] getNametable() {
+        return nametableViewer.getNametable();
+    }
+    
+    public byte[] getAttributes() {
+        return nametableViewer.getAttributes();
+    }
 }

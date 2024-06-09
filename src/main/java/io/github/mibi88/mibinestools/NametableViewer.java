@@ -90,10 +90,10 @@ public class NametableViewer extends JPanel {
     
     public void setSelection(int selectX1, int selectY1, int selectX2,
             int selectY2) {
-        selectX1 = selectX1 >= 32 ? 31 : selectX1;
-        selectY1 = selectY1 >= 30 ? 29 : selectY1;
-        selectX2 = selectX2 >= 32 ? 31 : selectX2;
-        selectY2 = selectY2 >= 30 ? 29 : selectY2;
+        selectX1 = Math.max(0, Math.min(selectX1, 32));
+        selectY1 = Math.max(0, Math.min(selectY1, 30));
+        selectX2 = Math.max(0, Math.min(selectX2, 32));
+        selectY2 = Math.max(0, Math.min(selectY2, 30));
         selectX = Math.min(selectX1, selectX2);
         selectY = Math.min(selectY1, selectY2);
         selectW = Math.max(selectX1, selectX2)-selectX;
@@ -154,7 +154,7 @@ public class NametableViewer extends JPanel {
             byte[] data = new byte[selectW*selectH];
             for(int y=0;y<selectH;y++){
                 for(int x=0;x<selectW;x++){
-                    data[y*selectW+x] = tiles[(selectY+y)*selectW+(selectX+x)];
+                    data[y*selectW+x] = tiles[(selectY+y)*32+(selectX+x)];
                 }
             }
             return data;
@@ -165,18 +165,20 @@ public class NametableViewer extends JPanel {
     public void fillSelection(int tile) {
         for(int y=0;y<selectH;y++){
             for(int x=0;x<selectW;x++){
-                tiles[(selectY+y)*selectW+(selectX+x)] =
+                tiles[(selectY+y)*32+(selectX+x)] =
                         (byte)(tile-Byte.MIN_VALUE);
             }
         }
+        repaint();
     }
     
     public void fillSelection(byte[] data, int w, int h) {
         for(int y=0;y<Math.min(selectH, h);y++){
             for(int x=0;x<Math.min(selectW, w);x++){
-                tiles[(selectY+y)*selectW+(selectX+x)] = data[y*w+x];
+                tiles[(selectY+y)*32+(selectX+x)] = data[y*w+x];
             }
         }
+        repaint();
     }
     
     public int getSelectionW() {

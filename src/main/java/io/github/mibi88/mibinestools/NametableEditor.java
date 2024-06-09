@@ -199,10 +199,26 @@ public class NametableEditor extends Editor {
     }
     
     @Override
+    public void cut() {
+        copy();
+        byte[] oldNametable = nametablePane.getNametable().clone();
+        byte[] oldAttributes = nametablePane.getAttributes().clone();
+        nametablePane.fillSelection(0);
+        addEdit(new NametableEdit(this, oldAttributes, oldNametable,
+                nametablePane.getAttributes(),
+                nametablePane.getNametable()));
+    }
+    
+    @Override
     public void paste() {
         if(clipboard != null){
+            byte[] oldNametable = nametablePane.getNametable().clone();
+            byte[] oldAttributes = nametablePane.getAttributes().clone();
             nametablePane.fillSelection(clipboard, clipboardW,
                     clipboardH);
+            addEdit(new NametableEdit(this, oldAttributes, oldNametable,
+                    nametablePane.getAttributes(),
+                    nametablePane.getNametable()));
         }
     }
 }
