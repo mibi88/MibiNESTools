@@ -18,7 +18,6 @@
 
 package io.github.mibi88.mibinestools;
 
-import io.github.mibi88.mibinestools.level_editor.LevelEditor;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import java.awt.BorderLayout;
@@ -83,7 +82,6 @@ public class Window extends JFrame {
         
         editors.add(new CHREditor(this));
         editors.add(new NametableEditor(this));
-        editors.add(new LevelEditor(this));
         
         addEditors();
         
