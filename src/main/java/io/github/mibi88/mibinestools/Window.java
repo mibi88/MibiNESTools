@@ -99,6 +99,12 @@ public class Window extends JFrame {
         }
     }
     
+    private void addEditor(Editor editor) {
+        editors.add(editor);
+        tabs.addTab(editor.getEditorName(), editor);
+        editor.updateTitle();
+    }
+    
     private int getSelectedEditor() throws Exception {
         for(int i=0;i<editors.size();i++){
             if(editors.get(i).isSelected()){
@@ -323,6 +329,29 @@ public class Window extends JFrame {
         } catch (Exception ex) {
             Logger.getLogger(Window.class.getName()).log(
                     Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Load a plugin.
+     */
+    public void loadPlugin() {
+        JFileChooser fileChooser = new JFileChooser();
+        FileNameExtensionFilter propertiesFilter =
+                new FileNameExtensionFilter("Properties",
+                        "properties");
+        fileChooser.addChoosableFileFilter(propertiesFilter);
+        int out = fileChooser.showOpenDialog(this);
+        if(out == JFileChooser.APPROVE_OPTION){
+            File file = fileChooser.getSelectedFile();
+            try {
+                Plugin plugin = new Plugin(file);
+                addEditor(plugin);
+                plugin.init_end();
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName())
+                        .log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

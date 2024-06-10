@@ -31,7 +31,7 @@ import javax.swing.SwingUtilities;
  * @author mibi88
  */
 public abstract class Editor extends JPanel {
-    private final String editorName;
+    private String editorName;
     private File file;
     private boolean fileSaved;
     
@@ -53,6 +53,14 @@ public abstract class Editor extends JPanel {
     public Editor(String editorName, LayoutManager lm) {
         super(lm);
         fileSaved = true;
+        this.editorName = editorName;
+    }
+    
+    /**
+     * Set the name of the editor.
+     * @param editorName The new name of the editor.
+     */
+    public void setEditorName(String editorName) {
         this.editorName = editorName;
     }
     

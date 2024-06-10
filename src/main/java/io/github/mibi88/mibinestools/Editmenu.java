@@ -35,6 +35,7 @@ public class Editmenu extends JMenu {
     private JMenuItem copy;
     private JMenuItem cut;
     private JMenuItem paste;
+    private JMenuItem loadPlugin;
 
     /**
      * Initialize the edit menu
@@ -58,12 +59,14 @@ public class Editmenu extends JMenu {
         paste = new JMenuItem("Paste");
         paste.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_V, modifier));
+        loadPlugin = new JMenuItem("Load a plugin...");
         add(undo);
         add(redo);
         addSeparator();
         add(copy);
         add(cut);
         add(paste);
+        add(loadPlugin);
         addActions(window);
     }
     
@@ -97,6 +100,12 @@ public class Editmenu extends JMenu {
             @Override
             public void actionPerformed(ActionEvent e) {
                 window.paste();
+            }
+        });
+        loadPlugin.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.loadPlugin();
             }
         });
     }
