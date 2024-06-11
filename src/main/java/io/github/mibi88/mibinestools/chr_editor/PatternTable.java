@@ -179,15 +179,20 @@ public class PatternTable extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.GRAY);
         for(int y=0;y<16*chrData.getChrBanks();y++){
             for(int x=0;x<16;x++){
                 BufferedImage image = chrData.generateTileImage(y*16+x, palette,
                     scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }
+            if(y%16 == 0){
+                g.setColor(Color.WHITE);
+            }
             if(grid){
                 g.drawLine(0, y*8*scale, 16*8*scale, y*8*scale);
+            }
+            if(y%16 == 0){
+                g.setColor(Color.GRAY);
             }
         }
         if(grid){
