@@ -25,9 +25,12 @@ import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
+import javax.swing.undo.UndoManager;
 
 /**
  *
@@ -41,6 +44,7 @@ public class CodeArea extends JTextPane {
     private Style label;
     private Style pseudoFunctions;
     private Style number;
+    private UndoManager undoManager;
 
     /**
      * Create a new CodeArea.
@@ -50,6 +54,7 @@ public class CodeArea extends JTextPane {
         super();
         this.fontSize = fontSize;
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
+        undoManager = new UndoManager();
         styleContext = new StyleContext();
         opcode = styleContext.addStyle("opcode", null);
         StyleConstants.setBold(opcode, true);
@@ -84,6 +89,22 @@ public class CodeArea extends JTextPane {
                 return;
             }
         });
+        getDocument().addUndoableEditListener(new UndoableEditListener() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                System.out.println(e.getEdit().getPresentationName());
+                undoManager.addEdit(e.getEdit());
+            }
+        });
+    }
+    
+    /**
+     * Reset the CodeArea.
+     */
+    public void reset() {
+        setText("");
+        highlight();
+        undoManager.die();
     }
     
     /**
@@ -112,6 +133,24 @@ public class CodeArea extends JTextPane {
             getStyledDocument().setCharacterAttributes(m.start(),
                     m.end()-m.start(), style, true);
             start = m.end();
+        }
+    }
+    
+    /**
+     * Undo the last action.
+     */
+    public void undo() {
+        if(undoManager.canUndo()){
+            undoManager.undo();
+        }
+    }
+    
+    /**
+     * Redo the last action.
+     */
+    public void redo() {
+        if(undoManager.canRedo()){
+            undoManager.redo();
         }
     }
 }

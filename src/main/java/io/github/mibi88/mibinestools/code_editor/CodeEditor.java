@@ -51,8 +51,7 @@ public class CodeEditor extends Editor {
     @Override
     public boolean newFile() {
         if(super.newFile()){
-            codeArea.setText("");
-            codeArea.highlight();
+            codeArea.reset();
             return true;
         }
         return false;
@@ -70,7 +69,9 @@ public class CodeEditor extends Editor {
                 FileInputStream fileStream = new FileInputStream(file);
                 byte[] data = new byte[fileStream.available()];
                 fileStream.read(data);
+                codeArea.reset();
                 codeArea.setText(new String(data));
+                codeArea.highlight();
             } catch (IOException ex) {
                 Logger.getLogger(NametableEditor.class.getName()).log(
                         Level.SEVERE, null, ex);
@@ -114,5 +115,21 @@ public class CodeEditor extends Editor {
             Logger.getLogger(NametableEditor.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
+    }
+    
+    /**
+     * Undo the last action.
+     */
+    @Override
+    public void undo() {
+        codeArea.undo();
+    }
+    
+    /**
+     * Redo the last action.
+     */
+    @Override
+    public void redo() {
+        codeArea.redo();
     }
 }
