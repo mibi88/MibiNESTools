@@ -67,7 +67,7 @@ public class TilePicker extends JPanel {
         chrData = new CHRData();
         patternTable = new PatternTable(chrData,
                 editor.getCurrentPalette(), window.getScale(),
-                true);
+                true, 0, 1);
         patternTablePane = new JScrollPane(patternTable);
         
         tools = new TilePickerTools(this);
@@ -140,7 +140,7 @@ public class TilePicker extends JPanel {
                 chrData = new CHRData(file);
                 patternTable.setCHR(chrData);
                 editor.setCHR(chrData);
-                tools.setCHRBanks(chrData.getChrBanks());
+                tools.setCHRBanks(chrData.getChrBanks()-1);
                 
             } catch (Exception ex) {
                 Logger.getLogger(TilePicker.class.getName()).log(
@@ -163,6 +163,7 @@ public class TilePicker extends JPanel {
      * @param value The number of CHR banks.
      */
     public void setCHRBank(int value) {
+        patternTable.setStartChrBank(value);
         editor.setCHRBank(value);
     }
     

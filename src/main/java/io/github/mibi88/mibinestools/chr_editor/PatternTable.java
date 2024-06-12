@@ -37,6 +37,8 @@ public class PatternTable extends JPanel {
     private boolean grid;
     private PatternTableEvent event;
     private int selectedX, selectedY;
+    private int startChrBank;
+    private int displayedChrBanks;
 
     /**
      * Creates a pattern table widget.
@@ -44,16 +46,23 @@ public class PatternTable extends JPanel {
      * @param palette The palette to use.
      * @param scale The scale of the content.
      * @param grid True if a grid should be drawn.
+     * @param startChrBank The CHR bank to start displaying the pattern table
+     * at.
+     * @param displayedChrBanks The number of CHR banks to display.
      */
     public PatternTable(CHRData chrData, int[][] palette, int scale,
-            boolean grid) {
+            boolean grid, int startChrBank, int displayedChrBanks) {
         super();
         this.chrData = chrData;
         this.palette = palette;
         this.scale = scale;
         this.grid = grid;
-        Dimension size = new Dimension(scale*8*16+16,
-                scale*8*16*chrData.getChrBanks()+16);
+        this.startChrBank = startChrBank;
+        this.displayedChrBanks = displayedChrBanks;
+        int chrBanks = displayedChrBanks == 0 ?
+                chrData.getChrBanks() : displayedChrBanks;
+        chrBanks = Math.min(chrBanks, chrData.getChrBanks());
+        Dimension size = new Dimension(scale*8*16+16, scale*8*16*chrBanks+16);
         setPreferredSize(size);
         repaint();
         handleMouse();
@@ -107,6 +116,15 @@ public class PatternTable extends JPanel {
         Dimension size = new Dimension(scale*8*16+16,
                 scale*8*16*chrData.getChrBanks()+16);
         setPreferredSize(size);
+        repaint();
+    }
+    
+    /**
+     * Set the CHR bank to start displaying the pattern table at.
+     * @param startChrBank The CHR bank to start drawing at.
+     */
+    public void setStartChrBank(int startChrBank) {
+        this.startChrBank = startChrBank;
         repaint();
     }
     
@@ -179,10 +197,14 @@ public class PatternTable extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for(int y=0;y<16*chrData.getChrBanks();y++){
+        int chrBanks = displayedChrBanks == 0 ?
+                chrData.getChrBanks() : displayedChrBanks;
+        chrBanks = Math.min(chrBanks, chrData.getChrBanks());
+        int start = Math.min(startChrBank, chrData.getChrBanks()-1)*256;
+        for(int y=0;y<16*chrBanks;y++){
             for(int x=0;x<16;x++){
-                BufferedImage image = chrData.generateTileImage(y*16+x, palette,
-                    scale);
+                BufferedImage image = chrData.generateTileImage(start+y*16+x,
+                        palette, scale);
                 g.drawImage(image, x*8*scale, y*8*scale, this);
             }
             if(y%16 == 0){
@@ -198,7 +220,7 @@ public class PatternTable extends JPanel {
         if(grid){
             for(int x=0;x<16;x++){
                 g.drawLine(x*8*scale, 0, x*8*scale,
-                        16*chrData.getChrBanks()*8*scale);
+                        16*chrBanks*8*scale);
             }
         }
         // Show the selection

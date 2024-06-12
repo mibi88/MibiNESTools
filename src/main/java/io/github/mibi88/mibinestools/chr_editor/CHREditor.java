@@ -79,7 +79,7 @@ public class CHREditor extends Editor {
     private void initEditor() {
         chrData = new CHRData();
         patternTable = new PatternTable(chrData, currentPalette, scale,
-                window.getGrid());
+                window.getGrid(), 0, 0);
         initPatternTable();
         patternTablePane = new JScrollPane(patternTable);
         patternTablePane.revalidate();
