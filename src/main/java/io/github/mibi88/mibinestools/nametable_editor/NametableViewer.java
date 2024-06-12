@@ -401,9 +401,10 @@ public class NametableViewer extends JPanel {
                 palette >>= pos*2;
                 //System.out.println(palette%4);
                 try {
+                    int[][] paletteData = paletteEditor.getPalette(palette%4);
+                    paletteData[0] = paletteEditor.getPalette(0)[0];
                     BufferedImage image = chrData.generateTileImage(
-                            tile,
-                            paletteEditor.getPalette(palette%4), scale);
+                            tile, paletteData, scale);
                     g.drawImage(image, x*8*scale, y*8*scale, this);
                 } catch (Exception ex) {
                     Logger.getLogger(NametableViewer.class.getName()).log(
