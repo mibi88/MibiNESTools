@@ -27,6 +27,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -92,8 +93,11 @@ public class CodeArea extends JTextPane {
         getDocument().addUndoableEditListener(new UndoableEditListener() {
             @Override
             public void undoableEditHappened(UndoableEditEvent e) {
-                System.out.println(e.getEdit().getPresentationName());
-                undoManager.addEdit(e.getEdit());
+                AbstractDocument.DefaultDocumentEvent edit =
+                        (AbstractDocument.DefaultDocumentEvent)e.getEdit();
+                if(edit.getType() != DocumentEvent.EventType.CHANGE){
+                    undoManager.addEdit(edit);
+                }
             }
         });
     }
