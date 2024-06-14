@@ -181,17 +181,27 @@ public class CodeArea extends JTextPane {
                 throws BadLocationException {
             String oldText = getText();
             super.replace(fb, offset, length, text, attrs);
-            undoManager.addEdit(new CodeAreaEdit(oldText, getText()));
+            CodeAreaEdit edit = new CodeAreaEdit(oldText, getText());
+            if(!text.equals(" ") && undoManager.canUndo()){
+                edit.setSignificant(false);
+            }
+            undoManager.addEdit(edit);
         }
     }
     
     private class CodeAreaEdit extends AbstractUndoableEdit {
         private String oldText;
         private String newText;
+        private boolean significant;
         public CodeAreaEdit(String oldText, String newText) {
             super();
             this.oldText = oldText;
             this.newText = newText;
+            significant = true;
+        }
+        
+        public void setSignificant(boolean significant) {
+            this.significant = significant;
         }
         
         @Override
@@ -201,6 +211,7 @@ public class CodeArea extends JTextPane {
             d.setDocumentFilter(null);
             setText(oldText);
             d.setDocumentFilter(documentFilter);
+            significant = true;
         }
         
         @Override
@@ -210,6 +221,11 @@ public class CodeArea extends JTextPane {
             d.setDocumentFilter(null);
             setText(newText);
             d.setDocumentFilter(documentFilter);
+        }
+        
+        @Override
+        public boolean isSignificant() {
+            return significant;
         }
     }
 }
