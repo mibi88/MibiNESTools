@@ -21,6 +21,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JMenu;
@@ -84,6 +85,35 @@ public class NewFileMenu extends JMenu {
             public void actionPerformed(ActionEvent e) {
                 try {
                     window.openEditor(editor, null);
+                } catch (Exception ex) {
+                    Logger.getLogger(NewFileMenu.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Add an editor from a plugin to this menu.
+     * @param editor The plugin properties file.
+     * @param window The window used with this editor.
+     */
+    public void addEditor(File editor, Window window) {
+        JMenuItem menuItem;
+        try {
+            menuItem = new JMenuItem("." + Plugin.getExtension(editor)
+                    + " Editor");
+        } catch (Exception ex) {
+            Logger.getLogger(NewFileMenu.class.getName()).log(
+                    Level.SEVERE, null, ex);
+            menuItem = new JMenuItem("Unknown Editor");
+        }
+        add(menuItem);
+        menuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    window.addPluginEditor(editor, null);
                 } catch (Exception ex) {
                     Logger.getLogger(NewFileMenu.class.getName()).log(
                             Level.SEVERE, null, ex);

@@ -19,6 +19,7 @@ package io.github.mibi88.mibinestools;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -40,10 +41,11 @@ public class Plugin extends Editor {
 
     /**
      * Load a plugin.
+     * @param window The window used with this plugin.
      * @param file The file that contains the plugin properties.
      * @throws Exception Gets thrown if the loading fails.
      */
-    public Plugin(File file) throws Exception {
+    public Plugin(Window window, File file) throws Exception {
         super("Plugin");
         Properties properties = new Properties();
         properties.load(new FileInputStream(file));
@@ -209,9 +211,21 @@ public class Plugin extends Editor {
     
     /**
      * Get the file extension of the files that can be opened with this plugin.
-     * @return The file extension.
+     * @return Returns the file extension.
      */
     public static String getExtension() {
         return extension;
+    }
+    
+    /**
+     * Get the file extension of the files that can be opened with this plugin.
+     * @param file The plugin properties.
+     * @return Returns the file extension.
+     * @throws Exception Thrown on failure.
+     */
+    public static String getExtension(File file) throws Exception {
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(file));
+        return properties.getProperty("extension");
     }
 }

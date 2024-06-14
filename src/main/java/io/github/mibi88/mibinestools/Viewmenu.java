@@ -55,6 +55,7 @@ public class Viewmenu extends JMenu {
         
         add(zoomIn);
         add(zoomOut);
+        addSeparator();
         add(grid);
         addActions(window);
     }

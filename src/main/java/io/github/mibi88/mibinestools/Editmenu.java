@@ -66,6 +66,7 @@ public class Editmenu extends JMenu {
         add(copy);
         add(cut);
         add(paste);
+        addSeparator();
         add(loadPlugin);
         addActions(window);
     }
