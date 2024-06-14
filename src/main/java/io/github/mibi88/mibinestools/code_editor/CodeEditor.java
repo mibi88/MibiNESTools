@@ -39,7 +39,7 @@ public class CodeEditor extends Editor {
     private JScrollPane codeAreaPane;
     public CodeEditor(Window window) {
         super("Code Editor", new GridLayout(1, 1));
-        codeArea = new CodeArea(12);
+        codeArea = new CodeArea(12, this);
         codeAreaPane = new JScrollPane(codeArea);
         add(codeAreaPane);
     }

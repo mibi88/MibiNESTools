@@ -18,6 +18,7 @@
 
 package io.github.mibi88.mibinestools.code_editor;
 
+import io.github.mibi88.mibinestools.Editor;
 import java.awt.Font;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,7 +55,7 @@ public class CodeArea extends JTextPane {
      * Create a new CodeArea.
      * @param fontSize The size of the font.
      */
-    public CodeArea(int fontSize) {
+    public CodeArea(int fontSize, Editor editor) {
         super();
         this.fontSize = fontSize;
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
@@ -81,11 +82,13 @@ public class CodeArea extends JTextPane {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 SwingUtilities.invokeLater(highlightRunnable);
+                editor.fileEdited();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
                 SwingUtilities.invokeLater(highlightRunnable);
+                editor.fileEdited();
             }
 
             @Override
