@@ -319,4 +319,12 @@ public class CHREditor extends Editor {
                 patternTable.getSelectedX(),
                 patternTable.getSelectedY()));
     }
+    
+    /**
+     * Get the file extension of the files that can be opened with this editor.
+     * @return The file extension.
+     */
+    public static String getExtension() {
+        return "chr";
+    }
 }

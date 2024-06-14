@@ -31,8 +31,9 @@ import javax.swing.KeyStroke;
  * @author mibi88
  */
 public class Filemenu extends JMenu {
-    JMenuItem newFile;
+    NewFileMenu newFile;
     JMenuItem openFile;
+    OpenWithMenu openWith;
     JMenuItem saveFile;
     JMenuItem saveAsFile;
     JMenuItem quit;
@@ -44,12 +45,11 @@ public class Filemenu extends JMenu {
     public Filemenu(Window window) {
         super("File", false);
         int modifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        newFile = new JMenuItem("New file...");
-        newFile.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_N, modifier));
+        newFile = new NewFileMenu(window);
         openFile = new JMenuItem("Open...");
         openFile.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_O, modifier));
+        openWith = new OpenWithMenu(window);
         saveFile = new JMenuItem("Save");
         saveFile.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_S, modifier));
@@ -61,6 +61,7 @@ public class Filemenu extends JMenu {
                 modifier));
         add(newFile);
         add(openFile);
+        add(openWith);
         add(saveFile);
         add(saveAsFile);
         addSeparator();
@@ -75,16 +76,10 @@ public class Filemenu extends JMenu {
                 window.quit();
             }
         });
-        newFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                window.newFile();
-            }
-        });
         openFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent event) {
-                window.openFile();
+                window.openFile(null, false);
             }
         });
         saveFile.addActionListener(new ActionListener() {
@@ -99,5 +94,21 @@ public class Filemenu extends JMenu {
                 window.saveAsFile();
             }
         });
+    }
+    
+    /**
+     * Get the new file menu.
+     * @return Returns the new file menu.
+     */
+    public NewFileMenu getNewFileMenu() {
+        return newFile;
+    }
+    
+    /**
+     * Get the open with menu.
+     * @return Returns the open with menu.
+     */
+    public OpenWithMenu getOpenWithMenu() {
+        return openWith;
     }
 }

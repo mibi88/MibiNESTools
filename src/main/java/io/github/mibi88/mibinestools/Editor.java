@@ -307,4 +307,12 @@ public abstract class Editor extends JPanel {
     public void paste() {
         return;
     }
+    
+    /**
+     * Get the file extension of the files that this editor can open.
+     * @return The file extension of the files that this editor can open.
+     */
+    public static String getExtension() {
+        return null;
+    }
 }

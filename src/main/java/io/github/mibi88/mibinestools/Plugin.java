@@ -36,6 +36,7 @@ public class Plugin extends Editor {
     URLClassLoader classLoader;
     Object editor;
     Class editorClass;
+    static String extension;
 
     /**
      * Load a plugin.
@@ -56,6 +57,7 @@ public class Plugin extends Editor {
         Constructor c = editorClass.getConstructor(JPanel.class);
         editor = c.newInstance(this);
         setEditorName(properties.getProperty("name"));
+        extension = properties.getProperty("extension");
     }
     
     /**
@@ -203,5 +205,13 @@ public class Plugin extends Editor {
     @Override
     public void setGrid(boolean grid) {
         callMethod("setGrid", Boolean.TYPE, grid);
+    }
+    
+    /**
+     * Get the file extension of the files that can be opened with this plugin.
+     * @return The file extension.
+     */
+    public static String getExtension() {
+        return extension;
     }
 }

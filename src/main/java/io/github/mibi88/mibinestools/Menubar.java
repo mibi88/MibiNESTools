@@ -55,4 +55,20 @@ public class Menubar extends JMenuBar {
     public Viewmenu getViewMenu() {
         return viewMenu;
     }
+    
+    /**
+     * Get the new file menu.
+     * @return Returns the new file menu.
+     */
+    public NewFileMenu getNewFileMenu() {
+        return fileMenu.getNewFileMenu();
+    }
+    
+    /**
+     * Get the open with menu.
+     * @return Returns the open with menu.
+     */
+    public OpenWithMenu getOpenWithMenu() {
+        return fileMenu.getOpenWithMenu();
+    }
 }

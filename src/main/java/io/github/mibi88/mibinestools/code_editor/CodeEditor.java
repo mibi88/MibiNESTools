@@ -132,4 +132,12 @@ public class CodeEditor extends Editor {
     public void redo() {
         codeArea.redo();
     }
+    
+    /**
+     * Get the file extension of the files that can be opened with this editor.
+     * @return The file extension.
+     */
+    public static String getExtension() {
+        return "asm";
+    }
 }
