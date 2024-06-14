@@ -25,12 +25,14 @@ import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
+import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoManager;
 
 /**
@@ -46,6 +48,7 @@ public class CodeArea extends JTextPane {
     private Style pseudoFunctions;
     private Style number;
     private UndoManager undoManager;
+    private DocumentEditFilter documentFilter;
 
     /**
      * Create a new CodeArea.
@@ -90,16 +93,9 @@ public class CodeArea extends JTextPane {
                 return;
             }
         });
-        getDocument().addUndoableEditListener(new UndoableEditListener() {
-            @Override
-            public void undoableEditHappened(UndoableEditEvent e) {
-                AbstractDocument.DefaultDocumentEvent edit =
-                        (AbstractDocument.DefaultDocumentEvent)e.getEdit();
-                if(edit.getType() != DocumentEvent.EventType.CHANGE){
-                    undoManager.addEdit(edit);
-                }
-            }
-        });
+        documentFilter = new DocumentEditFilter();
+        AbstractDocument d = (AbstractDocument)getStyledDocument();
+        d.setDocumentFilter(documentFilter);
     }
     
     /**
@@ -155,6 +151,65 @@ public class CodeArea extends JTextPane {
     public void redo() {
         if(undoManager.canRedo()){
             undoManager.redo();
+        }
+    }
+    
+    private class DocumentEditFilter extends DocumentFilter {
+        public DocumentEditFilter() {
+            super();
+        }
+        
+        @Override
+        public void insertString(FilterBypass fb, int offs, String str,
+                AttributeSet a) throws BadLocationException {
+            String oldText = getText();
+            super.insertString(fb, offs, str, a);
+            undoManager.addEdit(new CodeAreaEdit(oldText, getText()));
+        }
+        
+        @Override
+        public void remove(FilterBypass fb, int offset, int length)
+                throws BadLocationException {
+            String oldText = getText();
+            super.remove(fb, offset, length);
+            undoManager.addEdit(new CodeAreaEdit(oldText, getText()));
+        }
+        
+        @Override
+        public void replace(DocumentFilter.FilterBypass fb, int offset,
+                int length, String text, AttributeSet attrs)
+                throws BadLocationException {
+            String oldText = getText();
+            super.replace(fb, offset, length, text, attrs);
+            undoManager.addEdit(new CodeAreaEdit(oldText, getText()));
+        }
+    }
+    
+    private class CodeAreaEdit extends AbstractUndoableEdit {
+        private String oldText;
+        private String newText;
+        public CodeAreaEdit(String oldText, String newText) {
+            super();
+            this.oldText = oldText;
+            this.newText = newText;
+        }
+        
+        @Override
+        public void undo() {
+            super.undo();
+            AbstractDocument d = (AbstractDocument)getStyledDocument();
+            d.setDocumentFilter(null);
+            setText(oldText);
+            d.setDocumentFilter(documentFilter);
+        }
+        
+        @Override
+        public void redo() {
+            super.redo();
+            AbstractDocument d = (AbstractDocument)getStyledDocument();
+            d.setDocumentFilter(null);
+            setText(newText);
+            d.setDocumentFilter(documentFilter);
         }
     }
 }
