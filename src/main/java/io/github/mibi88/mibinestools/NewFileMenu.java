@@ -72,8 +72,9 @@ public class NewFileMenu extends JMenu {
     public void addEditor(Class editor, Window window) {
         JMenuItem menuItem;
         try {
-            menuItem = new JMenuItem("." + editor.getMethod("getExtension")
-                    .invoke(null) + " File");
+            menuItem = new JMenuItem("." + ((String[])editor
+                    .getMethod("getExtension")
+                    .invoke(null))[0] + " File");
         } catch (Exception ex) {
             Logger.getLogger(NewFileMenu.class.getName()).log(
                     Level.SEVERE, null, ex);
@@ -85,35 +86,6 @@ public class NewFileMenu extends JMenu {
             public void actionPerformed(ActionEvent e) {
                 try {
                     window.openEditor(editor, null);
-                } catch (Exception ex) {
-                    Logger.getLogger(NewFileMenu.class.getName()).log(
-                            Level.SEVERE, null, ex);
-                }
-            }
-        });
-    }
-    
-    /**
-     * Add an editor from a plugin to this menu.
-     * @param editor The plugin properties file.
-     * @param window The window used with this editor.
-     */
-    public void addEditor(File editor, Window window) {
-        JMenuItem menuItem;
-        try {
-            menuItem = new JMenuItem("." + Plugin.getExtension(editor)
-                    + " Editor");
-        } catch (Exception ex) {
-            Logger.getLogger(NewFileMenu.class.getName()).log(
-                    Level.SEVERE, null, ex);
-            menuItem = new JMenuItem("Unknown Editor");
-        }
-        add(menuItem);
-        menuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    window.addPluginEditor(editor, null);
                 } catch (Exception ex) {
                     Logger.getLogger(NewFileMenu.class.getName()).log(
                             Level.SEVERE, null, ex);

@@ -35,11 +35,12 @@ import javax.swing.JScrollPane;
  * @author mibi88
  */
 public class CodeEditor extends Editor {
+    private static String editorName = "Code Editor";
     private CodeArea codeArea;
     private JScrollPane codeAreaPane;
     private CodeAreaEvent event;
     public CodeEditor(Window window) {
-        super("Code Editor", new GridLayout(1, 1));
+        super(window, new GridLayout(1, 1));
         codeArea = new CodeArea(12);
         event = new CodeAreaEvent() {
             @Override
@@ -146,10 +147,18 @@ public class CodeEditor extends Editor {
     }
     
     /**
+     * Get the name of the editor
+     * @return The name of the editor.
+     */
+    public static String getEditorName() {
+        return editorName;
+    }
+    
+    /**
      * Get the file extension of the files that can be opened with this editor.
      * @return The file extension.
      */
-    public static String getExtension() {
-        return "asm";
+    public static String[] getExtension() {
+        return new String[]{"asm", "s"};
     }
 }

@@ -50,7 +50,6 @@ public class Window extends JFrame {
     
     private ArrayList<Editor> editors;
     private ArrayList<Class> availableEditors;
-    private ArrayList<File> plugins;
     
     private int scale;
     
@@ -84,7 +83,6 @@ public class Window extends JFrame {
         
         editors = new ArrayList<Editor>();
         availableEditors = new ArrayList<Class>();
-        plugins = new ArrayList<File>();
         
         availableEditors.add(CHREditor.class);
         availableEditors.add(NametableEditor.class);
@@ -114,17 +112,6 @@ public class Window extends JFrame {
                         Level.SEVERE, null, ex);
             }
         }
-        for(File f : plugins) {
-            try {
-                if(extension.equals(Plugin.getExtension(f))){
-                    addPluginEditor(f, file);
-                    return;
-                }
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
-            }
-        }
         JOptionPane optionPane = new JOptionPane();
         optionPane.showMessageDialog(this,
                 "Unknown file extension\n"
@@ -135,7 +122,7 @@ public class Window extends JFrame {
      * Open a new editor.
      * @param editor The editor class to use.
      * @param file The file to open (can be null).
-     * @throws Exception
+     * @throws Exception Thrown on failure.
      */
     public void openEditor(Class editor, File file) throws Exception {
         Constructor constructor = editor.getConstructor(
@@ -184,16 +171,6 @@ public class Window extends JFrame {
             newFileMenu.addEditor(c, this);
             openWithMenu.addEditor(c, this);
         }
-        for(File f : plugins){
-            newFileMenu.addEditor(f, this);
-            openWithMenu.addEditor(f, this);
-        }
-    }
-    
-    private void addEditor(Editor editor) {
-        editors.add(editor);
-        tabs.addTab(editor.getEditorName(), editor);
-        editor.updateTitle();
     }
     
     private int getSelectedEditor() throws Exception {
@@ -439,38 +416,6 @@ public class Window extends JFrame {
     }
     
     /**
-     * Add an editor from a plugin.
-     * @param pluginFile The plugin properties file.
-     * @param file The file to open (can be null).
-     * @throws Exception Thrown on failure.
-     */
-    public void addPluginEditor(File pluginFile, File file) throws Exception {
-        Plugin plugin = new Plugin(this, pluginFile);
-        addEditor(plugin);
-        ClosableTab closableTab = new ClosableTab(tabs,
-                        plugin);
-        closableTab.setEventHandler(new CloseEvent() {
-            @Override
-            public void tabClosed(int index) {
-                return;
-            }
-
-            @Override
-            public void tabClosed(Editor editor) {
-                if(!editors.remove(editor)) {
-                    System.out.println("Failed to remove editor!");
-                }
-            }
-        });
-        tabs.setTabComponentAt(tabs.indexOfComponent(
-                plugin), closableTab);
-        plugin.init_end();
-        if(file != null){
-            plugin.openFile(file);
-        }
-    }
-    
-    /**
      * Load a plugin.
      */
     public void loadPlugin() {
@@ -483,7 +428,8 @@ public class Window extends JFrame {
         if(out == JFileChooser.APPROVE_OPTION){
             File file = fileChooser.getSelectedFile();
             try {
-                plugins.add(file);
+                availableEditors.add(PluginLoader.loadPlugin(file,
+                        this));
                 updateMenus();
             } catch (Exception ex) {
                 Logger.getLogger(Window.class.getName())
