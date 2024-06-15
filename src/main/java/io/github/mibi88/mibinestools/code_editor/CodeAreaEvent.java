@@ -19,9 +19,13 @@
 package io.github.mibi88.mibinestools.code_editor;
 
 /**
- *
+ * Methods that get called when the CodeArea is edited.
  * @author mibi88
  */
 public interface CodeAreaEvent {
+
+    /**
+     * Gets called if the file has changed.
+     */
     public void contentEdited();
 }
