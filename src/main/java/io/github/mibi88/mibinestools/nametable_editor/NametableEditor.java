@@ -55,6 +55,7 @@ public class NametableEditor extends Editor {
      */
     public NametableEditor(Window window) {
         super(window, new GridLayout(1, 4));
+        setEditorName(editorName);
         undoManager = new UndoManager();
         currentPalette = new int[][]{
             {0, 0, 0},

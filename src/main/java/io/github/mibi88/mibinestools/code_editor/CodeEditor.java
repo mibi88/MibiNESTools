@@ -41,6 +41,7 @@ public class CodeEditor extends Editor {
     private CodeAreaEvent event;
     public CodeEditor(Window window) {
         super(window, new GridLayout(1, 1));
+        setEditorName(editorName);
         codeArea = new CodeArea(12);
         event = new CodeAreaEvent() {
             @Override

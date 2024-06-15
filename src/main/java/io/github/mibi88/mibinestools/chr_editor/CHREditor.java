@@ -64,6 +64,7 @@ public class CHREditor extends Editor {
      */
     public CHREditor(Window window) {
         super(window, new GridLayout(1, 2));
+        setEditorName(editorName);
         scale = window.getScale();
         chrData = new CHRData();
         currentPalette = new int[][]{
