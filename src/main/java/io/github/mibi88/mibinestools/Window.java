@@ -27,6 +27,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -99,11 +100,11 @@ public class Window extends JFrame {
      * @param file The file to open.
      */
     public void openEditor(String extension, File file) {
-        System.out.println(extension);
         for(Class c : availableEditors) {
             try {
-                if(extension.equals(c.getMethod("getExtension")
-                        .invoke(null))){
+                String[] extensions = (String[])c.getMethod("getExtension")
+                        .invoke(null);
+                if(Arrays.asList(extensions).contains(extension)){
                     openEditor(c, file);
                     return;
                 }
