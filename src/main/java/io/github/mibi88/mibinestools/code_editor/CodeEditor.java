@@ -37,9 +37,17 @@ import javax.swing.JScrollPane;
 public class CodeEditor extends Editor {
     private CodeArea codeArea;
     private JScrollPane codeAreaPane;
+    private CodeAreaEvent event;
     public CodeEditor(Window window) {
         super("Code Editor", new GridLayout(1, 1));
-        codeArea = new CodeArea(12, this);
+        codeArea = new CodeArea(12);
+        event = new CodeAreaEvent() {
+            @Override
+            public void contentEdited() {
+                fileEdited();
+            }
+        };
+        codeArea.setEventHandler(event);
         codeAreaPane = new JScrollPane(codeArea);
         add(codeAreaPane);
     }
@@ -51,7 +59,9 @@ public class CodeEditor extends Editor {
     @Override
     public boolean newFile() {
         if(super.newFile()){
+            codeArea.setEventHandler(null);
             codeArea.reset();
+            codeArea.setEventHandler(event);
             return true;
         }
         return false;
@@ -69,8 +79,10 @@ public class CodeEditor extends Editor {
                 FileInputStream fileStream = new FileInputStream(file);
                 byte[] data = new byte[fileStream.available()];
                 fileStream.read(data);
+                codeArea.setEventHandler(null);
                 codeArea.reset();
                 codeArea.setText(new String(data));
+                codeArea.setEventHandler(event);
                 codeArea.highlight();
             } catch (IOException ex) {
                 Logger.getLogger(NametableEditor.class.getName()).log(

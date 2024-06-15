@@ -67,6 +67,7 @@ public class ClosableTab extends JPanel {
                 if(index >= 0){
                     text = tabbedPane.getTitleAt(index);
                 }
+                setText(text);
                 return text;
             }
         };
@@ -85,6 +86,7 @@ public class ClosableTab extends JPanel {
         closeButton.setPreferredSize(new Dimension(16, 16));
         closeButton.setBorder(BorderFactory
                 .createEmptyBorder(3, 0, 0, 0));
+        closeButton.setFocusable(false);
         add(closeButton);
     }
     

@@ -50,12 +50,13 @@ public class CodeArea extends JTextPane {
     private Style number;
     private UndoManager undoManager;
     private DocumentEditFilter documentFilter;
+    private CodeAreaEvent event;
 
     /**
      * Create a new CodeArea.
      * @param fontSize The size of the font.
      */
-    public CodeArea(int fontSize, Editor editor) {
+    public CodeArea(int fontSize) {
         super();
         this.fontSize = fontSize;
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
@@ -82,13 +83,17 @@ public class CodeArea extends JTextPane {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 SwingUtilities.invokeLater(highlightRunnable);
-                editor.fileEdited();
+                if(event != null){
+                    event.contentEdited();
+                }
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
                 SwingUtilities.invokeLater(highlightRunnable);
-                editor.fileEdited();
+                if(event != null){
+                    event.contentEdited();
+                }
             }
 
             @Override
@@ -99,6 +104,10 @@ public class CodeArea extends JTextPane {
         documentFilter = new DocumentEditFilter();
         AbstractDocument d = (AbstractDocument)getStyledDocument();
         d.setDocumentFilter(documentFilter);
+    }
+    
+    public void setEventHandler(CodeAreaEvent event) {
+        this.event = event;
     }
     
     /**
