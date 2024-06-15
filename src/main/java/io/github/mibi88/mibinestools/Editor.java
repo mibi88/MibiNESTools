@@ -31,28 +31,34 @@ import javax.swing.SwingUtilities;
  * @author mibi88
  */
 public abstract class Editor extends JPanel {
-    private final String editorName;
+    private static String editorName = "Unknown Editor";
     private File file;
     private boolean fileSaved;
     
     /**
-     * Create a new editor
-     * @param editorName The name of the editor.
+     * Create a new editor.
+     * @param window The window to use with this editor.
      */
-    public Editor(String editorName) {
+    public Editor(Window window) {
         super();
         fileSaved = true;
-        this.editorName = editorName;
     }
     
     /**
-     * Create an editor with a specific LayoutManager
-     * @param editorName The name of the editor
-     * @param lm The LayoutManager to use
+     * Create an editor with a specific LayoutManager.
+     * @param window The window to use with this editor.
+     * @param lm The LayoutManager to use.
      */
-    public Editor(String editorName, LayoutManager lm) {
+    public Editor(Window window, LayoutManager lm) {
         super(lm);
         fileSaved = true;
+    }
+    
+    /**
+     * Set the name of the editor.
+     * @param editorName The new name of the editor.
+     */
+    public void setEditorName(String editorName) {
         this.editorName = editorName;
     }
     
@@ -60,7 +66,7 @@ public abstract class Editor extends JPanel {
      * Get the name of the editor
      * @return The name of the editor.
      */
-    public String getEditorName() {
+    public static String getEditorName() {
         return editorName;
     }
     
@@ -234,7 +240,7 @@ public abstract class Editor extends JPanel {
         if(file != null){
             title += file.getName() + " - ";
         }
-        title += editorName;
+        title += getEditorName();
         try {
             setTitle(title);
         } catch (Exception ex) {
@@ -298,5 +304,13 @@ public abstract class Editor extends JPanel {
      */
     public void paste() {
         return;
+    }
+    
+    /**
+     * Get the file extension of the files that this editor can open.
+     * @return The file extension of the files that this editor can open.
+     */
+    public static String[] getExtension() {
+        return null;
     }
 }

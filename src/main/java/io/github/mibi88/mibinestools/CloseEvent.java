@@ -15,25 +15,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
-package io.github.mibi88.mibinestools.level_editor;
-
-import io.github.mibi88.mibinestools.Editor;
-import io.github.mibi88.mibinestools.Window;
-import javax.swing.JButton;
+package io.github.mibi88.mibinestools;
 
 /**
  *
  * @author mibi88
  */
-public class LevelEditor extends Editor {
+public interface CloseEvent {
 
     /**
-     * Initialize the level editor
-     * @param window The editor window.
+     * Gets called when a tab is closed.
+     * @param index The index of the tab.
      */
-    public LevelEditor(Window window) {
-        super("Level Editor");
-        JButton button = new JButton("Level editor");
-        add(button);
-    }
+    public void tabClosed(int index);
+
+    /**
+     * Gets called when a tab is closed.
+     * @param editor The editor used with this tab.
+     */
+    public void tabClosed(Editor editor);
 }

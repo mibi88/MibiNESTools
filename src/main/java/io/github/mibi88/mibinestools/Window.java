@@ -18,14 +18,16 @@
 
 package io.github.mibi88.mibinestools;
 
-import io.github.mibi88.mibinestools.level_editor.LevelEditor;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
+import io.github.mibi88.mibinestools.code_editor.CodeEditor;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -48,6 +50,7 @@ public class Window extends JFrame {
     private JTabbedPane tabs;
     
     private ArrayList<Editor> editors;
+    private ArrayList<Class> availableEditors;
     
     private int scale;
     
@@ -65,6 +68,8 @@ public class Window extends JFrame {
         
         setVisible(true);
         
+        
+        setDefaultCloseOperation(Window.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
@@ -78,22 +83,94 @@ public class Window extends JFrame {
         tabs = new JTabbedPane();
         
         editors = new ArrayList<Editor>();
+        availableEditors = new ArrayList<Class>();
         
-        editors.add(new CHREditor(this));
-        editors.add(new NametableEditor(this));
-        editors.add(new LevelEditor(this));
+        availableEditors.add(CHREditor.class);
+        availableEditors.add(NametableEditor.class);
+        availableEditors.add(CodeEditor.class);
         
-        addEditors();
+        updateMenus();
         
         add(tabs, BorderLayout.CENTER);
     }
     
-    private void addEditors() {
-        for(Editor editor : editors){
-            tabs.addTab(editor.getEditorName(), editor);
+    /**
+     * Open a file in a new editor.
+     * @param extension The extension of the file.
+     * @param file The file to open.
+     */
+    public void openEditor(String extension, File file) {
+        for(Class c : availableEditors) {
+            try {
+                String[] extensions = (String[])c.getMethod("getExtension")
+                        .invoke(null);
+                if(Arrays.asList(extensions).contains(extension)){
+                    openEditor(c, file);
+                    return;
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
         }
-        for(Editor editor : editors){
-            editor.updateTitle();
+        JOptionPane optionPane = new JOptionPane();
+        optionPane.showMessageDialog(this,
+                "Unknown file extension\n"
+                + "Use \"Open with...\" to open this file.");
+    }
+    
+    /**
+     * Open a new editor.
+     * @param editor The editor class to use.
+     * @param file The file to open (can be null).
+     * @throws Exception Thrown on failure.
+     */
+    public void openEditor(Class editor, File file) throws Exception {
+        Constructor constructor = editor.getConstructor(
+                this.getClass());
+        Editor editorInstance = (Editor)constructor.newInstance(this);
+        tabs.addTab(editorInstance.getEditorName(),
+                editorInstance);
+        ClosableTab closableTab = new ClosableTab(tabs,
+                        editorInstance);
+        closableTab.setEventHandler(new CloseEvent() {
+            @Override
+            public void tabClosed(int index) {
+                return;
+            }
+
+            @Override
+            public void tabClosed(Editor editor) {
+                if(!editors.remove(editor)) {
+                    System.out.println("Failed to remove editor!");
+                }
+            }
+        });
+        tabs.setTabComponentAt(tabs.indexOfComponent(
+                editorInstance), closableTab);
+        if(file != null){
+            editorInstance.openFile(file);
+        }
+        editors.add(editorInstance);
+    }
+    
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int index = name.lastIndexOf(".");
+        if(index > 0){
+            return name.substring(index+1);
+        }
+        return "";
+    }
+    
+    private void updateMenus() {
+        NewFileMenu newFileMenu = menubar.getNewFileMenu();
+        OpenWithMenu openWithMenu = menubar.getOpenWithMenu();
+        newFileMenu.reset(this);
+        openWithMenu.reset(this);
+        for(Class c : availableEditors){
+            newFileMenu.addEditor(c, this);
+            openWithMenu.addEditor(c, this);
         }
     }
     
@@ -108,8 +185,11 @@ public class Window extends JFrame {
     
     /**
      * Open a file in the selected editor.
+     * @param editor The editor to open the file in (can be null).
+     * @param inCurrent If the file should be opened in the currently selected
+     * editor.
      */
-    public void openFile() {
+    public void openFile(Class editor, boolean inCurrent) {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter chrFilter =
                 new FileNameExtensionFilter("CHR Files", "chr");
@@ -117,11 +197,24 @@ public class Window extends JFrame {
         int out = fileChooser.showOpenDialog(this);
         if(out == JFileChooser.APPROVE_OPTION){
             File file = fileChooser.getSelectedFile();
-            try {
-                editors.get(getSelectedEditor()).openFile(file);
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName())
-                        .log(Level.SEVERE, null, ex);
+            if(editor == null){
+                if(inCurrent){
+                    try {
+                        editors.get(getSelectedEditor()).openFile(file);
+                    } catch (Exception ex) {
+                        Logger.getLogger(Window.class.getName()).log(
+                                Level.SEVERE, null, ex);
+                    }
+                }else{
+                    openEditor(getFileExtension(file), file);
+                }
+            }else{
+                try {
+                    openEditor(editor, file);
+                } catch (Exception ex) {
+                    Logger.getLogger(Window.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
             }
         }
     }
@@ -154,8 +247,7 @@ public class Window extends JFrame {
         try {
             editors.get(getSelectedEditor()).newFile();
         } catch (Exception ex) {
-            Logger.getLogger(Window.class.getName()).log(
-                    Level.SEVERE, null, ex);
+            System.out.println("No open editor");
         }
     }
     
@@ -256,6 +348,8 @@ public class Window extends JFrame {
                 if(selected != JOptionPane.OK_OPTION
                         || askToQuit.getValue() == null){
                     return;
+                }else{
+                    break;
                 }
             }
         }
@@ -319,6 +413,29 @@ public class Window extends JFrame {
         } catch (Exception ex) {
             Logger.getLogger(Window.class.getName()).log(
                     Level.SEVERE, null, ex);
+        }
+    }
+    
+    /**
+     * Load a plugin.
+     */
+    public void loadPlugin() {
+        JFileChooser fileChooser = new JFileChooser();
+        FileNameExtensionFilter propertiesFilter =
+                new FileNameExtensionFilter("Properties",
+                        "properties");
+        fileChooser.addChoosableFileFilter(propertiesFilter);
+        int out = fileChooser.showOpenDialog(this);
+        if(out == JFileChooser.APPROVE_OPTION){
+            File file = fileChooser.getSelectedFile();
+            try {
+                availableEditors.add(PluginLoader.loadPlugin(file,
+                        this));
+                updateMenus();
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName())
+                        .log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

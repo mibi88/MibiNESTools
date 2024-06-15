@@ -36,6 +36,7 @@ import javax.swing.undo.UndoManager;
  * @author mibi88
  */
 public class NametableEditor extends Editor {
+    private static String editorName = "Nametable Editor";
     private NametablePane nametablePane;
     private PaletteEditor paletteEditor;
     private JTabbedPane tilePane;
@@ -53,7 +54,7 @@ public class NametableEditor extends Editor {
      * @param window The editor window
      */
     public NametableEditor(Window window) {
-        super("Nametable Editor", new GridLayout(1, 4));
+        super(window, new GridLayout(1, 4));
         undoManager = new UndoManager();
         currentPalette = new int[][]{
             {0, 0, 0},
@@ -315,5 +316,21 @@ public class NametableEditor extends Editor {
                     nametablePane.getAttributes(),
                     nametablePane.getNametable()));
         }
+    }
+    
+    /**
+     * Get the name of the editor
+     * @return The name of the editor.
+     */
+    public static String getEditorName() {
+        return editorName;
+    }
+    
+    /**
+     * Get the file extension of the files that can be opened with this editor.
+     * @return The file extension.
+     */
+    public static String[] getExtension() {
+        return new String[]{"nam"};
     }
 }

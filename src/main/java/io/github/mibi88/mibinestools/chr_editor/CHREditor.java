@@ -35,6 +35,7 @@ import javax.swing.undo.UndoManager;
  * @author mibi88
  */
 public class CHREditor extends Editor {
+    private static String editorName = "CHR Editor";
     private CHRData chrData;
     private int[][] currentPalette;
     private int scale;
@@ -62,7 +63,7 @@ public class CHREditor extends Editor {
      * @param window The window in which the editor is.
      */
     public CHREditor(Window window) {
-        super("CHR Editor", new GridLayout(1, 2));
+        super(window, new GridLayout(1, 2));
         scale = window.getScale();
         chrData = new CHRData();
         currentPalette = new int[][]{
@@ -79,7 +80,7 @@ public class CHREditor extends Editor {
     private void initEditor() {
         chrData = new CHRData();
         patternTable = new PatternTable(chrData, currentPalette, scale,
-                window.getGrid());
+                window.getGrid(), 0, 0);
         initPatternTable();
         patternTablePane = new JScrollPane(patternTable);
         patternTablePane.revalidate();
@@ -313,10 +314,26 @@ public class CHREditor extends Editor {
     @Override
     public void paste() {
         byte[] oldTile = tileEditor.getTile();
-        updateTile(clipboard, patternTable.getSelectedX(),
+        updateTile(clipboard.clone(), patternTable.getSelectedX(),
                 patternTable.getSelectedY());
         addEdit(new CHREdit(this, oldTile, clipboard,
                 patternTable.getSelectedX(),
                 patternTable.getSelectedY()));
+    }
+    
+    /**
+     * Get the name of the editor
+     * @return The name of the editor.
+     */
+    public static String getEditorName() {
+        return editorName;
+    }
+    
+    /**
+     * Get the file extension of the files that can be opened with this editor.
+     * @return The file extension.
+     */
+    public static String[] getExtension() {
+        return new String[]{"chr"};
     }
 }
