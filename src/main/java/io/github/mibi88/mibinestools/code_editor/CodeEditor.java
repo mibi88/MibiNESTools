@@ -160,6 +160,6 @@ public class CodeEditor extends Editor {
      * @return The file extension.
      */
     public static String[] getExtension() {
-        return new String[]{"asm", "s"};
+        return new String[]{"asm", "s", "inc"};
     }
 }

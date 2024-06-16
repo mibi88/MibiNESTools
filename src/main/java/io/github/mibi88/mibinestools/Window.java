@@ -21,7 +21,8 @@ package io.github.mibi88.mibinestools;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
-import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -33,6 +34,8 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -47,7 +50,10 @@ public class Window extends JFrame {
     
     private Menubar menubar;
     
+    private JSplitPane splitPane;
     private JTabbedPane tabs;
+    private JScrollPane treePane;
+    private FileTree fileTree;
     
     private ArrayList<Editor> editors;
     private ArrayList<Class> availableEditors;
@@ -58,6 +64,7 @@ public class Window extends JFrame {
      * Initialize the GUI
      */
     public Window() {
+        super();
         scale = 8;
         initWindow(640, 480);
     }
@@ -91,7 +98,13 @@ public class Window extends JFrame {
         
         updateMenus();
         
-        add(tabs, BorderLayout.CENTER);
+        fileTree = new FileTree(null, this);
+        treePane = new JScrollPane(fileTree);
+        
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePane,
+                tabs);
+        
+        add(splitPane);
     }
     
     /**
@@ -146,8 +159,9 @@ public class Window extends JFrame {
                 }
             }
         });
-        tabs.setTabComponentAt(tabs.indexOfComponent(
-                editorInstance), closableTab);
+        int index = tabs.indexOfComponent(editorInstance);
+        tabs.setTabComponentAt(index, closableTab);
+        tabs.setSelectedIndex(index);
         if(file != null){
             editorInstance.openFile(file);
         }
@@ -184,6 +198,20 @@ public class Window extends JFrame {
     }
     
     /**
+     * Open a file.
+     * @param file The file to open.
+     */
+    public void openFile(File file) {
+        for(Editor editor : editors) {
+            if(file.equals(editor.getFile())){
+                tabs.setSelectedComponent(editor);
+                return;
+            }
+        }
+        openEditor(getFileExtension(file), file);
+    }
+    
+    /**
      * Open a file in the selected editor.
      * @param editor The editor to open the file in (can be null).
      * @param inCurrent If the file should be opened in the currently selected
@@ -216,6 +244,19 @@ public class Window extends JFrame {
                             Level.SEVERE, null, ex);
                 }
             }
+        }
+    }
+    
+    /**
+     * Open a folder.
+     */
+    public void openFolder() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int out = fileChooser.showOpenDialog(this);
+        if(out == JFileChooser.APPROVE_OPTION){
+            File folder = fileChooser.getSelectedFile();
+            fileTree.update(folder);
         }
     }
     

@@ -32,6 +32,7 @@ import javax.swing.KeyStroke;
  */
 public class Filemenu extends JMenu {
     NewFileMenu newFile;
+    JMenuItem openFolder;
     JMenuItem openFile;
     OpenWithMenu openWith;
     JMenuItem saveFile;
@@ -46,6 +47,7 @@ public class Filemenu extends JMenu {
         super("File", false);
         int modifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         newFile = new NewFileMenu(window);
+        openFolder = new JMenuItem("Open a folder...");
         openFile = new JMenuItem("Open...");
         openFile.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_O, modifier));
@@ -60,6 +62,7 @@ public class Filemenu extends JMenu {
         quit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
                 modifier));
         add(newFile);
+        add(openFolder);
         add(openFile);
         add(openWith);
         add(saveFile);
@@ -74,6 +77,12 @@ public class Filemenu extends JMenu {
             @Override
             public void actionPerformed(ActionEvent event) {
                 window.quit();
+            }
+        });
+        openFolder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                window.openFolder();
             }
         });
         openFile.addActionListener(new ActionListener() {
