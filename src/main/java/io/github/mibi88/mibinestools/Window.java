@@ -64,6 +64,8 @@ public class Window extends JFrame {
     
     private int scale;
     
+    private File projectFolder;
+    
     /**
      * Initialize the GUI
      */
@@ -92,7 +94,7 @@ public class Window extends JFrame {
         setJMenuBar(menubar);
         
         editorPanel = new JPanel(new GridBagLayout());
-        projectToolbar = new ProjectToolbar();
+        projectToolbar = new ProjectToolbar(this);
         tabs = new JTabbedPane();
         
         GridBagConstraints c = new GridBagConstraints();
@@ -118,7 +120,13 @@ public class Window extends JFrame {
         
         updateMenus();
         
-        fileTree = new FileTree(null, this);
+        fileTree = new FileTree(null);
+        fileTree.setEventHandler(new FileTreeEvent() {
+            @Override
+            public void fileSelected(File file) {
+                openFile(file);
+            }
+        });
         treePane = new JScrollPane(fileTree);
         
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePane,
@@ -277,6 +285,7 @@ public class Window extends JFrame {
         if(out == JFileChooser.APPROVE_OPTION){
             File folder = fileChooser.getSelectedFile();
             fileTree.update(folder);
+            projectFolder = folder;
         }
     }
     
@@ -341,6 +350,21 @@ public class Window extends JFrame {
                         Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    /**
+     * Open the project settings window.
+     */
+    public void openProjectSettings() {
+        ProjectSettings settings = new ProjectSettings(this);
+    }
+    
+    /**
+     * Get the project folder.
+     * @return Returns the project folder.
+     */
+    public File getProjectFolder() {
+        return projectFolder;
     }
     
     /**

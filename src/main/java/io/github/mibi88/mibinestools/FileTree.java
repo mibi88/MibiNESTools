@@ -31,13 +31,12 @@ import javax.swing.tree.TreeSelectionModel;
  * @author mibi88
  */
 public class FileTree extends JTree {
-
+    FileTreeEvent event;
     /**
      * Create a new file tree.
      * @param folder The folder to create the tree of (can be null).
-     * @param window The window used with it.
      */
-    public FileTree(File folder, Window window) {
+    public FileTree(File folder) {
         super();
         update(folder);
         getSelectionModel().setSelectionMode(
@@ -48,17 +47,25 @@ public class FileTree extends JTree {
                 DefaultMutableTreeNode node =
                         (DefaultMutableTreeNode)e.getPath()
                                 .getLastPathComponent();
-                if(node != null){
+                if(node != null && event != null){
                     FileInfo info = (FileInfo)node.getUserObject();
                     File file = info.getFile();
                     if(file != null){
                         if(file.isFile()){
-                            window.openFile(file);
+                            event.fileSelected(file);
                         }
                     }
                 }
             }
         });
+    }
+    
+    /**
+     * Set the event handler to handle file selection events.
+     * @param event The event handler.
+     */
+    public void setEventHandler(FileTreeEvent event) {
+        this.event = event;
     }
     
     /**

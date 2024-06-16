@@ -19,6 +19,8 @@
 package io.github.mibi88.mibinestools;
 
 import io.github.mibi88.mibinestools.chr_editor.ToolPanel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,8 +41,9 @@ public class ProjectToolbar extends JToolBar {
 
     /**
      * Create a new project toolbar.
+     * @param window The window to use with it.
      */
-    public ProjectToolbar() {
+    public ProjectToolbar(Window window) {
         super("Project");
         setFloatable(false);
         setRollover(true);
@@ -59,6 +62,8 @@ public class ProjectToolbar extends JToolBar {
         add(cleanButton);
         addSeparator();
         add(settingsButton);
+        
+        addActions(window);
     }
     
     private ImageIcon getIcon(String image) {
@@ -70,5 +75,14 @@ public class ProjectToolbar extends JToolBar {
                     Level.SEVERE, null, ex);
             return new ImageIcon();
         }
+    }
+    
+    private void addActions(Window window) {
+        settingsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.openProjectSettings();
+            }
+        });
     }
 }
