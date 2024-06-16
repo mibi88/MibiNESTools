@@ -73,6 +73,7 @@ public class ToolPanel extends JToolBar {
         buttonGroup.add(rectangleTool);
         add(zoomIn);
         add(zoomOut);
+        addSeparator();
         add(penTool);
         add(lineTool);
         add(rectangleTool);

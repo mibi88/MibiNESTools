@@ -21,6 +21,7 @@ package io.github.mibi88.mibinestools;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.WindowAdapter;
@@ -34,6 +35,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -51,6 +53,8 @@ public class Window extends JFrame {
     private Menubar menubar;
     
     private JSplitPane splitPane;
+    private JPanel editorPanel;
+    private ProjectToolbar projectToolbar;
     private JTabbedPane tabs;
     private JScrollPane treePane;
     private FileTree fileTree;
@@ -87,7 +91,23 @@ public class Window extends JFrame {
         menubar = new Menubar(this);
         setJMenuBar(menubar);
         
+        editorPanel = new JPanel(new GridBagLayout());
+        projectToolbar = new ProjectToolbar();
         tabs = new JTabbedPane();
+        
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.weighty = 0;
+        editorPanel.add(projectToolbar, c);
+        c.gridx = 0;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
+        editorPanel.add(tabs, c);
         
         editors = new ArrayList<Editor>();
         availableEditors = new ArrayList<Class>();
@@ -102,7 +122,7 @@ public class Window extends JFrame {
         treePane = new JScrollPane(fileTree);
         
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePane,
-                tabs);
+                editorPanel);
         
         add(splitPane);
     }
