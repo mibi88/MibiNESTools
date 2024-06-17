@@ -46,7 +46,7 @@ public class CodeArea extends JTextPane {
     private Style opcode;
     private Style comment;
     private Style label;
-    private Style pseudoFunctions;
+    private Style directives;
     private Style number;
     private UndoManager undoManager;
     private DocumentEditFilter documentFilter;
@@ -68,9 +68,9 @@ public class CodeArea extends JTextPane {
         StyleConstants.setItalic(comment, true);
         label = styleContext.addStyle("label", null);
         StyleConstants.setUnderline(label, true);
-        pseudoFunctions = styleContext.addStyle("pseudoFunctions",
+        directives = styleContext.addStyle("pseudoFunctions",
                 null);
-        StyleConstants.setItalic(pseudoFunctions, true);
+        StyleConstants.setItalic(directives, true);
         number = styleContext.addStyle("number", null);
         StyleConstants.setItalic(number, true);
         Runnable highlightRunnable = new Runnable() {
@@ -130,7 +130,7 @@ public class CodeArea extends JTextPane {
                 true);
         String text = getText();
         highlightPattern(text, "^\\s*[a-z]{3}[$|\\s|;]", opcode);
-        highlightPattern(text, "\\..*$", pseudoFunctions);
+        highlightPattern(text, "\\..*$", directives);
         highlightPattern(text, "^.*:", label);
         highlightPattern(text, ";.*$", comment);
         highlightPattern(text, "#?[$|%]?\\d*[\\s|$]", number);
