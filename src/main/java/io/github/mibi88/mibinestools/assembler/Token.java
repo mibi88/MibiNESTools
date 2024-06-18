@@ -59,6 +59,15 @@ public class Token {
     public String getContent() {
         return content;
     }
+    
+    /**
+     * Get the value of the token.
+     * @return The value of the token.
+     */
+    @Override
+    public String toString() {
+        return content;
+    }
 
     /**
      * Set the value of the token.

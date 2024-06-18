@@ -18,7 +18,14 @@
 
 package io.github.mibi88.mibinestools;
 
+import java.awt.ComponentOrientation;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 /**
@@ -28,6 +35,11 @@ import javax.swing.JTabbedPane;
 public class ProjectSettings extends JDialog {
     private JTabbedPane tabs;
     private FileList fileList;
+    private JPanel buttons;
+    
+    private JButton applyButton;
+    private JButton okButton;
+    private JButton cancelButton;
 
     /**
      * Create a new project settings dialog.
@@ -35,12 +47,64 @@ public class ProjectSettings extends JDialog {
      */
     public ProjectSettings(Window window) {
         super(window);
+        setLayout(new GridBagLayout());
         setSize(320, 240);
         tabs = new JTabbedPane();
         
         fileList = new FileList(window);
         tabs.addTab("Source files", fileList);
-        add(tabs);
+        
+        buttons = new JPanel();
+        
+        applyButton = new JButton("Apply");
+        applyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.saveProjectSettings(ProjectSettings.this);
+            }
+        });
+        okButton = new JButton("Ok");
+        okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.saveProjectSettings(ProjectSettings.this);
+                dispose();
+            }
+        });
+        cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        
+        buttons.add(applyButton);
+        buttons.add(okButton);
+        buttons.add(cancelButton);
+        
+        GridBagConstraints c = new GridBagConstraints();
+        
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
+        add(tabs, c);
+        c.gridx = 0;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        c.weighty = 0;
+        add(buttons, c);
         setVisible(true);
+    }
+    
+    /**
+     * Get the source files.
+     * @return Returns the source files.
+     */
+    public FileItem[] getSourceFiles() {
+        return fileList.getFiles();
     }
 }

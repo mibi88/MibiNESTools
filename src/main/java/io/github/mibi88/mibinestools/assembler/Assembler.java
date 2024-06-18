@@ -20,6 +20,7 @@ package io.github.mibi88.mibinestools.assembler;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 
 /**
  *
@@ -38,6 +39,10 @@ public class Assembler {
         byte[] data = new byte[fileStream.available()];
         fileStream.read(data);
         parser = new Parser(new String(data));
+        ArrayList<Token> tokens = parser.getTokens();
+        for(Token token : tokens){
+            System.out.println(token);
+        }
     }
 
     /**

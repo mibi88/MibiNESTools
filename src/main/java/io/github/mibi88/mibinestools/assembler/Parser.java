@@ -38,8 +38,11 @@ public class Parser {
     public Parser(String text) {
         currentToken = new Token(null, "");
         tokenList = new ArrayList();
-        String tokenEnds = " \t\r\n";
+        String tokenEnds = ", \t\r\n";
+        String lineEnds = "\r\n";
         escaped = false;
+        inComment = false;
+        inString = false;
         for(int i=0;i<text.length();i++){
             char c = text.charAt(i);
             if(!inComment){
@@ -47,8 +50,22 @@ public class Parser {
                     escaped = true;
                     continue;
                 }
-                if(!inString){
-                    if(tokenEnds.indexOf(c) >= 0){
+                if(!escaped && !inString && c == ';'){
+                    inComment = true;
+                    continue;
+                }
+                if(inString){
+                    if(c == '"' && !escaped){
+                        inString = false;
+                        continue;
+                    }
+                    currentToken.add(c);
+                }else{
+                    if(c == '"' && !escaped){
+                        inString = true;
+                        continue;
+                    }
+                    if(tokenEnds.indexOf(c) < 0){
                         currentToken.add(c);
                     }else{
                         if(currentToken.getContent().length() > 0){
@@ -57,8 +74,15 @@ public class Parser {
                         }
                     }
                 }
+            }else{
+                if(lineEnds.indexOf(c) >= 0){
+                    inComment = false;
+                }
             }
             escaped = false;
+        }
+        if(currentToken.getContent().length() > 0){
+            addToken(currentToken);
         }
     }
     
@@ -77,5 +101,13 @@ public class Parser {
             token.setType(TokenType.OPCODE);
         }
         tokenList.add(token);
+    }
+    
+    /**
+     * Get the tokens.
+     * @return Returns the ArrayList of tokens.
+     */
+    public ArrayList<Token> getTokens() {
+        return tokenList;
     }
 }

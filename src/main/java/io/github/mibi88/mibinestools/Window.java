@@ -18,6 +18,7 @@
 
 package io.github.mibi88.mibinestools;
 
+import io.github.mibi88.mibinestools.assembler.Assembler;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
@@ -357,6 +358,23 @@ public class Window extends JFrame {
      */
     public void openProjectSettings() {
         ProjectSettings settings = new ProjectSettings(this);
+    }
+    
+    /**
+     * Save the project settings.
+     * @param settings The project settings dialog.
+     */
+    public void saveProjectSettings(ProjectSettings settings) {
+        FileItem[] files = settings.getSourceFiles();
+        for(FileItem file : files) {
+            System.out.println("Assembling " + file + "...");
+            try {
+                Assembler assembler = new Assembler(file.getFile());
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
     }
     
     /**

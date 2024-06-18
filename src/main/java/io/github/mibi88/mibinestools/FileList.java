@@ -107,4 +107,16 @@ public class FileList extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
         add(remove, c);
     }
+    
+    /**
+     * Get the files listed in this file list.
+     * @return Returns the files.
+     */
+    public FileItem[] getFiles() {
+        FileItem[] files = new FileItem[listModel.getSize()];
+        for(int i=0;i<listModel.getSize();i++){
+            files[i] = (FileItem)listModel.get(i);
+        }
+        return files;
+    }
 }
