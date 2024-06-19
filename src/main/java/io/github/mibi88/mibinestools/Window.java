@@ -194,6 +194,7 @@ public class Window extends JFrame {
         if(file != null){
             editorInstance.openFile(file);
         }
+        editorInstance.updateTitle();
         editors.add(editorInstance);
     }
     

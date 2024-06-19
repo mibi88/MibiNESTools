@@ -47,6 +47,7 @@ public class ClosableTab extends JPanel {
     private JTabbedPane tabbedPane;
     private Editor editor;
     private CloseEvent event;
+    private JLabel label;
 
     /**
      * Create a new closable tab.
@@ -58,19 +59,7 @@ public class ClosableTab extends JPanel {
         setOpaque(false);
         this.tabbedPane = tabbedPane;
         this.editor = editor;
-        JLabel label = new JLabel() {
-            @Override
-            public String getText() {
-                String text = "Unknown title";
-                int index = tabbedPane.indexOfTabComponent(
-                        ClosableTab.this);
-                if(index >= 0){
-                    text = tabbedPane.getTitleAt(index);
-                }
-                setText(text);
-                return text;
-            }
-        };
+        label = new JLabel("Unknown Editor");
         label.setBorder(BorderFactory
                 .createEmptyBorder(0, 0, 0, 5));
         add(label);
@@ -131,5 +120,13 @@ public class ClosableTab extends JPanel {
                 event.tabClosed(editor);
             }
         }
+    }
+    
+    /**
+     * Set the text on this tab.
+     * @param text The text.
+     */
+    public void setText(String text) {
+        label.setText(text);
     }
 }

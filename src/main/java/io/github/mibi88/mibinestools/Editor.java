@@ -254,21 +254,23 @@ public abstract class Editor extends JPanel {
                 .getAncestorOfClass(JTabbedPane.class, this);
     }
     
-    private int getTabIndex() throws Exception {
+    private int getTabIndex() {
         JTabbedPane tabbedPane = getTabbedPane();
-        for(int i=0;i<tabbedPane.getTabCount();i++){
-            if(SwingUtilities.isDescendingFrom(this,
-                    tabbedPane.getComponentAt(i))){
-                return i;
-            }
-        }
-        throw new Exception("Tab not found!");
+        return tabbedPane.indexOfComponent(this);
+    }
+    
+    private ClosableTab getTabComponent() {
+        JTabbedPane tabbedPane = getTabbedPane();
+        ClosableTab closableTab = (ClosableTab)tabbedPane
+                .getTabComponentAt(getTabIndex());
+        return closableTab;
     }
     
     private void setTitle(String title) throws Exception {
         int i = getTabIndex();
         JTabbedPane tabbedPane = getTabbedPane();
         tabbedPane.setTitleAt(i, title);
+        getTabComponent().setText(title);
     }
     
     /**
