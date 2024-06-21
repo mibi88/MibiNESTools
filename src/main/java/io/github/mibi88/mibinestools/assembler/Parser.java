@@ -43,24 +43,26 @@ public class Parser {
         escaped = false;
         inComment = false;
         inString = false;
+        char old_c = '\0';
         for(int i=0;i<text.length();i++){
             char c = text.charAt(i);
             if(!inComment){
-                if(c == '\\'){
-                    escaped = true;
-                    continue;
-                }
-                if(!escaped && !inString && c == ';'){
-                    inComment = true;
-                    continue;
-                }
                 if(inString){
-                    if(c == '"' && !escaped){
+                    if(c == '"' && old_c != '\\'){
                         inString = false;
                         continue;
                     }
+                    old_c = c;
                     currentToken.add(c);
                 }else{
+                    if(c == '\\'){
+                        escaped = true;
+                        continue;
+                    }
+                    if(!escaped && c == ';'){
+                        inComment = true;
+                        continue;
+                    }
                     if(c == '"' && !escaped){
                         inString = true;
                         continue;

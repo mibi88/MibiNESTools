@@ -84,5 +84,11 @@ public class ProjectToolbar extends JToolBar {
                 window.openProjectSettings();
             }
         });
+        buildButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.build();
+            }
+        });
     }
 }

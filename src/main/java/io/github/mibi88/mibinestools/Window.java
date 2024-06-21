@@ -66,6 +66,7 @@ public class Window extends JFrame {
     private int scale;
     
     private File projectFolder;
+    private FileItem[] files;
     
     /**
      * Initialize the GUI
@@ -382,14 +383,22 @@ public class Window extends JFrame {
      * @param settings The project settings dialog.
      */
     public void saveProjectSettings(ProjectSettings settings) {
-        FileItem[] files = settings.getSourceFiles();
-        for(FileItem file : files) {
-            System.out.println("Assembling " + file + "...");
-            try {
-                Assembler assembler = new Assembler(file.getFile());
-            } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
+        files = settings.getSourceFiles();
+    }
+    
+    /**
+     * Build the current project.
+     */
+    public void build() {
+        if(files != null){
+            for(FileItem file : files) {
+                System.out.println("Assembling " + file + "...");
+                try {
+                    Assembler assembler = new Assembler(file.getFile());
+                } catch (Exception ex) {
+                    Logger.getLogger(Window.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
             }
         }
     }
