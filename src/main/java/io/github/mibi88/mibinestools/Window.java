@@ -241,6 +241,29 @@ public class Window extends JFrame {
         openEditor(getFileExtension(file), file);
     }
     
+    private JFileChooser createFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        for(Class editorClass : availableEditors) {
+            try {
+                String editorName = (String)editorClass
+                        .getMethod("getEditorName").invoke(null);
+                String[] extensions = (String[])editorClass
+                        .getMethod("getExtension").invoke(null);
+                FileNameExtensionFilter chrFilter =
+                        new FileNameExtensionFilter(editorName + " Files",
+                                extensions);
+                fileChooser.addChoosableFileFilter(chrFilter);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
+        if(projectFolder != null){
+            fileChooser.setCurrentDirectory(projectFolder);
+        }
+        return fileChooser;
+    }
+    
     /**
      * Open a file in the selected editor.
      * @param editor The editor to open the file in (can be null).
@@ -248,10 +271,7 @@ public class Window extends JFrame {
      * editor.
      */
     public void openFile(Class editor, boolean inCurrent) {
-        JFileChooser fileChooser = new JFileChooser();
-        FileNameExtensionFilter chrFilter =
-                new FileNameExtensionFilter("CHR Files", "chr");
-        fileChooser.addChoosableFileFilter(chrFilter);
+        JFileChooser fileChooser = createFileChooser();
         int out = fileChooser.showOpenDialog(this);
         if(out == JFileChooser.APPROVE_OPTION){
             File file = fileChooser.getSelectedFile();
@@ -307,8 +327,7 @@ public class Window extends JFrame {
             }
             saveAsFile();
         } catch (Exception ex) {
-            Logger.getLogger(Window.class.getName()).log(
-                    Level.SEVERE, null, ex);
+            System.out.println("Failed to save file: " + ex.getMessage());
         }
     }
     
@@ -319,7 +338,8 @@ public class Window extends JFrame {
         try {
             editors.get(getSelectedEditor()).newFile();
         } catch (Exception ex) {
-            System.out.println("No open editor");
+            System.out.println("Failed to create a new file: "
+                    + ex.getMessage());
         }
     }
     
@@ -327,10 +347,7 @@ public class Window extends JFrame {
      * Save the file as in the selected editor.
      */
     public void saveAsFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        FileNameExtensionFilter chrFilter =
-                new FileNameExtensionFilter("CHR Files", "chr");
-        fileChooser.addChoosableFileFilter(chrFilter);
+        JFileChooser fileChooser = createFileChooser();
         int out = fileChooser.showSaveDialog(this);
         if(out == JFileChooser.APPROVE_OPTION){
             File file = fileChooser.getSelectedFile();
@@ -348,8 +365,7 @@ public class Window extends JFrame {
             try {
                 editors.get(getSelectedEditor()).saveAsFile(file);
             } catch (Exception ex) {
-                Logger.getLogger(Window.class.getName()).log(
-                        Level.SEVERE, null, ex);
+                System.out.println("Failed to save file: " + ex.getMessage());
             }
         }
     }
