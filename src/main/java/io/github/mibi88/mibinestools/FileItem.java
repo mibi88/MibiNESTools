@@ -40,7 +40,7 @@ public class FileItem {
     
     /**
      * Get the relative path to this file.
-     * @return
+     * @return Returns the relative path.
      */
     @Override
     public String toString() {

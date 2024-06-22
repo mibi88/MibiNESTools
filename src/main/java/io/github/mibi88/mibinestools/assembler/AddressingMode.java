@@ -16,19 +16,18 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-package io.github.mibi88.mibinestools;
-
-import java.io.File;
+package io.github.mibi88.mibinestools.assembler;
 
 /**
- * Methods to handle file selection in a FileTree.
+ *
  * @author mibi88
  */
-public interface FileTreeEvent {
-
-    /**
-     * Gets called when a file is selected in the FileTree.
-     * @param file The selected file.
-     */
-    public void fileSelected(File file);
+public enum AddressingMode {
+    ACCUMULATOR,
+    IMMEDIATE,
+    ABSOLUTE,
+    ZEROPAGE,
+    IMPLIED,
+    RELATIVE,
+    INDIRECT,
 }

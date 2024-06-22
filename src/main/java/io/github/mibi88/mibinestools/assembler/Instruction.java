@@ -16,19 +16,32 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-package io.github.mibi88.mibinestools;
-
-import java.io.File;
+package io.github.mibi88.mibinestools.assembler;
 
 /**
- * Methods to handle file selection in a FileTree.
+ *
  * @author mibi88
  */
-public interface FileTreeEvent {
+public class Instruction {
+    private String opcodeName;
+    private String arg;
+    private String register;
+    private AddressingMode mode;
 
     /**
-     * Gets called when a file is selected in the FileTree.
-     * @param file The selected file.
+     * Store an instruction.
+     * @param opcodeName The name of the opcode.
+     * @param arg The value following the opcode (if there is one).
+     * @param register The register used for indexed addressing (can be null).
      */
-    public void fileSelected(File file);
+    public Instruction(String opcodeName, String arg, String register) {
+        this.opcodeName = opcodeName;
+        this.arg = arg;
+        this.register = register;
+        setMode();
+    }
+    
+    private void setMode() {
+        mode = null;
+    }
 }
