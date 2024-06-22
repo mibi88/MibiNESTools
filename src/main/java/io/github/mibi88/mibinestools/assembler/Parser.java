@@ -65,6 +65,7 @@ public class Parser {
                     }
                     if(c == '"' && !escaped){
                         inString = true;
+                        currentToken.setType(TokenType.STRING);
                         continue;
                     }
                     if(tokenEnds.indexOf(c) < 0){
@@ -91,16 +92,20 @@ public class Parser {
     private void addToken(Token token) {
         String content = currentToken.getContent();
         String addressStart = "0123456789$%";
-        if(content.charAt(0) == '.'){
-            token.setType(TokenType.DIRECTIVE);
-        }else if(content.charAt(0) == '#'){
-            token.setType(TokenType.NUMBER);
-        }else if(addressStart.indexOf(content.charAt(0)) >= 0){
-            token.setType(TokenType.ADDRESS);
-        }else if(content.charAt(content.length()-1) == ':'){
-            token.setType(TokenType.LABEL);
-        }else if(content.matches("[a-zA-Z]{3}")){
-            token.setType(TokenType.OPCODE);
+        if(token.getType() == null){
+            if(content.charAt(0) == '.'){
+                token.setType(TokenType.DIRECTIVE);
+            }else if(content.charAt(0) == '#'){
+                token.setType(TokenType.NUMBER);
+            }else if(addressStart.indexOf(content.charAt(0)) >= 0){
+                token.setType(TokenType.ADDRESS);
+            }else if(content.charAt(content.length()-1) == ':'){
+                token.setType(TokenType.LABEL);
+            }else if(content.matches("[a-zA-Z]{3}")){
+                token.setType(TokenType.OPCODE);
+            }
+        }else if(token.getType() == TokenType.STRING){
+            token.setContent(parseString(content));
         }
         tokenList.add(token);
     }
@@ -111,5 +116,61 @@ public class Parser {
      */
     public ArrayList<Token> getTokens() {
         return tokenList;
+    }
+    
+    private String parseString(String string) {
+        boolean backslash = false;
+        String out = "";
+        for(int i=0;i<string.length();i++){
+            char c = string.charAt(i);
+            if(c == '\\'){
+                backslash = true;
+                continue;
+            }
+            if(backslash){
+                backslash = false;
+                switch(c){
+                    case 'a':
+                        out += 0x07;
+                        break;
+                    case 'b':
+                        out += '\b';
+                        break;
+                    case 'f':
+                        out += '\f';
+                        break;
+                    case 'n':
+                        out += '\n';
+                        break;
+                    case 'r':
+                        out += '\r';
+                        break;
+                    case 't':
+                        out += '\t';
+                        break;
+                    case 'v':
+                        out += 0x0B;
+                        break;
+                    case '0':
+                        out += '\0';
+                        break;
+                    case 'x':
+                        if(i+3<string.length()){
+                            String hex = "";
+                            hex += string.charAt(i+1);
+                            hex += string.charAt(i+2);
+                            out += (char)Integer.parseInt(hex, 16);
+                            i += 2;
+                        }
+                        break;
+                    default:
+                        out += c;
+                        
+                }
+            }else{
+                out += c;
+            }
+        }
+        return out;
     }
 }

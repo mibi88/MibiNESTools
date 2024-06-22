@@ -28,5 +28,6 @@ public enum TokenType {
     NAME,
     NUMBER,
     ADDRESS,
-    DIRECTIVE
+    DIRECTIVE,
+    STRING
 }
