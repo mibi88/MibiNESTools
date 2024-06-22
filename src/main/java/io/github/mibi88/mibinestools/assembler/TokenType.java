@@ -29,5 +29,8 @@ public enum TokenType {
     NUMBER,
     ADDRESS,
     DIRECTIVE,
-    STRING
+    STRING,
+    INDIRECT_ADDRESSING,
+    REGISTER,
+    SET
 }

@@ -35,7 +35,7 @@ public class Parser {
      * Parse assembly code.
      * @param text The code to parse.
      */
-    public Parser(String text) {
+    public Parser(String text) throws ParserError {
         currentToken = new Token(null, "");
         tokenList = new ArrayList();
         String tokenEnds = ", \t\r\n";
@@ -89,7 +89,7 @@ public class Parser {
         }
     }
     
-    private void addToken(Token token) {
+    private void addToken(Token token) throws ParserError {
         String content = currentToken.getContent();
         String addressStart = "0123456789$%";
         if(token.getType() == null){
@@ -99,10 +99,19 @@ public class Parser {
                 token.setType(TokenType.NUMBER);
             }else if(addressStart.indexOf(content.charAt(0)) >= 0){
                 token.setType(TokenType.ADDRESS);
+            }else if(content.charAt(0) == '(' &&
+                    content.charAt(content.length()-1) == ')'){
+                token.setType(TokenType.INDIRECT_ADDRESSING);
             }else if(content.charAt(content.length()-1) == ':'){
                 token.setType(TokenType.LABEL);
             }else if(content.matches("[a-zA-Z]{3}")){
                 token.setType(TokenType.OPCODE);
+            }else if(content.matches("[A|X|Y]")){
+                token.setType(TokenType.REGISTER);
+            }else if(content.equals("=")){
+                token.setType(TokenType.SET);
+            }else{
+                token.setType(TokenType.NAME);
             }
         }else if(token.getType() == TokenType.STRING){
             token.setContent(parseString(content));

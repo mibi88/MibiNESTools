@@ -19,14 +19,16 @@
 package io.github.mibi88.mibinestools.assembler;
 
 /**
- * Methods that get called on error when parsing the source code.
+ * Class to throw on error when parsing code.
  * @author mibi88
  */
-public interface ParserError {
+public class ParserError extends Exception {
 
     /**
-     * Gets called when the type of the token is unknown.
-     * @param token The token.
+     * Create a new parser error.
+     * @param message The error message.
      */
-    public void unknownToken(Token token);
+    public ParserError(String message) {
+        super(message);
+    }
 }

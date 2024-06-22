@@ -41,7 +41,7 @@ public class Assembler {
         parser = new Parser(new String(data));
         ArrayList<Token> tokens = parser.getTokens();
         for(Token token : tokens){
-            System.out.println(token);
+            System.out.println(token + ", " + token.getType());
         }
     }
 
@@ -49,7 +49,7 @@ public class Assembler {
      * Assemble code.
      * @param text The code to assemble.
      */
-    public Assembler(String text) {
+    public Assembler(String text) throws ParserError {
         parser = new Parser(text);
     }
 }
