@@ -35,7 +35,7 @@ public class Parser {
      * Parse assembly code.
      * @param text The code to parse.
      */
-    public Parser(String text) throws ParserError {
+    public Parser(String text) {
         currentToken = new Token(null, "");
         tokenList = new ArrayList();
         String tokenEnds = ", \t\r\n";
@@ -89,7 +89,7 @@ public class Parser {
         }
     }
     
-    private void addToken(Token token) throws ParserError {
+    private void addToken(Token token) {
         String content = currentToken.getContent();
         String addressStart = "0123456789$%";
         if(token.getType() == null){

@@ -49,7 +49,7 @@ public class Assembler {
      * Assemble code.
      * @param text The code to assemble.
      */
-    public Assembler(String text) throws ParserError {
+    public Assembler(String text) {
         parser = new Parser(text);
     }
 }
