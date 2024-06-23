@@ -22,6 +22,7 @@ import io.github.mibi88.mibinestools.assembler.Assembler;
 import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
+import io.github.mibi88.mibinestools.emulator.Emulator;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -119,6 +120,7 @@ public class Window extends JFrame {
         availableEditors.add(CHREditor.class);
         availableEditors.add(NametableEditor.class);
         availableEditors.add(CodeEditor.class);
+        availableEditors.add(Emulator.class);
         
         updateMenus();
         

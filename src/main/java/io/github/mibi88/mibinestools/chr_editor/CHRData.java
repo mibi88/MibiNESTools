@@ -17,6 +17,8 @@
  */
 package io.github.mibi88.mibinestools.chr_editor;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,6 +53,15 @@ public class CHRData {
         fileStream.read(rawData);
         loadCHRData(rawData);
         fileStream.close();
+    }
+    
+    /**
+     * Load the pattern table from a byte array.
+     * @param rawData The byte array.
+     */
+    public CHRData(byte[] rawData) {
+        this.rawData = rawData.clone();
+        loadCHRData(rawData);
     }
     
     /**
@@ -172,6 +183,33 @@ public class CHRData {
                             image.setRGB(x*scale+sx, y*scale+sy, color);
                         }
                     }
+                }
+            }
+        }
+        return image;
+    }
+    
+    /**
+     * Generate a buffered image of the tile, with the color 0 being
+     * transparent.
+     * @param tileIndex The index of the tile.
+     * @param palette The palette to use.
+     * @param scale The scale of the image.
+     * @return Returns the BufferedImage.
+     */
+    public BufferedImage generateTileImageWithAlpha(int tileIndex,
+            int[][] palette, int scale) {
+        BufferedImage image = new BufferedImage(8*scale, 8*scale,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics g = image.getGraphics();
+        if(tileIndex >= 0 && tileIndex < chrBanks*256) {
+            for(int y=0;y<8;y++){
+                for(int x=0;x<8;x++){
+                    int colorNum = chrData[tileIndex][y*8+x]&0b00000011;
+                    g.setColor(new Color(palette[colorNum][0],
+                            palette[colorNum][1], palette[colorNum][2],
+                            colorNum == 0 ? 255 : 0));
+                    g.fillRect(x*scale, y*scale, scale, scale);
                 }
             }
         }

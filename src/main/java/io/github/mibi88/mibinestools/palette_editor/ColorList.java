@@ -30,7 +30,7 @@ import javax.swing.JPanel;
 public class ColorList extends JPanel {
     private int[] currentColor;
     // TODO: Store palette colors in an image in the resources.
-    private int[][] list = {
+    public static int[][] colorList = {
         // First row
         {102, 102, 102},
         {0, 42, 136},
@@ -45,6 +45,8 @@ public class ColorList extends JPanel {
         {0, 82, 0},
         {0, 79, 8},
         {0, 64, 78},
+        {0, 0, 0},
+        {0, 0, 0},
         {0, 0, 0},
         // 2nd row
         {174, 174, 174},
@@ -61,6 +63,8 @@ public class ColorList extends JPanel {
         {0, 144, 50},
         {0, 124, 142},
         {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
         // 3rd line
         {254, 254, 254},
         {100, 176, 254},
@@ -76,6 +80,8 @@ public class ColorList extends JPanel {
         {69, 225, 130},
         {72, 206, 223},
         {79, 79, 79},
+        {0, 0, 0},
+        {0, 0, 0},
         // 4th line
         {254, 254, 254},
         {193, 224, 254},
@@ -90,7 +96,9 @@ public class ColorList extends JPanel {
         {190, 245, 171},
         {180, 243, 205},
         {181, 236, 243},
-        {184, 184, 184}
+        {184, 184, 184},
+        {0, 0, 0},
+        {0, 0, 0}
     };
     
     private ColorButton[] colors;
@@ -99,12 +107,12 @@ public class ColorList extends JPanel {
      * Create a new color list.
      */
     public ColorList() {
-        super(new GridLayout(4, 14));
+        super(new GridLayout(4, 16));
         currentColor = new int[3];
-        colors = new ColorButton[list.length];
-        for(int i=0;i<list.length;i++){
+        colors = new ColorButton[colorList.length];
+        for(int i=0;i<colorList.length;i++){
             final int index = i;
-            final int[] rgbColor = list[i];
+            final int[] rgbColor = colorList[i];
             Color color = new Color(rgbColor[0], rgbColor[1], rgbColor[2]);
             colors[i] = new ColorButton(color);
             add(colors[i]);
