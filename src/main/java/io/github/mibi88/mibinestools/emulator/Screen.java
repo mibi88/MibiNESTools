@@ -37,6 +37,7 @@ public class Screen extends JPanel {
     private int scale;
     private int width;
     private int height;
+    private byte[] screen;
     // PPUCTRL
     private boolean generateNMI;
     private boolean slaveMode;
@@ -70,6 +71,8 @@ public class Screen extends JPanel {
         Arrays.fill(ppuRAM, Byte.MIN_VALUE);
         width = 256;
         height = 240;
+        screen = new byte[width*height];
+        Arrays.fill(screen, Byte.MIN_VALUE);
         this.scale = scale;
     }
     
@@ -80,9 +83,13 @@ public class Screen extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int[] bgColor = getColor(ppuRAM[0x3F00]);
-        g.setColor(new Color(bgColor[0], bgColor[1], bgColor[2]));
-        g.fillRect(0, 0, width*scale, height*scale);
+        for(int y=0;y<height;y++){
+            for(int x=0;x<width;x++){
+                int[] color = getColor(screen[y*width+x]-Byte.MIN_VALUE);
+                g.setColor(new Color(color[0], color[1], color[2]));
+                g.fillRect(x*scale, y*scale, scale, scale);
+            }
+        }
     }
     
     private int[] getColor(int index) {
