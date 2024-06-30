@@ -37,7 +37,7 @@ public class Emulator extends Editor {
      */
     public Emulator(Window window) {
         super(window, new BorderLayout());
-        screen = new Screen(new CHRData(), Region.PAL, 2);
+        screen = new Screen(new byte[0], Region.PAL, 2);
         add(screen, BorderLayout.CENTER);
         setEditorName(editorName);
     }

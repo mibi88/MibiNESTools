@@ -22,8 +22,11 @@ import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import io.github.mibi88.mibinestools.palette_editor.ColorList;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 /**
  * This class emulates the NES PPU.
@@ -31,13 +34,16 @@ import javax.swing.JPanel;
  */
 public class Screen extends JPanel {
     private byte[] ppuRAM;
-    private CHRData chrData;
+    private byte[] patternTable;
     private int address;
     private Region region;
     private int scale;
     private int width;
     private int height;
     private byte[] screen;
+    private boolean renderingDone;
+    private boolean odd;
+    private float cpuCycleInPPUCycles;
     // PPUCTRL
     private boolean generateNMI;
     private boolean slaveMode;
@@ -65,7 +71,7 @@ public class Screen extends JPanel {
      * @param chrData The CHR data to use for rendering.
      * @param region The region to emulate.
      */
-    public Screen(CHRData chrData, Region region, int scale) {
+    public Screen(byte[] patternTable, Region region, int scale) {
         super();
         ppuRAM = new byte[0x4000];
         Arrays.fill(ppuRAM, Byte.MIN_VALUE);
@@ -74,6 +80,13 @@ public class Screen extends JPanel {
         screen = new byte[width*height];
         Arrays.fill(screen, Byte.MIN_VALUE);
         this.scale = scale;
+        this.region = region;
+        if(region == Region.NTSC){
+            cpuCycleInPPUCycles = 3f;
+        }else{
+            cpuCycleInPPUCycles = 3.2f;
+        }
+        this.patternTable = patternTable;
     }
     
     /**
@@ -94,5 +107,44 @@ public class Screen extends JPanel {
     
     private int[] getColor(int index) {
         return ColorList.colorList[index%0x40];
+    }
+    
+    private void run(CPU cpu) {
+        int lastCPUCycle = 0;
+        if(showSprites || showBackground){
+            int ppuCycles = 261*341-(odd ? 1 : 0);
+            int lastRead = 0;
+            for(int i=0;i<ppuCycles;i++){
+                // TODO: Sprite 0 hit special case.
+                // Background, etc.
+                if(i >= 1 && i <= 256){
+                    if(lastRead < 8){
+                        lastRead++;
+                    }else{
+                        // TODO
+                        lastRead = 0;
+                    }
+                }
+                // Sprite evaluation
+                if(i >= 1 && i <= 64){
+                    // TODO: Initialize secondary OAM.
+                }
+                // Run a CPU cycle if needed.
+                if((int)(i/cpuCycleInPPUCycles) > lastCPUCycle){
+                    cpu.cycle();
+                    lastCPUCycle = (int)(i/cpuCycleInPPUCycles);
+                }
+            }
+        }else{
+            // Rendering is disabled
+            int ppuCycles = 341*262;
+            for(int i=0;i<ppuCycles;i++){
+                if((int)(i/cpuCycleInPPUCycles) > lastCPUCycle){
+                    cpu.cycle();
+                    lastCPUCycle = (int)(i/cpuCycleInPPUCycles);
+                }
+            }
+        }
+        repaint();
     }
 }
