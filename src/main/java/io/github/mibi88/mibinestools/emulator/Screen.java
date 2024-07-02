@@ -198,9 +198,13 @@ public class Screen extends JPanel {
         repaint();
     }
     
+    /**
+     * Run one PPU frame.
+     * @param cpu The CPU.
+     */
     public void runCheap(CPU cpu) {
         // Inaccurate PPU emulation.
-        // (currently not working)
+        // (should be working)
         int lastCPUCycle = 0;
         if(showSprites || showBackground){
             int ppuCycles = 261*341-(odd ? 1 : 0);
@@ -208,10 +212,107 @@ public class Screen extends JPanel {
                 int scanline = (i+(odd ? 1 : 0))/341;
                 int cycle = (i+(odd ? 1 : 0))%341;
                 int pixel = cycle;
-                Stack<Integer> sprites = new Stack<Integer>();
+                ArrayList<Integer> sprites = new ArrayList<Integer>();
+                byte spritePixel = 0x00;
+                int spritePalette = 0;
+                boolean behindBackground = false;
+                byte backgroundPixel = 0x00;
+                int backgroundPalette = 0;
                 if(scanline >= 1 && scanline <= 240){
                     if(pixel == 0){
-                        //
+                        sprites.clear();
+                        for(int n=0;n<256;n+=4){
+                            if(scanline-1 >= oam[n] && scanline-1 < oam[n]+8 &&
+                                    sprites.size() < 8){
+                                sprites.add(n);
+                            }
+                        }
+                    }
+                    if(pixel < 240){
+                        if(showSprites){
+                            // TODO: Add support for 8x16 sprites!
+                            for(int index : sprites){
+                                if(pixel <= oam[index+3] &&
+                                        pixel < oam[index+3]+8){
+                                    byte attributes = oam[index+2];
+                                    int tileIndex = oam[index+1]-Byte.MIN_VALUE;
+                                    int yPos = (scanline-1)-oam[index];
+                                    yPos = yPos < 0 ? 0 : yPos;
+                                    yPos = yPos >= 8 ? 7 : yPos;
+                                    if((attributes&0b10000000) != 0){
+                                        // Vertical flipping
+                                        yPos = 7-yPos;
+                                    }
+                                    byte tileLow =
+                                            patternTable[tileIndex*16+yPos];
+                                    byte tileHigh = patternTable[tileIndex*16+8
+                                            +yPos];
+                                    int xPos = pixel-oam[index+3];
+                                    if((attributes&0b01000000) != 0){
+                                        // Horizontal flipping
+                                        xPos = 7-xPos;
+                                    }
+                                    spritePixel = (byte)((tileLow&1<<xPos)>>xPos
+                                            |(tileHigh&1<<xPos)>>xPos<<1);
+                                    behindBackground =
+                                            (attributes&0b00000100) != 0;
+                                    spritePalette = attributes&0b00000011;
+                                    break;
+                                }
+                            }
+                        }
+                        if(showBackground){
+                            int tileIndex = getNametableByte(scanline-1,
+                                    pixel);
+                            int xPos = (scrollX+pixel)%8;
+                            int yPos = (scrollY+scanline-1)%8;
+                            byte tileLow = patternTable[tileIndex*16+yPos];
+                            byte tileHigh = patternTable[tileIndex*16+8
+                                    +yPos];
+                            backgroundPixel = (byte)((tileLow&1<<xPos)>>xPos
+                                    |(tileHigh&1<<xPos)>>xPos<<1);
+                        }
+                        // TODO: Add support for tint bits, etc.
+                        if(showBackground && showSprites){
+                            if(behindBackground){
+                                if(backgroundPixel == 0){
+                                    byte color = ppuRAM[0x3F00+spritePalette*4
+                                            +spritePixel];
+                                    screen[(scanline-1)+pixel] = color;
+                                }else{
+                                    byte color = ppuRAM[0x3F00
+                                            +backgroundPalette*4
+                                            +backgroundPixel];
+                                    screen[(scanline-1)+pixel] = color;
+                                }
+                            }else{
+                                if(spritePixel == 0){
+                                    byte color = ppuRAM[0x3F00
+                                            +backgroundPalette*4
+                                            +backgroundPixel];
+                                    screen[(scanline-1)+pixel] = color;
+                                }else{
+                                    byte color = ppuRAM[0x3F00+spritePalette*4
+                                            +spritePixel];
+                                    screen[(scanline-1)+pixel] = color;
+                                }
+                            }
+                        }else if(showSprites){
+                            if(spritePixel == 0){
+                                byte color = ppuRAM[0x3F00];
+                                screen[(scanline-1)+pixel] = color;
+                            }else{
+                                byte color = ppuRAM[0x3F00+spritePalette*4
+                                        +spritePixel];
+                                screen[(scanline-1)+pixel] = color;
+                            }
+                        }else{
+                            // Show the background only.
+                            byte color = ppuRAM[0x3F00
+                                    +backgroundPalette*4
+                                    +backgroundPixel];
+                            screen[(scanline-1)+pixel] = color;
+                        }
                     }
                 }
                 // Run a CPU cycle if needed.
@@ -261,5 +362,27 @@ public class Screen extends JPanel {
             x -= 8;
         }
         return ppuRAM[addr+y*8+x];
+    }
+    
+    private int getAttribute(int visibleScanline, int pixel) {
+        int x = (scrollX+pixel)/32;
+        int y = (scrollY+visibleScanline)/32;
+        int addr = 0x23C0;
+        if(y >= 8){
+            addr = 0x2BC0;
+            y -= 8;
+        }
+        if(x >= 8){
+            addr += 0x400;
+            x -= 8;
+        }
+        byte attribute = ppuRAM[addr+y*8+x];
+        x = (scrollX+pixel)/8;
+        y = (scrollY+visibleScanline)/8;
+        int pos = (y/2%2)*2+(x/2%2);
+        int bit1 = 1<<pos*2;
+        int palette = attribute&(bit1|bit1<<1);
+        palette >>= pos*2;
+        return palette;
     }
 }
