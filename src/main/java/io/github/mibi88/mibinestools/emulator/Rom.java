@@ -36,18 +36,30 @@ public class Rom {
      * @throws Exception Thrown if the file could not be read.
      */
     public Rom(File file) throws Exception {
-        FileInputStream fileStream = new FileInputStream(file);
-        data = new byte[fileStream.available()];
-        fileStream.read(data);
-        fileStream.close();
+        if(file != null){
+            FileInputStream fileStream = new FileInputStream(file);
+            data = new byte[fileStream.available()];
+            fileStream.read(data);
+            fileStream.close();
+        }else{
+            data = new byte[0xFFFF];
+        }
     }
     
     /**
      * Get the CHR data from the ROM.
      * @return The CHR data.
      */
-    public CHRData getChrData() {
+    public CHRData getCHRData() {
         return new CHRData(Arrays.copyOfRange(data, 0x8000,
                 0xA000));
+    }
+    
+    /**
+     * Get the raw CHR data from the ROM.
+     * @return The CHR data.
+     */
+    public byte[] getRawCHRData() {
+        return Arrays.copyOfRange(data, 0x8000, 0xA000);
     }
 }

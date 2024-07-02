@@ -22,6 +22,9 @@ import io.github.mibi88.mibinestools.Editor;
 import io.github.mibi88.mibinestools.Window;
 import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import java.awt.BorderLayout;
+import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -30,6 +33,7 @@ import java.awt.BorderLayout;
 public class Emulator extends Editor {
     private static String editorName = "Emulator";
     private Screen screen;
+    private CPU cpu;
 
     /**
      * Create a new emulator.
@@ -37,9 +41,18 @@ public class Emulator extends Editor {
      */
     public Emulator(Window window) {
         super(window, new BorderLayout());
-        screen = new Screen(new byte[0], Region.PAL, 2);
-        add(screen, BorderLayout.CENTER);
-        setEditorName(editorName);
+        
+        try {
+            Rom rom = new Rom(null);
+            screen = new Screen(rom.getRawCHRData(),
+                    Region.NTSC, 2, false);
+            cpu = new CPU(rom);
+            screen.play(cpu);
+            add(screen, BorderLayout.CENTER);
+            setEditorName(editorName);
+        } catch (Exception ex) {
+            Logger.getLogger(Emulator.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
@@ -56,5 +69,27 @@ public class Emulator extends Editor {
      */
     public static String getEditorName() {
         return editorName;
+    }
+    
+    /**
+     * Open a ROM.
+     * @param file The ROM file.
+     * @return If the file was opened
+     */
+    @Override
+    public boolean openFile(File file) {
+        if(!super.openFile(file)){
+            return false;
+        }
+        try {
+            Rom rom = new Rom(null);
+            screen.powerOff();
+            cpu = new CPU(rom);
+            screen.play(cpu);
+        } catch (Exception ex) {
+            Logger.getLogger(Emulator.class.getName()).log(
+                    Level.SEVERE, null, ex);
+        }
+        return true;
     }
 }

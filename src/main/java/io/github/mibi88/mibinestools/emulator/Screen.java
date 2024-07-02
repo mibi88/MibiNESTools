@@ -51,6 +51,9 @@ public class Screen extends JPanel {
     private int scrollY;
     private byte[] secondaryOAM;
     Stack<Byte> pixels;
+    private boolean writeLatch;
+    private boolean accurateEmulation;
+    private Timer timer;
     // PPUCTRL
     private boolean generateNMI;
     private boolean slaveMode;
@@ -88,9 +91,24 @@ public class Screen extends JPanel {
      * Create a new screen.
      * @param patternTable The CHR data to use for rendering.
      * @param region The region to emulate.
+     * @param scale The scale to render the image at.
+     * @param accurateEmulation If the emulation should be accurate.
      */
-    public Screen(byte[] patternTable, Region region, int scale) {
+    public Screen(byte[] patternTable, Region region, int scale,
+            boolean accurateEmulation) {
         super();
+        reset(patternTable, region, scale, accurateEmulation);
+    }
+    
+    /**
+     * Reset the NES.
+     * @param patternTable The CHR ROM.
+     * @param region The region.
+     * @param scale The scale to render the image at.
+     * @param accurateEmulation If the emulation should be accurate.
+     */
+    public void reset(byte[] patternTable, Region region, int scale,
+            boolean accurateEmulation) {
         ppuRAM = new byte[0x4000];
         Arrays.fill(ppuRAM, Byte.MIN_VALUE);
         width = 256;
@@ -107,6 +125,7 @@ public class Screen extends JPanel {
         this.patternTable = patternTable;
         secondaryOAM = new byte[32];
         pixels = new Stack<Byte>();
+        this.accurateEmulation = accurateEmulation;
     }
     
     /**
@@ -129,13 +148,41 @@ public class Screen extends JPanel {
         return ColorList.colorList[index%0x40];
     }
     
+    public void play(CPU cpu) {
+        timer = new Timer(16, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                run(cpu);
+            }
+        });
+        timer.setRepeats(true);
+        timer.start();
+    }
+    
+    public void powerOff() {
+        timer.stop();
+    }
+    
     /**
      * Run one PPU frame.
      * @param cpu The CPU.
      */
-    public void runAccurate(CPU cpu) {
+    public void run(CPU cpu) {
+        if(accurateEmulation){
+            runAccurate(cpu);
+        }else{
+            runCheap(cpu);
+        }
+    }
+    
+    
+    private void runAccurate(CPU cpu) {
         // Very accurate PPU emulation
         // (currently not working)
+        scrollX = (nametable&0b00000001)<<8;
+        scrollX |= ppuScrollX;
+        scrollY = (nametable&0b00000010)<<7;
+        scrollY |= ppuScrollY;
         int lastCPUCycle = 0;
         byte nameTableByte = 0x00;
         byte attributeTableByte = 0x00;
@@ -198,14 +245,14 @@ public class Screen extends JPanel {
         repaint();
     }
     
-    /**
-     * Run one PPU frame.
-     * @param cpu The CPU.
-     */
-    public void runCheap(CPU cpu) {
+    private void runCheap(CPU cpu) {
         // Inaccurate PPU emulation.
         // (should be working)
         int lastCPUCycle = 0;
+        scrollX = (nametable&0b00000001)<<8;
+        scrollX |= ppuScrollX;
+        scrollY = (nametable&0b00000010)<<7;
+        scrollY |= ppuScrollY;
         if(showSprites || showBackground){
             int ppuCycles = 261*341-(odd ? 1 : 0);
             for(int i=0;i<ppuCycles;i++){
@@ -271,6 +318,8 @@ public class Screen extends JPanel {
                                     +yPos];
                             backgroundPixel = (byte)((tileLow&1<<xPos)>>xPos
                                     |(tileHigh&1<<xPos)>>xPos<<1);
+                            backgroundPalette = getAttribute(scanline-1,
+                                    pixel);
                         }
                         // TODO: Add support for tint bits, etc.
                         if(showBackground && showSprites){
@@ -384,5 +433,20 @@ public class Screen extends JPanel {
         int palette = attribute&(bit1|bit1<<1);
         palette >>= pos*2;
         return palette;
+    }
+    
+    public void writePPUCTRL(byte value) {
+        nametable = value&0b00000011;
+        // ppuAddrIncrease: Add 1 if false, go down one line if true (add 32).
+        ppuAddrIncrease = (value&0b00000100) != 0 ? 32 : 1;
+        spriteCHRBank = (value&0b00001000) != 0 ? 1 : 0;
+        backgroundCHRBank = (value&0b00010000) != 0 ? 1 : 0;
+        bigSprites = (value&0b00100000) != 0;
+        slaveMode = (value&0b01000000) != 0;
+        generateNMI = (value&0b10000000) != 0;
+    }
+    
+    public void writePPUMASK(byte value) {
+        //
     }
 }
