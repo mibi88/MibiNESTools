@@ -54,6 +54,7 @@ public class Screen extends JPanel {
     private boolean writeLatch;
     private boolean accurateEmulation;
     private Timer timer;
+    private CPU cpu;
     // PPUCTRL
     private boolean generateNMI;
     private boolean slaveMode;
@@ -77,6 +78,8 @@ public class Screen extends JPanel {
     private boolean spriteOverflow;
     // PPUADDR
     private int ppuAddr;
+    private byte ppuAddrByte1;
+    private byte ppuAddrByte2;
     // PPUSCROLL
     private int ppuScrollX;
     private int ppuScrollY;
@@ -95,9 +98,9 @@ public class Screen extends JPanel {
      * @param accurateEmulation If the emulation should be accurate.
      */
     public Screen(byte[] patternTable, Region region, int scale,
-            boolean accurateEmulation) {
+            boolean accurateEmulation, CPU cpu) {
         super();
-        reset(patternTable, region, scale, accurateEmulation);
+        reset(patternTable, region, scale, accurateEmulation, cpu);
     }
     
     /**
@@ -108,7 +111,7 @@ public class Screen extends JPanel {
      * @param accurateEmulation If the emulation should be accurate.
      */
     public void reset(byte[] patternTable, Region region, int scale,
-            boolean accurateEmulation) {
+            boolean accurateEmulation, CPU cpu) {
         ppuRAM = new byte[0x4000];
         Arrays.fill(ppuRAM, Byte.MIN_VALUE);
         width = 256;
@@ -126,6 +129,7 @@ public class Screen extends JPanel {
         secondaryOAM = new byte[32];
         pixels = new Stack<Byte>();
         this.accurateEmulation = accurateEmulation;
+        this.cpu = cpu;
     }
     
     /**
@@ -148,35 +152,40 @@ public class Screen extends JPanel {
         return ColorList.colorList[index%0x40];
     }
     
-    public void play(CPU cpu) {
+    /**
+     * Run the currently loaded ROM.
+     */
+    public void play() {
         timer = new Timer(16, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                run(cpu);
+                run();
             }
         });
         timer.setRepeats(true);
         timer.start();
     }
     
+    /**
+     * Stop running this ROM.
+     */
     public void powerOff() {
         timer.stop();
     }
     
     /**
      * Run one PPU frame.
-     * @param cpu The CPU.
      */
-    public void run(CPU cpu) {
+    public void run() {
         if(accurateEmulation){
-            runAccurate(cpu);
+            runAccurate();
         }else{
-            runCheap(cpu);
+            runCheap();
         }
     }
     
     
-    private void runAccurate(CPU cpu) {
+    private void runAccurate() {
         // Very accurate PPU emulation
         // (currently not working)
         scrollX = (nametable&0b00000001)<<8;
@@ -245,7 +254,7 @@ public class Screen extends JPanel {
         repaint();
     }
     
-    private void runCheap(CPU cpu) {
+    private void runCheap() {
         // Inaccurate PPU emulation.
         // (should be working)
         int lastCPUCycle = 0;
@@ -265,13 +274,25 @@ public class Screen extends JPanel {
                 boolean behindBackground = false;
                 byte backgroundPixel = 0x00;
                 int backgroundPalette = 0;
+                int spriteIndex = 0;
+                if(scanline <= 240){
+                    inVBlank = false;
+                    if(pixel >= 257 && pixel <= 320){
+                        oamAddr = 0;
+                    }
+                }
                 if(scanline >= 1 && scanline <= 240){
                     if(pixel == 0){
+                        spriteOverflow = false;
                         sprites.clear();
                         for(int n=0;n<256;n+=4){
                             if(scanline-1 >= oam[n] && scanline-1 < oam[n]+8 &&
                                     sprites.size() < 8){
                                 sprites.add(n);
+                            }
+                            if(sprites.size() > 8){
+                                // TODO: Sprite overflow bug.
+                                spriteOverflow = true;
                             }
                         }
                     }
@@ -304,6 +325,7 @@ public class Screen extends JPanel {
                                     behindBackground =
                                             (attributes&0b00000100) != 0;
                                     spritePalette = attributes&0b00000011;
+                                    spriteIndex = index;
                                     break;
                                 }
                             }
@@ -323,6 +345,10 @@ public class Screen extends JPanel {
                         }
                         // TODO: Add support for tint bits, etc.
                         if(showBackground && showSprites){
+                            if(spriteIndex == 0 && spritePixel != 0 &&
+                                    backgroundPixel != 0){
+                                sprite0Hit = true;
+                            }
                             if(behindBackground){
                                 if(backgroundPixel == 0){
                                     byte color = ppuRAM[0x3F00+spritePalette*4
@@ -363,6 +389,10 @@ public class Screen extends JPanel {
                             screen[(scanline-1)+pixel] = color;
                         }
                     }
+                }
+                if(scanline == 261){
+                    sprite0Hit = false;
+                    inVBlank = true;
                 }
                 // Run a CPU cycle if needed.
                 if((int)(i/cpuCycleInPPUCycles) > lastCPUCycle){
@@ -435,6 +465,10 @@ public class Screen extends JPanel {
         return palette;
     }
     
+    /**
+     * Write to PPUCTRL.
+     * @param value The byte to write.
+     */
     public void writePPUCTRL(byte value) {
         nametable = value&0b00000011;
         // ppuAddrIncrease: Add 1 if false, go down one line if true (add 32).
@@ -446,7 +480,164 @@ public class Screen extends JPanel {
         generateNMI = (value&0b10000000) != 0;
     }
     
+    /**
+     * Write to PPUMASK.
+     * @param value The byte to write.
+     */
     public void writePPUMASK(byte value) {
-        //
+        emphasizeBlue = (value&0b10000000) != 0;
+        if(region == Region.NTSC){
+            emphasizeGreen = (value&0b01000000) != 0;
+            emphasizeRed = (value&0b00100000) != 0;
+        }else{
+            emphasizeRed = (value&0b01000000) != 0;
+            emphasizeGreen = (value&0b00100000) != 0;
+        }
+        showBackground = (value&0b00010000) != 0;
+        showSprites = (value&0b00001000) != 0;
+        showBackgroundInLeftmost8px = (value&0b00000100) != 0;
+        showSpritesInLeftmost8px = (value&0b00000010) != 0;
+        greyscale = (value&0b00000001) != 0;
+    }
+    
+    /**
+     * Write to PPUSTATUS.
+     * @param value The byte to write.
+     */
+    public void writePPUSTATUS(byte value) {
+        // TODO: Simulate open bus behavior.
+    }
+    
+    /**
+     * Write to OAMADDR.
+     * @param value The byte to write.
+     */
+    public void writeOAMADDR(byte value) {
+        oamAddr = value;
+    }
+    
+    /**
+     * Write to OAMDATA.
+     * @param value The byte to write.
+     */
+    public void writeOAMDATA(byte value) {
+        oam[oamAddr] = value;
+        oamAddr++;
+        if(oamAddr > 255){
+            oamAddr = 0;
+        }
+    }
+    
+    /**
+     * Write to PPUSCROLL.
+     * @param value The byte to write.
+     */
+    public void writePPUSCROLL(byte value) {
+        if(writeLatch){
+            ppuScrollY = value;
+        }else{
+            ppuScrollX = value;
+        }
+    }
+    
+    /**
+     * Write to PPUADDR.
+     * @param value The byte to write.
+     */
+    public void writePPUADDR(byte value) {
+        // TODO: Bus conflict.
+        if(writeLatch){
+            ppuAddrByte2 = value;
+        }else{
+            ppuAddrByte1 = value;
+        }
+        ppuAddr = (ppuAddrByte1<<8)|ppuAddrByte2;
+        ppuAddr %= 0x3FFF;
+    }
+    
+    /**
+     * Write to PPUDATA.
+     * @param value The byte to write.
+     */
+    public void writePPUDATA(byte value) {
+        ppuRAM[ppuAddr] = value;
+        ppuAddr += ppuAddrIncrease;
+        ppuAddr %= 0x3FFF;
+    }
+    
+    /**
+     * Read PPUCTRL.
+     * @return The byte that was read.
+     */
+    public byte readPPUCTRL() {
+        // TODO
+        return 0x00;
+    }
+    
+    /**
+     * Read PPUMASK.
+     * @return The byte that was read.
+     */
+    public byte readPPUMASK() {
+        // TODO
+        return 0x00;
+    }
+    
+    /**
+     * Read PPUSTATUS.
+     * @return The byte that was read.
+     */
+    public byte readPPUSTATUS() {
+        byte value = 0x00;
+        value |= inVBlank ? 0b10000000 : 0x00;
+        value |= sprite0Hit ? 0b01000000 : 0x00;
+        value |= spriteOverflow ? 0b00100000 : 0x00;
+        return value;
+    }
+    
+    /**
+     * Read OAMADDR.
+     * @return The byte that was read.
+     */
+    public byte readOAMADDR() {
+        // TODO
+        return 0x00;
+    }
+    
+    /**
+     * Read OAMDATA.
+     * @return The byte that was read.
+     */
+    public byte readOAMDATA() {
+        return oam[oamAddr];
+    }
+    
+    /**
+     * Read PPUSCROLL.
+     * @return The byte that was read.
+     */
+    public byte readPPUSCROLL() {
+        // TODO
+        return 0x00;
+    }
+    
+    /**
+     * Read PPUADDR.
+     * @return The byte that was read.
+     */
+    public byte readPPUADDR() {
+        // TODO
+        return 0x00;
+    }
+    
+    /**
+     * Read PPUDATA.
+     * @return The byte that was read.
+     */
+    public byte readPPUDATA() {
+        byte value = ppuRAM[ppuAddr];
+        ppuAddr += ppuAddrIncrease;
+        ppuAddr %= 0x3FFF;
+        return value;
     }
 }
