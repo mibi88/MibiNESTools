@@ -54,6 +54,7 @@ public class Emulator extends Editor {
             Logger.getLogger(Emulator.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
+        // TODO: screen.powerOff(); when closing the editor?
     }
     
     /**

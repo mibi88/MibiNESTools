@@ -28,7 +28,10 @@ import java.util.Arrays;
  * @author mibi88
  */
 public class Rom {
-    byte[] data;
+    private byte[] data;
+    private Screen screen;
+    private byte[] ram;
+    private byte[] prgRom;
 
     /**
      * Load a NES ROM.
@@ -42,7 +45,8 @@ public class Rom {
             fileStream.read(data);
             fileStream.close();
         }else{
-            data = new byte[0xFFFF];
+            data = new byte[0x10000];
+            ram = new byte[0x800];
         }
     }
     
@@ -61,5 +65,40 @@ public class Rom {
      */
     public byte[] getRawCHRData() {
         return Arrays.copyOfRange(data, 0x8000, 0xA000);
+    }
+    
+    public void setScreen(Screen screen) {
+        this.screen = screen;
+    }
+    
+    /**
+     * Read a byte.
+     * @param address The address to read from.
+     * @return The byte read.
+     */
+    public byte read(int address) {
+        if(address >= 0){
+            if(address <= 0x1FFF){
+                return ram[address%0x800];
+            }else if(address <= 0x3FFF){
+                switch(address%8){
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        break;
+                    case 6:
+                        break;
+                    default:
+                        // return
+                }
+            }
+        }
+        return 0x00;
     }
 }
