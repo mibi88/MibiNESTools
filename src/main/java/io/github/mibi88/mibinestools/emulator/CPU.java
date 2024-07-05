@@ -35,7 +35,10 @@ public class CPU {
     AddressingMode addressingMode;
     private int opcode;
     private int pc;
-    private byte a, x, y;
+    private int a, x, y;
+    private int s;
+    private boolean nmi;
+    private boolean irq;
     // P register
     private boolean carry;
     private boolean zero;
@@ -47,25 +50,77 @@ public class CPU {
     
     public CPU(Rom rom) {
         this.rom = rom;
-        this.pc = rom.start();
+        this.s = 0x00;
+        reset();
     }
     
     public void nmi() {
-        // TODO
+        nmi = true;
     }
     
     public void irq() {
-        // TODO
+        if(!interruptDisable){
+            irq = true;
+        }
     }
     
     public void reset() {
-        // TODO
+        s -= 3;
+        if(s < 0){
+            s += 0xFF;
+        }
+        this.pc = rom.reset();
+    }
+    
+    public void push(byte value) {
+        rom.write(0x0100+s, value);
+        s--;
+        if(s < 0){
+            s += 0xFF;
+        }
+    }
+    
+    public byte pull() {
+        byte value = rom.read(0x0100+s);
+        s++;
+        s %= 0x100;
+        return value;
+    }
+    
+    public byte getStatus() {
+        byte status = 0x00;
+        status |= carry ? 0b00000001 : 0x00;
+        status |= zero ? 0b00000010 : 0x00;
+        status |= interruptDisable ? 0b00000100 : 0x00;
+        status |= decimal ? 0b00001000 : 0x00;
+        status |= bFlag ? 0b00010000 : 0x00;
+        status |= 0b00100000;
+        status |= overflow ? 0b01000000 : 0x00;
+        status |= negative ? 0b10000000 : 0x00;
+        return status;
     }
     
     public void cycle() {
+        // TODO: Interrupt hijacking.
         if(cycle == 0){
+            if(nmi){
+                push(getStatus());
+                push((byte)(pc>>8));
+                push((byte)pc);
+                this.pc = rom.nmi();
+                nmi = false;
+                irq = false;
+            }
+            if(irq){
+                push(getStatus());
+                push((byte)(pc>>8));
+                push((byte)pc);
+                this.pc = rom.irq();
+                irq = false;
+            }
             opcode = rom.read(pc)&0xFF;
             wait = Instructions.cycles[opcode];
+            // TODO: Extra cycle when crossing pages.
             addressingMode = Instructions.addressingModes[opcode];
             int index = Arrays.asList(Instructions.addressingModeList)
                     .indexOf(addressingMode);
@@ -141,15 +196,54 @@ public class CPU {
     }
     
     public void runOpcode(int opcode, int value) {
+        // Handle indirect addressing
+        switch(addressingMode){
+            case INDEXED_INDIRECT:
+                value += x&0xFF;
+                int low = rom.read(value);
+                int high = rom.read((value+1)%0x100);
+                value = low|(high<<8);
+                break;
+            case INDIRECT_INDEXED:
+                low = rom.read(value);
+                high = rom.read((value+1)%0x100);
+                value = low|(high<<8);
+                value += y&0xFF;
+                value %= 0x10000;
+                break;
+            case ABSOLUTE_INDIRECT:
+                high = rom.read(value);
+                if(value%0x100 == 0xFF){
+                    low = rom.read(value&0xFF00);
+                }else{
+                    low = rom.read(value+1);
+                }
+                value = low|(high<<8);
+            default:
+                char register = Instructions.registers.charAt(opcode);
+                switch(register){
+                    case 'X':
+                        value += x&0xFF;
+                        break;
+                    case 'Y':
+                        value += y&0xFF;
+                        break;
+                }
+        }
         // I really love jump tables... But I can't do them because JAVA!
         switch(opcode) {
             // 0x00 to 0x0F
             case 0x00:
+                // BRK
                 pc++;
+                bFlag = true;
                 nmi();
                 break;
             case 0x01:
-                // TODO
+                // ORA (Indirect, X)
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x02:
                 // TODO
@@ -161,22 +255,40 @@ public class CPU {
                 // TODO
                 break;
             case 0x05:
-                // TODO
+                // ORA Zero page addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x06:
-                // TODO
+                // ASL Zero page addressing
+                byte in = rom.read(value);
+                byte out = (byte)(in<<1);
+                carry = (in&0b10000000) != 0;
+                rom.write(value, (byte)(in<<1));
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
                 break;
             case 0x07:
                 // TODO
                 break;
             case 0x08:
-                // TODO
+                // PHP
+                bFlag = true;
+                push(getStatus());
                 break;
             case 0x09:
-                // TODO
+                // ORA Immediate addressing
+                a = a|value;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x0A:
-                // TODO
+                // ASL
+                carry = (a&0b10000000) != 0;
+                a = a<<1;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x0B:
                 // TODO
@@ -185,20 +297,36 @@ public class CPU {
                 // TODO
                 break;
             case 0x0D:
-                // TODO
+                // ORA Absolute addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x0E:
-                // TODO
+                // ASL Absolute addressing
+                in = rom.read(value);
+                out = (byte)(in<<1);
+                carry = (in&0b10000000) != 0;
+                rom.write(value, (byte)(in<<1));
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
                 break;
             case 0x0F:
                 // TODO
                 break;
             // 0x10 to 0x1F
             case 0x10:
-                // TODO
+                // BPL
+                // TODO: Add a cycle if branch succeeds.
+                if(!negative){
+                    pc += value;
+                }
                 break;
             case 0x11:
-                // TODO
+                // ORA Indirect indexed addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x12:
                 // TODO
@@ -210,19 +338,32 @@ public class CPU {
                 // TODO
                 break;
             case 0x15:
-                // TODO
+                // ORA Indexed zero page addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x16:
-                // TODO
+                // ASL Indexed zero page addressing
+                in = rom.read(value);
+                out = (byte)(in<<1);
+                carry = (in&0b10000000) != 0;
+                rom.write(value, (byte)(in<<1));
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
                 break;
             case 0x17:
                 // TODO
                 break;
             case 0x18:
-                // TODO
+                // CLC
+                carry = false;
                 break;
             case 0x19:
-                // TODO
+                // ORA Absolute indexed addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x1A:
                 // TODO
@@ -234,20 +375,35 @@ public class CPU {
                 // TODO
                 break;
             case 0x1D:
-                // TODO
+                // ORA Absolute indexed addressing
+                a = a|rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x1E:
-                // TODO
+                // ASL Absolute indexed addressing
+                in = rom.read(value);
+                out = (byte)(in<<1);
+                carry = (in&0b10000000) != 0;
+                rom.write(value, (byte)(in<<1));
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
                 break;
             case 0x1F:
                 // TODO
                 break;
             // 0x20 to 0x2F
             case 0x20:
-                // TODO
+                // JSR Absolute addressing.
+                push((byte)(pc>>8));
+                push((byte)pc);
+                pc = value;
                 break;
             case 0x21:
-                // TODO
+                // AND Indexed indirect addressing
+                a = a&rom.read(value);
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case 0x22:
                 // TODO
@@ -256,7 +412,12 @@ public class CPU {
                 // TODO
                 break;
             case 0x24:
-                // TODO
+                // BIT Zero page addressing
+                in = rom.read(value);
+                out = (byte)(in&a);
+                zero = out == 0;
+                overflow = (in&0b01000000) != 0;
+                negative = (in&0b10000000) != 0;
                 break;
             case 0x25:
                 // TODO

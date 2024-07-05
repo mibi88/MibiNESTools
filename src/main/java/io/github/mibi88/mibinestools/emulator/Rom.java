@@ -51,8 +51,19 @@ public class Rom {
         prgRom = Arrays.copyOfRange(data, 0x0010, 0x4010);
     }
     
-    public int start() {
-        return 0x8000;
+    public int nmi() {
+        byte[] vectors = getVectors();
+        return vectors[0]|(vectors[1]<<8);
+    }
+    
+    public int reset() {
+        byte[] vectors = getVectors();
+        return vectors[2]|(vectors[3]<<8);
+    }
+    
+    public int irq() {
+        byte[] vectors = getVectors();
+        return vectors[4]|(vectors[5]<<8);
     }
     
     /**

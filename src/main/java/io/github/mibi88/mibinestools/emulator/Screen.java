@@ -18,7 +18,6 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
-import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import io.github.mibi88.mibinestools.palette_editor.ColorList;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -276,12 +275,14 @@ public class Screen extends JPanel {
                 int backgroundPalette = 0;
                 int spriteIndex = 0;
                 if(scanline <= 240){
-                    inVBlank = false;
                     if(pixel >= 257 && pixel <= 320){
                         oamAddr = 0;
                     }
                 }
-                if(scanline >= 1 && scanline <= 240){
+                if(scanline == 0){
+                    inVBlank = false;
+                }
+                if(scanline >= 1 && scanline <= 241){
                     if(pixel == 0){
                         spriteOverflow = false;
                         sprites.clear();
@@ -390,9 +391,14 @@ public class Screen extends JPanel {
                         }
                     }
                 }
+                if(scanline == 242){
+                    if(cycle == 0){
+                        inVBlank = true;
+                        cpu.nmi();
+                    }
+                }
                 if(scanline == 261){
                     sprite0Hit = false;
-                    inVBlank = true;
                 }
                 // Run a CPU cycle if needed.
                 if((int)(i/cpuCycleInPPUCycles) > lastCPUCycle){
@@ -592,6 +598,7 @@ public class Screen extends JPanel {
         value |= inVBlank ? 0b10000000 : 0x00;
         value |= sprite0Hit ? 0b01000000 : 0x00;
         value |= spriteOverflow ? 0b00100000 : 0x00;
+        inVBlank = false;
         return value;
     }
     
