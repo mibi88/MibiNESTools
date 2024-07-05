@@ -309,6 +309,13 @@ public abstract class Editor extends JPanel {
     }
     
     /**
+     * Gets called when the user closes this editor.
+     */
+    public void close() {
+        return;
+    }
+    
+    /**
      * Get the file extension of the files that this editor can open.
      * @return The file extension of the files that this editor can open.
      */

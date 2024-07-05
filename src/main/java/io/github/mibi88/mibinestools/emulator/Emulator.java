@@ -84,7 +84,7 @@ public class Emulator extends Editor {
             return false;
         }
         try {
-            Rom rom = new Rom(null);
+            Rom rom = new Rom(file);
             screen.powerOff();
             cpu = new CPU(rom);
             screen.reset(rom.getRawCHRData(), Region.NTSC,
@@ -95,5 +95,10 @@ public class Emulator extends Editor {
                     Level.SEVERE, null, ex);
         }
         return true;
+    }
+    
+    @Override
+    public void close() {
+        screen.powerOff();
     }
 }

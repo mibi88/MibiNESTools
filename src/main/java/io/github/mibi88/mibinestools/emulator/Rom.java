@@ -48,6 +48,11 @@ public class Rom {
             data = new byte[0x10000];
             ram = new byte[0x800];
         }
+        prgRom = Arrays.copyOfRange(data, 0x0010, 0x4010);
+    }
+    
+    public int start() {
+        return 0x8000;
     }
     
     /**
@@ -55,8 +60,7 @@ public class Rom {
      * @return The CHR data.
      */
     public CHRData getCHRData() {
-        return new CHRData(Arrays.copyOfRange(data, 0x8000,
-                0xA000));
+        return new CHRData(getRawCHRData());
     }
     
     /**
@@ -64,7 +68,11 @@ public class Rom {
      * @return The CHR data.
      */
     public byte[] getRawCHRData() {
-        return Arrays.copyOfRange(data, 0x8000, 0xA000);
+        return Arrays.copyOfRange(data, 0x4010, 0x6010);
+    }
+    
+    public byte[] getVectors() {
+        return Arrays.copyOfRange(data, 0x400A, 0x4010);
     }
     
     public void setScreen(Screen screen) {
@@ -83,22 +91,60 @@ public class Rom {
             }else if(address <= 0x3FFF){
                 switch(address%8){
                     case 0:
-                        break;
+                        return screen.readPPUCTRL();
                     case 1:
-                        break;
+                        return screen.readPPUMASK();
+                    case 2:
+                        return screen.readPPUSTATUS();
                     case 3:
-                        break;
+                        return screen.readOAMADDR();
                     case 4:
-                        break;
+                        return screen.readOAMDATA();
                     case 5:
-                        break;
+                        return screen.readPPUSCROLL();
                     case 6:
-                        break;
+                        return screen.readPPUADDR();
                     default:
-                        // return
+                        return screen.readPPUDATA();
                 }
+            }else if(address <= 0x401F){
+                // TODO: APU
+                return 0x00;
+            }else if(address >= 0x8000 && address <= 0xFFFF){
+                int pos = address-0x8000;
+                pos %= 0x4000;
+                return prgRom[pos];
             }
         }
         return 0x00;
+    }
+    
+    public void write(int address, byte value) {
+        if(address >= 0){
+            if(address <= 0x1FFF){
+                ram[address%0x800] = value;
+            }else if(address <= 0x3FFF){
+                switch(address%8){
+                    case 0:
+                        screen.writePPUCTRL(value);
+                    case 1:
+                        screen.writePPUMASK(value);
+                    case 2:
+                        screen.writePPUSTATUS(value);
+                    case 3:
+                        screen.writeOAMADDR(value);
+                    case 4:
+                        screen.writeOAMDATA(value);
+                    case 5:
+                        screen.writePPUSCROLL(value);
+                    case 6:
+                        screen.writePPUADDR(value);
+                    default:
+                        screen.writePPUDATA(value);
+                }
+            }else if(address <= 0x401F){
+                // TODO: APU
+            }
+        }
     }
 }

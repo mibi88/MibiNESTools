@@ -309,39 +309,23 @@ public class Instructions {
         2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7  // 0xF0 to 0xFF
     };
     
-    public final static boolean[] addACycleOnPageCrossing = {
-        false, false, false, false, false, false, false, false, // 0x00 to 0x07
-        false, false, false, false, false, false, false, false, // 0x08 to 0x0F
-        true,  true,  false, false, false, false, false, false, // 0x10 to 0x17
-        false, true,  false, false, true,  true,  false, false, // 0x18 to 0x1F
-        false, false, false, false, false, false, false, false, // 0x20 to 0x27
-        false, false, false, false, false, false, false, false, // 0x28 to 0x2F
-        true,  true,  false, false, false, false, false, false, // 0x30 to 0x37
-        false, true,  false, false, true,  true,  false, false, // 0x38 to 0x3F
-        false, false, false, false, false, false, false, false, // 0x40 to 0x47
-        false, false, false, false, false, false, false, false, // 0x48 to 0x4F
-        true,  true,  false, false, false, false, false, false, // 0x50 to 0x57
-        false, true,  false, false, true,  true,  false, false, // 0x58 to 0x5F
-        false, false, false, false, false, false, false, false, // 0x60 to 0x67
-        false, false, false, false, false, false, false, false, // 0x68 to 0x6F
-        true,  true,  false, false, false, false, false, false, // 0x70 to 0x77
-        false, true,  false, false, true,  true,  false, false, // 0x78 to 0x7F
-        false, false, false, false, false, false, false, false, // 0x80 to 0x87
-        false, false, false, false, false, false, false, false, // 0x88 to 0x8F
-        true,  false, false, false, false, false, false, false, // 0x90 to 0x97
-        false, false, false, false, false, false, false, false, // 0x98 to 0x9F
-        false, false, false, false, false, false, false, false, // 0xA0 to 0xA7
-        false, false, false, false, false, false, false, false, // 0xA8 to 0xAF
-        true,  true,  false, true,  false, false, false, false, // 0xB0 to 0xB7
-        false, true,  false, true,  true,  true,  true,  true,  // 0xB8 to 0xBF
-        false, false, false, false, false, false, false, false, // 0xC0 to 0xC7
-        false, false, false, false, false, false, false, false, // 0xC8 to 0xCF
-        true,  true,  false, false, false, false, false, false, // 0xD0 to 0xD7
-        false, true,  false, false, true,  true,  false, false, // 0xD8 to 0xDF
-        false, false, false, false, false, false, false, false, // 0xE0 to 0xE7
-        false, false, false, false, false, false, false, false, // 0xE8 to 0xEF
-        true,  true,  false, false, false, false, false, false, // 0xF0 to 0xF7
-        false, true,  false, false, true,  true,  false, false, // 0xF8 to 0xFF
+    public final static byte[] addCycleOnPageCrossing = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x00 to 0x0F
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0x10 to 0x1F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x20 to 0x2F
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0x30 to 0x3F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x40 to 0x4F
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0x50 to 0x5F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x60 to 0x6F
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0x70 to 0x7F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x80 to 0x8F
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x90 to 0x9F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xA0 to 0xAF
+        1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, // 0xB0 to 0xBF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xC0 to 0xCF
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0xD0 to 0xDF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xE0 to 0xEF
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, // 0xF0 to 0xFF
     };
     
     public final static AddressingMode[] addressingModes = {
@@ -617,5 +601,51 @@ public class Instructions {
         AddressingMode.INDEXED_ABSOLUTE,
         AddressingMode.INDEXED_ABSOLUTE,
         AddressingMode.INDEXED_ABSOLUTE,
+    };
+    
+    public final static String registers =
+          " X X            "  // 0x00 to 0x0F
+        + " Y YXXXX Y YXXXX"  // 0x10 to 0x1F
+        + " X X            "  // 0x20 to 0x2F
+        + " Y YXXXX Y YXXXX"  // 0x30 to 0x3F
+        + " X X            "  // 0x40 to 0x4F
+        + " Y YXXXX Y YXXXX"  // 0x50 to 0x5F
+        + " X X            "  // 0x60 to 0x6F
+        + " Y YXXXX Y YXXXX"  // 0x70 to 0x7F
+        + " X X            "  // 0x80 to 0x8F
+        + " Y YXXYY Y YXXYY"  // 0x90 to 0x9F
+        + " X X            "  // 0xA0 to 0xAF
+        + " Y YXXYY Y YXXYY"  // 0xB0 to 0xBF
+        + " X X            "  // 0xC0 to 0xCF
+        + " Y YXXXX Y YXXXX"  // 0xD0 to 0xDF
+        + " X X            "  // 0xE0 to 0xEF
+        + " Y YXXXX Y YXXXX"; // 0xF0 to 0xFF
+    
+    public final static AddressingMode[] addressingModeList = {
+        AddressingMode.ACCUMULATOR,
+        AddressingMode.IMMEDIATE,
+        AddressingMode.ABSOLUTE,
+        AddressingMode.ZERO_PAGE,
+        AddressingMode.INDEXED_ZERO_PAGE,
+        AddressingMode.INDEXED_ABSOLUTE,
+        AddressingMode.IMPLIED,
+        AddressingMode.RELATIVE,
+        AddressingMode.INDEXED_INDIRECT,
+        AddressingMode.INDIRECT_INDEXED,
+        AddressingMode.ABSOLUTE_INDIRECT
+    };
+    
+    public final static byte[] size = {
+        1,
+        2,
+        3,
+        2,
+        2,
+        3,
+        1,
+        2,
+        2,
+        2,
+        3
     };
 }

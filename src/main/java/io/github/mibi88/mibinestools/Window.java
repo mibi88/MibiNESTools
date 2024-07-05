@@ -188,6 +188,8 @@ public class Window extends JFrame {
             public void tabClosed(Editor editor) {
                 if(!editors.remove(editor)) {
                     System.out.println("Failed to remove editor!");
+                }else{
+                    editor.close();
                 }
             }
         });
@@ -483,6 +485,9 @@ public class Window extends JFrame {
                     break;
                 }
             }
+        }
+        for(Editor editor : editors) {
+            editor.close();
         }
         dispose();
     }

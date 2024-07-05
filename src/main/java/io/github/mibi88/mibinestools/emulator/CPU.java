@@ -18,12 +18,22 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
+import io.github.mibi88.mibinestools.cpu.AddressingMode;
+import io.github.mibi88.mibinestools.cpu.Instructions;
+import java.util.Arrays;
+
 /**
  *
  * @author mibi88
  */
 public class CPU {
     private Rom rom;
+    private int cycle;
+    private int wait;
+    private int value;
+    private int size;
+    AddressingMode addressingMode;
+    private int opcode;
     private int pc;
     private byte a, x, y;
     // P register
@@ -37,6 +47,7 @@ public class CPU {
     
     public CPU(Rom rom) {
         this.rom = rom;
+        this.pc = rom.start();
     }
     
     public void nmi() {
@@ -52,7 +63,81 @@ public class CPU {
     }
     
     public void cycle() {
-        // TODO: Run one CPU cycle.
+        if(cycle == 0){
+            opcode = rom.read(pc)&0xFF;
+            wait = Instructions.cycles[opcode];
+            addressingMode = Instructions.addressingModes[opcode];
+            int index = Arrays.asList(Instructions.addressingModeList)
+                    .indexOf(addressingMode);
+            size = Instructions.size[index];
+            value = 0;
+            switch(size){
+                case 2:
+                    value = rom.read(pc+1);
+                    if(addressingMode != AddressingMode.RELATIVE){
+                        value &= 0xFF;
+                    }
+                    break;
+                case 3:
+                    value = rom.read(pc+1)&0xFF;
+                    value |= (rom.read(pc+2)&0xFF)<<8;
+                    break;
+                default:
+                    break;
+            }
+            System.out.printf("%s pc=%02X: %s\n",
+                    addressingMode, pc, disassemble());
+            pc += size;
+        }
+        if(cycle >= wait){
+            runOpcode(opcode, value);
+            cycle = 0;
+        }
+    }
+    
+    public String disassemble() {
+        String name = Instructions.names[opcode];
+        switch(addressingMode){
+            case ACCUMULATOR:
+            case IMPLIED:
+                return name;
+            case IMMEDIATE:
+                return String.format("%s #$%02X", name,
+                        value);
+            case ZERO_PAGE:
+            case INDEXED_ZERO_PAGE:
+                String out = String.format("%s $%02X", name,
+                        value);
+                char register = Instructions.registers
+                        .charAt(opcode);
+                if(register != ' '){
+                    out += ", " + register;
+                }
+                return out;
+            case ABSOLUTE:
+            case INDEXED_ABSOLUTE:
+                out = String.format("%s $%04X", name,
+                        value);
+                register = Instructions.registers
+                        .charAt(opcode);
+                if(register != ' '){
+                    out += ", " + register;
+                }
+                return out;
+            case RELATIVE:
+                return String.format("%s %d", name,
+                        value);
+            case INDEXED_INDIRECT:
+                return String.format("%s (%02X, X)",
+                        name, value);
+            case INDIRECT_INDEXED:
+                return String.format("%s (%02X), Y",
+                        name, value);
+            case ABSOLUTE_INDIRECT:
+                return String.format("%s ($%04X)", name,
+                            value);
+        }
+        return name;
     }
     
     public void runOpcode(int opcode, int value) {
