@@ -230,863 +230,260 @@ public class CPU {
                         break;
                 }
         }
-        // I really love jump tables... But I can't do them because JAVA!
-        switch(opcode) {
-            // 0x00 to 0x0F
-            case 0x00:
-                // BRK
+        int num = value;
+        if(addressingMode != AddressingMode.IMMEDIATE){
+            num = rom.read(value);
+        }else if(addressingMode == AddressingMode.ACCUMULATOR){
+            num = a;
+        }
+        
+        switch(Instructions.names[opcode]) {
+            case "BRK":
                 pc++;
                 bFlag = true;
                 nmi();
                 break;
-            case 0x01:
-                // ORA (Indirect, X)
-                a = a|rom.read(value);
+            case "ORA":
+                a = a|num;
                 zero = a == 0;
                 negative = (a&0b10000000) != 0;
                 break;
-            case 0x02:
-                // TODO
+            case "STP":
                 break;
-            case 0x03:
-                // TODO
+            case "SLO":
                 break;
-            case 0x04:
-                // TODO
+            case "NOP":
                 break;
-            case 0x05:
-                // ORA Zero page addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x06:
+            case "ASL":
                 // ASL Zero page addressing
-                byte in = rom.read(value);
-                byte out = (byte)(in<<1);
-                carry = (in&0b10000000) != 0;
-                rom.write(value, (byte)(in<<1));
-                zero = a == 0;
-                negative = (out&0b10000000) != 0;
+                if(addressingMode == AddressingMode.ACCUMULATOR){
+                    carry = (a&0b10000000) != 0;
+                    a = a<<1;
+                    zero = a == 0;
+                    negative = (a&0b10000000) != 0;
+                }else{
+                    byte out = (byte)(num<<1);
+                    carry = (num&0b10000000) != 0;
+                    rom.write(value, (byte)(num<<1));
+                    zero = a == 0;
+                    negative = (out&0b10000000) != 0;
+                }
                 break;
-            case 0x07:
-                // TODO
-                break;
-            case 0x08:
-                // PHP
+            case "PHP":
                 bFlag = true;
                 push(getStatus());
                 break;
-            case 0x09:
-                // ORA Immediate addressing
-                a = a|value;
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x0A:
-                // ASL
-                carry = (a&0b10000000) != 0;
-                a = a<<1;
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x0B:
+            case "ANC":
                 // TODO
                 break;
-            case 0x0C:
-                // TODO
-                break;
-            case 0x0D:
-                // ORA Absolute addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x0E:
-                // ASL Absolute addressing
-                in = rom.read(value);
-                out = (byte)(in<<1);
-                carry = (in&0b10000000) != 0;
-                rom.write(value, (byte)(in<<1));
-                zero = a == 0;
-                negative = (out&0b10000000) != 0;
-                break;
-            case 0x0F:
-                // TODO
-                break;
-            // 0x10 to 0x1F
-            case 0x10:
-                // BPL
+            case "BPL":
                 // TODO: Add a cycle if branch succeeds.
                 if(!negative){
                     pc += value;
                 }
                 break;
-            case 0x11:
-                // ORA Indirect indexed addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x12:
-                // TODO
-                break;
-            case 0x13:
-                // TODO
-                break;
-            case 0x14:
-                // TODO
-                break;
-            case 0x15:
-                // ORA Indexed zero page addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x16:
-                // ASL Indexed zero page addressing
-                in = rom.read(value);
-                out = (byte)(in<<1);
-                carry = (in&0b10000000) != 0;
-                rom.write(value, (byte)(in<<1));
-                zero = a == 0;
-                negative = (out&0b10000000) != 0;
-                break;
-            case 0x17:
-                // TODO
-                break;
-            case 0x18:
+            case "CLC":
                 // CLC
                 carry = false;
                 break;
-            case 0x19:
-                // ORA Absolute indexed addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x1A:
-                // TODO
-                break;
-            case 0x1B:
-                // TODO
-                break;
-            case 0x1C:
-                // TODO
-                break;
-            case 0x1D:
-                // ORA Absolute indexed addressing
-                a = a|rom.read(value);
-                zero = a == 0;
-                negative = (a&0b10000000) != 0;
-                break;
-            case 0x1E:
-                // ASL Absolute indexed addressing
-                in = rom.read(value);
-                out = (byte)(in<<1);
-                carry = (in&0b10000000) != 0;
-                rom.write(value, (byte)(in<<1));
-                zero = a == 0;
-                negative = (out&0b10000000) != 0;
-                break;
-            case 0x1F:
-                // TODO
-                break;
-            // 0x20 to 0x2F
-            case 0x20:
-                // JSR Absolute addressing.
+            case "JSR":
                 push((byte)(pc>>8));
                 push((byte)pc);
                 pc = value;
                 break;
-            case 0x21:
-                // AND Indexed indirect addressing
+            case "AND":
                 a = a&rom.read(value);
                 zero = a == 0;
                 negative = (a&0b10000000) != 0;
                 break;
-            case 0x22:
+            case "RLA":
                 // TODO
                 break;
-            case 0x23:
-                // TODO
-                break;
-            case 0x24:
-                // BIT Zero page addressing
-                in = rom.read(value);
-                out = (byte)(in&a);
+            case "BIT":
+                byte in = rom.read(value);
+                byte out = (byte)(in&a);
                 zero = out == 0;
                 overflow = (in&0b01000000) != 0;
                 negative = (in&0b10000000) != 0;
                 break;
-            case 0x25:
+            case "ROL":
                 // TODO
                 break;
-            case 0x26:
+            case "PLP":
                 // TODO
                 break;
-            case 0x27:
+            case "BMI":
                 // TODO
                 break;
-            case 0x28:
+            case "SEC":
                 // TODO
                 break;
-            case 0x29:
+            case "RTI":
                 // TODO
                 break;
-            case 0x2A:
+            case "EOR":
                 // TODO
                 break;
-            case 0x2B:
+            case "SRE":
                 // TODO
                 break;
-            case 0x2C:
+            case "LSR":
                 // TODO
                 break;
-            case 0x2D:
+            case "ALR":
                 // TODO
                 break;
-            case 0x2E:
+            case "JMP":
                 // TODO
                 break;
-            case 0x2F:
+            case "BVC":
                 // TODO
                 break;
-            // 0x30 to 0x3F
-            case 0x30:
+            case "CLI":
                 // TODO
                 break;
-            case 0x31:
+            case "RTS":
                 // TODO
                 break;
-            case 0x32:
+            case "ADC":
                 // TODO
                 break;
-            case 0x33:
+            case "RRA":
                 // TODO
                 break;
-            case 0x34:
+            case "ROR":
                 // TODO
                 break;
-            case 0x35:
+            case "PLA":
                 // TODO
                 break;
-            case 0x36:
+            case "ARR":
                 // TODO
                 break;
-            case 0x37:
+            case "BVS":
                 // TODO
                 break;
-            case 0x38:
+            case "SEI":
                 // TODO
                 break;
-            case 0x39:
+            case "STA":
                 // TODO
                 break;
-            case 0x3A:
+            case "SAX":
                 // TODO
                 break;
-            case 0x3B:
+            case "STY":
                 // TODO
                 break;
-            case 0x3C:
+            case "STX":
                 // TODO
                 break;
-            case 0x3D:
+            case "DEY":
                 // TODO
                 break;
-            case 0x3E:
+            case "TXA":
                 // TODO
                 break;
-            case 0x3F:
+            case "XAA":
                 // TODO
                 break;
-            // 0x40 to 0x4F
-            case 0x40:
+            case "BCC":
                 // TODO
                 break;
-            case 0x41:
+            case "AHX":
                 // TODO
                 break;
-            case 0x42:
+            case "TYA":
                 // TODO
                 break;
-            case 0x43:
+            case "TXS":
                 // TODO
                 break;
-            case 0x44:
+            case "TAS":
                 // TODO
                 break;
-            case 0x45:
+            case "SHY":
                 // TODO
                 break;
-            case 0x46:
+            case "SHX":
                 // TODO
                 break;
-            case 0x47:
+            case "LDY":
                 // TODO
                 break;
-            case 0x48:
+            case "LDA":
                 // TODO
                 break;
-            case 0x49:
+            case "LDX":
                 // TODO
                 break;
-            case 0x4A:
+            case "LAX":
                 // TODO
                 break;
-            case 0x4B:
+            case "TAY":
                 // TODO
                 break;
-            case 0x4C:
+            case "TAX":
                 // TODO
                 break;
-            case 0x4D:
+            case "BCS":
                 // TODO
                 break;
-            case 0x4E:
+            case "CLV":
                 // TODO
                 break;
-            case 0x4F:
+            case "TSX":
                 // TODO
                 break;
-            // 0x50 to 0x5F
-            case 0x50:
+            case "LAS":
                 // TODO
                 break;
-            case 0x51:
+            case "CPY":
                 // TODO
                 break;
-            case 0x52:
+            case "CMP":
                 // TODO
                 break;
-            case 0x53:
+            case "DCP":
                 // TODO
                 break;
-            case 0x54:
+            case "INY":
                 // TODO
                 break;
-            case 0x55:
+            case "DEX":
                 // TODO
                 break;
-            case 0x56:
+            case "AXS":
                 // TODO
                 break;
-            case 0x57:
+            case "DEC":
                 // TODO
                 break;
-            case 0x58:
+            case "BNE":
                 // TODO
                 break;
-            case 0x59:
+            case "CLD":
                 // TODO
                 break;
-            case 0x5A:
+            case "CPX":
                 // TODO
                 break;
-            case 0x5B:
+            case "SBC":
                 // TODO
                 break;
-            case 0x5C:
+            case "ISC":
                 // TODO
                 break;
-            case 0x5D:
+            case "INC":
                 // TODO
                 break;
-            case 0x5E:
+            case "INX":
                 // TODO
                 break;
-            case 0x5F:
+            case "BEQ":
                 // TODO
                 break;
-            // 0x60 to 0x6F
-            case 0x60:
-                // TODO
-                break;
-            case 0x61:
-                // TODO
-                break;
-            case 0x62:
-                // TODO
-                break;
-            case 0x63:
-                // TODO
-                break;
-            case 0x64:
-                // TODO
-                break;
-            case 0x65:
-                // TODO
-                break;
-            case 0x66:
-                // TODO
-                break;
-            case 0x67:
-                // TODO
-                break;
-            case 0x68:
-                // TODO
-                break;
-            case 0x69:
-                // TODO
-                break;
-            case 0x6A:
-                // TODO
-                break;
-            case 0x6B:
-                // TODO
-                break;
-            case 0x6C:
-                // TODO
-                break;
-            case 0x6D:
-                // TODO
-                break;
-            case 0x6E:
-                // TODO
-                break;
-            case 0x6F:
-                // TODO
-                break;
-            // 0x70 to 0x7F
-            case 0x70:
-                // TODO
-                break;
-            case 0x71:
-                // TODO
-                break;
-            case 0x72:
-                // TODO
-                break;
-            case 0x73:
-                // TODO
-                break;
-            case 0x74:
-                // TODO
-                break;
-            case 0x75:
-                // TODO
-                break;
-            case 0x76:
-                // TODO
-                break;
-            case 0x77:
-                // TODO
-                break;
-            case 0x78:
-                // TODO
-                break;
-            case 0x79:
-                // TODO
-                break;
-            case 0x7A:
-                // TODO
-                break;
-            case 0x7B:
-                // TODO
-                break;
-            case 0x7C:
-                // TODO
-                break;
-            case 0x7D:
-                // TODO
-                break;
-            case 0x7E:
-                // TODO
-                break;
-            case 0x7F:
-                // TODO
-                break;
-            // 0x80 to 0x8F
-            case 0x80:
-                // TODO
-                break;
-            case 0x81:
-                // TODO
-                break;
-            case 0x82:
-                // TODO
-                break;
-            case 0x83:
-                // TODO
-                break;
-            case 0x84:
-                // TODO
-                break;
-            case 0x85:
-                // TODO
-                break;
-            case 0x86:
-                // TODO
-                break;
-            case 0x87:
-                // TODO
-                break;
-            case 0x88:
-                // TODO
-                break;
-            case 0x89:
-                // TODO
-                break;
-            case 0x8A:
-                // TODO
-                break;
-            case 0x8B:
-                // TODO
-                break;
-            case 0x8C:
-                // TODO
-                break;
-            case 0x8D:
-                // TODO
-                break;
-            case 0x8E:
-                // TODO
-                break;
-            case 0x8F:
-                // TODO
-                break;
-            // 0x90 to 0x9F
-            case 0x90:
-                // TODO
-                break;
-            case 0x91:
-                // TODO
-                break;
-            case 0x92:
-                // TODO
-                break;
-            case 0x93:
-                // TODO
-                break;
-            case 0x94:
-                // TODO
-                break;
-            case 0x95:
-                // TODO
-                break;
-            case 0x96:
-                // TODO
-                break;
-            case 0x97:
-                // TODO
-                break;
-            case 0x98:
-                // TODO
-                break;
-            case 0x99:
-                // TODO
-                break;
-            case 0x9A:
-                // TODO
-                break;
-            case 0x9B:
-                // TODO
-                break;
-            case 0x9C:
-                // TODO
-                break;
-            case 0x9D:
-                // TODO
-                break;
-            case 0x9E:
-                // TODO
-                break;
-            case 0x9F:
-                // TODO
-                break;
-            // 0xA0 to 0xAF
-            case 0xA0:
-                // TODO
-                break;
-            case 0xA1:
-                // TODO
-                break;
-            case 0xA2:
-                // TODO
-                break;
-            case 0xA3:
-                // TODO
-                break;
-            case 0xA4:
-                // TODO
-                break;
-            case 0xA5:
-                // TODO
-                break;
-            case 0xA6:
-                // TODO
-                break;
-            case 0xA7:
-                // TODO
-                break;
-            case 0xA8:
-                // TODO
-                break;
-            case 0xA9:
-                // TODO
-                break;
-            case 0xAA:
-                // TODO
-                break;
-            case 0xAB:
-                // TODO
-                break;
-            case 0xAC:
-                // TODO
-                break;
-            case 0xAD:
-                // TODO
-                break;
-            case 0xAE:
-                // TODO
-                break;
-            case 0xAF:
-                // TODO
-                break;
-            // 0xB0 to 0xBF
-            case 0xB0:
-                // TODO
-                break;
-            case 0xB1:
-                // TODO
-                break;
-            case 0xB2:
-                // TODO
-                break;
-            case 0xB3:
-                // TODO
-                break;
-            case 0xB4:
-                // TODO
-                break;
-            case 0xB5:
-                // TODO
-                break;
-            case 0xB6:
-                // TODO
-                break;
-            case 0xB7:
-                // TODO
-                break;
-            case 0xB8:
-                // TODO
-                break;
-            case 0xB9:
-                // TODO
-                break;
-            case 0xBA:
-                // TODO
-                break;
-            case 0xBB:
-                // TODO
-                break;
-            case 0xBC:
-                // TODO
-                break;
-            case 0xBD:
-                // TODO
-                break;
-            case 0xBE:
-                // TODO
-                break;
-            case 0xBF:
-                // TODO
-                break;
-            // 0x10 to 0x1F
-            case 0xC0:
-                // TODO
-                break;
-            case 0xC1:
-                // TODO
-                break;
-            case 0xC2:
-                // TODO
-                break;
-            case 0xC3:
-                // TODO
-                break;
-            case 0xC4:
-                // TODO
-                break;
-            case 0xC5:
-                // TODO
-                break;
-            case 0xC6:
-                // TODO
-                break;
-            case 0xC7:
-                // TODO
-                break;
-            case 0xC8:
-                // TODO
-                break;
-            case 0xC9:
-                // TODO
-                break;
-            case 0xCA:
-                // TODO
-                break;
-            case 0xCB:
-                // TODO
-                break;
-            case 0xCC:
-                // TODO
-                break;
-            case 0xCD:
-                // TODO
-                break;
-            case 0xCE:
-                // TODO
-                break;
-            case 0xCF:
-                // TODO
-                break;
-            // 0xD0 to 0xDF
-            case 0xD0:
-                // TODO
-                break;
-            case 0xD1:
-                // TODO
-                break;
-            case 0xD2:
-                // TODO
-                break;
-            case 0xD3:
-                // TODO
-                break;
-            case 0xD4:
-                // TODO
-                break;
-            case 0xD5:
-                // TODO
-                break;
-            case 0xD6:
-                // TODO
-                break;
-            case 0xD7:
-                // TODO
-                break;
-            case 0xD8:
-                // TODO
-                break;
-            case 0xD9:
-                // TODO
-                break;
-            case 0xDA:
-                // TODO
-                break;
-            case 0xDB:
-                // TODO
-                break;
-            case 0xDC:
-                // TODO
-                break;
-            case 0xDD:
-                // TODO
-                break;
-            case 0xDE:
-                // TODO
-                break;
-            case 0xDF:
-                // TODO
-                break;
-            // 0xE0 to 0xEF
-            case 0xE0:
-                // TODO
-                break;
-            case 0xE1:
-                // TODO
-                break;
-            case 0xE2:
-                // TODO
-                break;
-            case 0xE3:
-                // TODO
-                break;
-            case 0xE4:
-                // TODO
-                break;
-            case 0xE5:
-                // TODO
-                break;
-            case 0xE6:
-                // TODO
-                break;
-            case 0xE7:
-                // TODO
-                break;
-            case 0xE8:
-                // TODO
-                break;
-            case 0xE9:
-                // TODO
-                break;
-            case 0xEA:
-                // TODO
-                break;
-            case 0xEB:
-                // TODO
-                break;
-            case 0xEC:
-                // TODO
-                break;
-            case 0xED:
-                // TODO
-                break;
-            case 0xEE:
-                // TODO
-                break;
-            case 0xEF:
-                // TODO
-                break;
-            // 0xF0 to 0xFF
-            case 0xF0:
-                // TODO
-                break;
-            case 0xF1:
-                // TODO
-                break;
-            case 0xF2:
-                // TODO
-                break;
-            case 0xF3:
-                // TODO
-                break;
-            case 0xF4:
-                // TODO
-                break;
-            case 0xF5:
-                // TODO
-                break;
-            case 0xF6:
-                // TODO
-                break;
-            case 0xF7:
-                // TODO
-                break;
-            case 0xF8:
-                // TODO
-                break;
-            case 0xF9:
-                // TODO
-                break;
-            case 0xFA:
-                // TODO
-                break;
-            case 0xFB:
-                // TODO
-                break;
-            case 0xFC:
-                // TODO
-                break;
-            case 0xFD:
-                // TODO
-                break;
-            case 0xFE:
-                // TODO
-                break;
-            case 0xFF:
+            case "SED":
                 // TODO
                 break;
         }
