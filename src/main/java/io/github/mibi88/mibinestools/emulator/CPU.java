@@ -100,13 +100,23 @@ public class CPU {
         return status;
     }
     
+    public void setStatus(byte status) {
+        carry = (status&0b00000001) != 0;
+        zero = (status&0b00000010) != 0;
+        interruptDisable = (status&0b00000100) != 0;
+        decimal = (status&0b00001000) != 0;
+        bFlag = (status&0b00010000) != 0;
+        overflow = (status&0b01000000) != 0;
+        negative = (status&0b10000000) != 0;
+    }
+    
     public void cycle() {
         // TODO: Interrupt hijacking.
         if(cycle == 0){
             if(nmi){
-                push(getStatus());
                 push((byte)(pc>>8));
                 push((byte)pc);
+                push(getStatus());
                 this.pc = rom.nmi();
                 nmi = false;
                 irq = false;
@@ -307,88 +317,149 @@ public class CPU {
                 negative = (in&0b10000000) != 0;
                 break;
             case "ROL":
-                // TODO
+                carry = (num&0b10000000) != 0;
+                out = (byte)(num<<1);
+                out |= (num&0b10000000)>>7;
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
+                if(addressingMode == AddressingMode.ACCUMULATOR){
+                    a = out;
+                }else{
+                    rom.write(value, out);
+                }
                 break;
             case "PLP":
-                // TODO
+                setStatus(pull());
                 break;
             case "BMI":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(negative){
+                    pc += value;
+                }
                 break;
             case "SEC":
-                // TODO
+                carry = true;
                 break;
             case "RTI":
-                // TODO
+                setStatus(pull());
+                pc = pull();
+                pc |= pull()<<8;
                 break;
             case "EOR":
-                // TODO
+                a ^= num;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case "SRE":
                 // TODO
                 break;
             case "LSR":
-                // TODO
+                if(addressingMode == AddressingMode.ACCUMULATOR){
+                    carry = (a&0b00000001) != 0;
+                    a >>= 1;
+                    zero = a == 0;
+                    negative = (a&0b10000000) != 0;
+                }else{
+                    carry = (num&0b00000001) != 0;
+                    num >>= 1;
+                    zero = num == 0;
+                    negative = (num&0b10000000) != 0;
+                    rom.write(value, (byte)num);
+                }
                 break;
             case "ALR":
                 // TODO
                 break;
             case "JMP":
-                // TODO
+                pc = value;
                 break;
             case "BVC":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(!overflow){
+                    pc += value;
+                }
                 break;
             case "CLI":
-                // TODO
+                interruptDisable = false;
                 break;
             case "RTS":
-                // TODO
+                pc = pull();
+                pc |= pull()<<8;
                 break;
             case "ADC":
-                // TODO
+                int add = carry ? 1 : 0;
+                out = (byte)(a+value+add);
+                carry = a+value+add > 0xFF;
+                overflow = (out&0b10000000) != (a&0b10000000);
+                a = out;
+                zero = a == 0;
+                negative = (num&0b10000000) != 0;
                 break;
             case "RRA":
                 // TODO
                 break;
             case "ROR":
-                // TODO
+                carry = (num&0b00000001) != 0;
+                out = (byte)(num>>1);
+                out |= (num&0b00000001)<<7;
+                zero = a == 0;
+                negative = (out&0b10000000) != 0;
+                if(addressingMode == AddressingMode.ACCUMULATOR){
+                    a = out;
+                }else{
+                    rom.write(value, out);
+                }
                 break;
             case "PLA":
-                // TODO
+                a = pull();
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case "ARR":
                 // TODO
                 break;
             case "BVS":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(overflow){
+                    pc += value;
+                }
                 break;
             case "SEI":
-                // TODO
+                interruptDisable = true;
                 break;
             case "STA":
-                // TODO
+                rom.write(value, (byte)a);
                 break;
             case "SAX":
                 // TODO
                 break;
             case "STY":
-                // TODO
+                rom.write(value, (byte)y);
                 break;
             case "STX":
-                // TODO
+                rom.write(value, (byte)x);
                 break;
             case "DEY":
-                // TODO
+                y--;
+                if(y <= 0){
+                    y += 0xFF;
+                }
+                zero = y == 0;
+                negative = (y&0b10000000) != 0;
                 break;
             case "TXA":
-                // TODO
+                a = x;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case "XAA":
                 // TODO
                 break;
             case "BCC":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(!carry){
+                    pc += value;
+                }
                 break;
             case "AHX":
                 // TODO
