@@ -47,6 +47,7 @@ public class Emulator extends Editor {
             cpu = new CPU(rom);
             screen = new Screen(rom.getRawCHRData(),
                     Region.NTSC, 2, false, cpu);
+            rom.setScreen(screen);
             screen.play();
             add(screen, BorderLayout.CENTER);
             setEditorName(editorName);
@@ -89,6 +90,7 @@ public class Emulator extends Editor {
             cpu = new CPU(rom);
             screen.reset(rom.getRawCHRData(), Region.NTSC,
                     2, false, cpu);
+            rom.setScreen(screen);
             screen.play();
         } catch (Exception ex) {
             Logger.getLogger(Emulator.class.getName()).log(

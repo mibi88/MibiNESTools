@@ -129,6 +129,7 @@ public class Screen extends JPanel {
         pixels = new Stack<Byte>();
         this.accurateEmulation = accurateEmulation;
         this.cpu = cpu;
+        oam = new byte[0x100];
     }
     
     /**
@@ -409,7 +410,11 @@ public class Screen extends JPanel {
         }else{
             // Rendering is disabled
             int ppuCycles = 341*262;
+            inVBlank = false;
             for(int i=0;i<ppuCycles;i++){
+                if(i == 341*242){
+                    inVBlank = true;
+                }
                 if((int)(i/cpuCycleInPPUCycles) > lastCPUCycle){
                     cpu.cycle();
                     lastCPUCycle = (int)(i/cpuCycleInPPUCycles);
@@ -519,7 +524,7 @@ public class Screen extends JPanel {
      * @param value The byte to write.
      */
     public void writeOAMADDR(byte value) {
-        oamAddr = value;
+        oamAddr = value&0xFF;
     }
     
     /**

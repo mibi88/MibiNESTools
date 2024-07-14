@@ -150,13 +150,17 @@ public class CPU {
                 default:
                     break;
             }
-            System.out.printf("%s pc=%02X: %s\n",
-                    addressingMode, pc, disassemble());
+            System.out.printf("%s, %s pc=%02X: %s\n",
+                    addressingMode,
+                    Integer.toBinaryString(getStatus()), pc,
+                    disassemble());
             pc += size;
         }
         if(cycle >= wait){
             runOpcode(opcode, value);
             cycle = 0;
+        }else{
+            cycle++;
         }
     }
     
@@ -246,7 +250,6 @@ public class CPU {
         }else if(addressingMode == AddressingMode.ACCUMULATOR){
             num = a;
         }
-        
         switch(Instructions.names[opcode]) {
             case "BRK":
                 pc++;
@@ -255,7 +258,7 @@ public class CPU {
                 break;
             case "ORA":
                 a = a|num;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "STP":
@@ -269,13 +272,13 @@ public class CPU {
                 if(addressingMode == AddressingMode.ACCUMULATOR){
                     carry = (a&0b10000000) != 0;
                     a = a<<1;
-                    zero = a == 0;
+                    zero = (a&0xFF) == 0;
                     negative = (a&0b10000000) != 0;
                 }else{
                     byte out = (byte)(num<<1);
                     carry = (num&0b10000000) != 0;
                     rom.write(value, (byte)(num<<1));
-                    zero = a == 0;
+                    zero = (a&0xFF) == 0;
                     negative = (out&0b10000000) != 0;
                 }
                 break;
@@ -297,30 +300,29 @@ public class CPU {
                 carry = false;
                 break;
             case "JSR":
+                // TODO: Fix incorrect PC bug.
                 push((byte)(pc>>8));
                 push((byte)pc);
                 pc = value;
                 break;
             case "AND":
                 a = a&rom.read(value);
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "RLA":
                 // TODO
                 break;
             case "BIT":
-                byte in = rom.read(value);
-                byte out = (byte)(in&a);
-                zero = out == 0;
-                overflow = (in&0b01000000) != 0;
-                negative = (in&0b10000000) != 0;
+                zero = (num&a) == 0;
+                overflow = (num&0b01000000) != 0;
+                negative = (num&0b10000000) != 0;
                 break;
             case "ROL":
                 carry = (num&0b10000000) != 0;
-                out = (byte)(num<<1);
+                byte out = (byte)(num<<1);
                 out |= (num&0b10000000)>>7;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (out&0b10000000) != 0;
                 if(addressingMode == AddressingMode.ACCUMULATOR){
                     a = out;
@@ -342,12 +344,12 @@ public class CPU {
                 break;
             case "RTI":
                 setStatus(pull());
-                pc = pull();
-                pc |= pull()<<8;
+                pc = pull()&0xFF;
+                pc |= (pull()&0xFF)<<8;
                 break;
             case "EOR":
                 a ^= num;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "SRE":
@@ -357,12 +359,12 @@ public class CPU {
                 if(addressingMode == AddressingMode.ACCUMULATOR){
                     carry = (a&0b00000001) != 0;
                     a >>= 1;
-                    zero = a == 0;
+                    zero = (a&0xFF) == 0;
                     negative = (a&0b10000000) != 0;
                 }else{
                     carry = (num&0b00000001) != 0;
                     num >>= 1;
-                    zero = num == 0;
+                    zero = (num&0xFF) == 0;
                     negative = (num&0b10000000) != 0;
                     rom.write(value, (byte)num);
                 }
@@ -383,8 +385,9 @@ public class CPU {
                 interruptDisable = false;
                 break;
             case "RTS":
-                pc = pull();
-                pc |= pull()<<8;
+                // TODO: Fix incorrect PC bug.
+                pc = pull()&0xFF;
+                pc |= (pull()&0xFF)<<8;
                 break;
             case "ADC":
                 int add = carry ? 1 : 0;
@@ -392,7 +395,7 @@ public class CPU {
                 carry = a+num+add > 0xFF;
                 overflow = (out&0b10000000) != (a&0b10000000);
                 a = out;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (num&0b10000000) != 0;
                 break;
             case "RRA":
@@ -402,7 +405,7 @@ public class CPU {
                 carry = (num&0b00000001) != 0;
                 out = (byte)(num>>1);
                 out |= (num&0b00000001)<<7;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (out&0b10000000) != 0;
                 if(addressingMode == AddressingMode.ACCUMULATOR){
                     a = out;
@@ -412,7 +415,7 @@ public class CPU {
                 break;
             case "PLA":
                 a = pull();
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "ARR":
@@ -444,12 +447,12 @@ public class CPU {
                 if(y <= 0){
                     y += 0xFF;
                 }
-                zero = y == 0;
+                zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
                 break;
             case "TXA":
                 a = x;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "XAA":
@@ -466,7 +469,7 @@ public class CPU {
                 break;
             case "TYA":
                 a = y;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "TXS":
@@ -483,17 +486,17 @@ public class CPU {
                 break;
             case "LDY":
                 y = (byte)num;
-                zero = y == 0;
+                zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
                 break;
             case "LDA":
                 a = (byte)num;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "LDX":
                 x = (byte)num;
-                zero = x == 0;
+                zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
             case "LAX":
@@ -501,12 +504,12 @@ public class CPU {
                 break;
             case "TAY":
                 y = a;
-                zero = y == 0;
+                zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
                 break;
             case "TAX":
                 x = a;
-                zero = x == 0;
+                zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
             case "BCS":
@@ -520,7 +523,7 @@ public class CPU {
                 break;
             case "TSX":
                 x = s;
-                zero = x == 0;
+                zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
             case "LAS":
@@ -528,12 +531,12 @@ public class CPU {
                 break;
             case "CPY":
                 carry = y >= num;
-                zero = y == num;
+                zero = (y&0xFF) == num;
                 negative = ((y-num)&0b10000000) != 0;
                 break;
             case "CMP":
                 carry = a >= num;
-                zero = a == num;
+                zero = (a&0xFF) == num;
                 negative = ((a-num)&0b10000000) != 0;
                 break;
             case "DCP":
@@ -542,7 +545,7 @@ public class CPU {
             case "INY":
                 y++;
                 y %= 0x100;
-                zero = y == 0;
+                zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
                 break;
             case "DEX":
@@ -550,7 +553,7 @@ public class CPU {
                 if(x <= 0){
                     x += 0xFF;
                 }
-                zero = x == 0;
+                zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
             case "AXS":
@@ -561,7 +564,7 @@ public class CPU {
                 if(num <= 0){
                     num += 0xFF;
                 }
-                zero = num == 0;
+                zero = (num&0xFF) == 0;
                 negative = (num&0b10000000) != 0;
                 rom.write(value, (byte)num);
                 break;
@@ -576,7 +579,7 @@ public class CPU {
                 break;
             case "CPX":
                 carry = x >= num;
-                zero = x == num;
+                zero = (x&0xFF) == num;
                 negative = ((x-num)&0b10000000) != 0;
                 break;
             case "SBC":
@@ -585,7 +588,7 @@ public class CPU {
                 carry = a-num-add <= 0xFF;
                 overflow = (out&0b10000000) != (a&0b10000000);
                 a = out;
-                zero = a == 0;
+                zero = (a&0xFF) == 0;
                 negative = (num&0b10000000) != 0;
                 break;
             case "ISC":
@@ -594,14 +597,14 @@ public class CPU {
             case "INC":
                 num++;
                 num %= 0x100;
-                zero = num == 0;
+                zero = (num&0xFF) == 0;
                 negative = (num&0b10000000) != 0;
                 rom.write(value, (byte)num);
                 break;
             case "INX":
                 x++;
                 x %= 0x100;
-                zero = x == 0;
+                zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
             case "BEQ":

@@ -46,24 +46,24 @@ public class Rom {
             fileStream.close();
         }else{
             data = new byte[0x10000];
-            ram = new byte[0x800];
         }
+        ram = new byte[0x800];
         prgRom = Arrays.copyOfRange(data, 0x0010, 0x4010);
     }
     
     public int nmi() {
         byte[] vectors = getVectors();
-        return vectors[0]|(vectors[1]<<8);
+        return vectors[0]&0xFF|((vectors[1]&0xFF)<<8);
     }
     
     public int reset() {
         byte[] vectors = getVectors();
-        return vectors[2]|(vectors[3]<<8);
+        return vectors[2]&0xFF|((vectors[3]&0xFF)<<8);
     }
     
     public int irq() {
         byte[] vectors = getVectors();
-        return vectors[4]|(vectors[5]<<8);
+        return vectors[4]&0xFF|((vectors[5]&0xFF)<<8);
     }
     
     /**
