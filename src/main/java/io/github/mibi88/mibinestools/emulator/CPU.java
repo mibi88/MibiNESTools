@@ -388,8 +388,8 @@ public class CPU {
                 break;
             case "ADC":
                 int add = carry ? 1 : 0;
-                out = (byte)(a+value+add);
-                carry = a+value+add > 0xFF;
+                out = (byte)(a+num+add);
+                carry = a+num+add > 0xFF;
                 overflow = (out&0b10000000) != (a&0b10000000);
                 a = out;
                 zero = a == 0;
@@ -465,10 +465,12 @@ public class CPU {
                 // TODO
                 break;
             case "TYA":
-                // TODO
+                a = y;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case "TXS":
-                // TODO
+                s = a&0xFF;
                 break;
             case "TAS":
                 // TODO
@@ -480,82 +482,136 @@ public class CPU {
                 // TODO
                 break;
             case "LDY":
-                // TODO
+                y = (byte)num;
+                zero = y == 0;
+                negative = (y&0b10000000) != 0;
                 break;
             case "LDA":
-                // TODO
+                a = (byte)num;
+                zero = a == 0;
+                negative = (a&0b10000000) != 0;
                 break;
             case "LDX":
-                // TODO
+                x = (byte)num;
+                zero = x == 0;
+                negative = (x&0b10000000) != 0;
                 break;
             case "LAX":
                 // TODO
                 break;
             case "TAY":
-                // TODO
+                y = a;
+                zero = y == 0;
+                negative = (y&0b10000000) != 0;
                 break;
             case "TAX":
-                // TODO
+                x = a;
+                zero = x == 0;
+                negative = (x&0b10000000) != 0;
                 break;
             case "BCS":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(carry){
+                    pc += value;
+                }
                 break;
             case "CLV":
-                // TODO
+                overflow = false;
                 break;
             case "TSX":
-                // TODO
+                x = s;
+                zero = x == 0;
+                negative = (x&0b10000000) != 0;
                 break;
             case "LAS":
                 // TODO
                 break;
             case "CPY":
-                // TODO
+                carry = y >= num;
+                zero = y == num;
+                negative = ((y-num)&0b10000000) != 0;
                 break;
             case "CMP":
-                // TODO
+                carry = a >= num;
+                zero = a == num;
+                negative = ((a-num)&0b10000000) != 0;
                 break;
             case "DCP":
                 // TODO
                 break;
             case "INY":
-                // TODO
+                y++;
+                y %= 0x100;
+                zero = y == 0;
+                negative = (y&0b10000000) != 0;
                 break;
             case "DEX":
-                // TODO
+                x--;
+                if(x <= 0){
+                    x += 0xFF;
+                }
+                zero = x == 0;
+                negative = (x&0b10000000) != 0;
                 break;
             case "AXS":
                 // TODO
                 break;
             case "DEC":
-                // TODO
+                num--;
+                if(num <= 0){
+                    num += 0xFF;
+                }
+                zero = num == 0;
+                negative = (num&0b10000000) != 0;
+                rom.write(value, (byte)num);
                 break;
             case "BNE":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(!zero){
+                    pc += value;
+                }
                 break;
             case "CLD":
-                // TODO
+                decimal = false;
                 break;
             case "CPX":
-                // TODO
+                carry = x >= num;
+                zero = x == num;
+                negative = ((x-num)&0b10000000) != 0;
                 break;
             case "SBC":
-                // TODO
+                add = carry ? 0 : 1;
+                out = (byte)(a-num-add);
+                carry = a-num-add <= 0xFF;
+                overflow = (out&0b10000000) != (a&0b10000000);
+                a = out;
+                zero = a == 0;
+                negative = (num&0b10000000) != 0;
                 break;
             case "ISC":
                 // TODO
                 break;
             case "INC":
-                // TODO
+                num++;
+                num %= 0x100;
+                zero = num == 0;
+                negative = (num&0b10000000) != 0;
+                rom.write(value, (byte)num);
                 break;
             case "INX":
-                // TODO
+                x++;
+                x %= 0x100;
+                zero = x == 0;
+                negative = (x&0b10000000) != 0;
                 break;
             case "BEQ":
-                // TODO
+                // TODO: Add a cycle if branch succeeds.
+                if(zero){
+                    pc += value;
+                }
                 break;
             case "SED":
-                // TODO
+                decimal = true;
                 break;
         }
     }
