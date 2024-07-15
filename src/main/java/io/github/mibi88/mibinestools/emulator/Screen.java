@@ -163,6 +163,7 @@ public class Screen extends JPanel {
             }
         });
         timer.setRepeats(true);
+        timer.setCoalesce(true);
         timer.start();
     }
     
@@ -207,6 +208,9 @@ public class Screen extends JPanel {
                     int scanline = (i+(odd ? 1 : 0))/341;
                     int cycle = (i+(odd ? 1 : 0))%341;
                     int pixel = cycle;
+                    System.out.println(scanline);
+                    System.out.println(cycle);
+                    System.out.println(pixel);
                     if(cycle >= 1 && cycle <= 256){
                         if(lastRead < 8){
                             switch(lastRead){

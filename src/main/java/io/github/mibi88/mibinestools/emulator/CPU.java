@@ -76,14 +76,14 @@ public class CPU {
         rom.write(0x0100+s, value);
         s--;
         if(s < 0){
-            s += 0xFF;
+            s += 0x100;
         }
     }
     
     public byte pull() {
-        byte value = rom.read(0x0100+s);
         s++;
         s %= 0x100;
+        byte value = rom.read(0x0100+s);
         return value;
     }
     
@@ -300,7 +300,6 @@ public class CPU {
                 carry = false;
                 break;
             case "JSR":
-                // TODO: Fix incorrect PC bug.
                 push((byte)(pc>>8));
                 push((byte)pc);
                 pc = value;
@@ -385,7 +384,6 @@ public class CPU {
                 interruptDisable = false;
                 break;
             case "RTS":
-                // TODO: Fix incorrect PC bug.
                 pc = pull()&0xFF;
                 pc |= (pull()&0xFF)<<8;
                 break;
@@ -444,8 +442,8 @@ public class CPU {
                 break;
             case "DEY":
                 y--;
-                if(y <= 0){
-                    y += 0xFF;
+                if(y < 0){
+                    y += 0x100;
                 }
                 zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
@@ -550,8 +548,8 @@ public class CPU {
                 break;
             case "DEX":
                 x--;
-                if(x <= 0){
-                    x += 0xFF;
+                if(x < 0){
+                    x += 0x100;
                 }
                 zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
@@ -561,8 +559,8 @@ public class CPU {
                 break;
             case "DEC":
                 num--;
-                if(num <= 0){
-                    num += 0xFF;
+                if(num < 0){
+                    num += 0x100;
                 }
                 zero = (num&0xFF) == 0;
                 negative = (num&0b10000000) != 0;
