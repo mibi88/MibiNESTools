@@ -18,6 +18,7 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
+import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import io.github.mibi88.mibinestools.palette_editor.ColorList;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -26,6 +27,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -182,7 +185,12 @@ public class Screen extends JPanel {
         if(accurateEmulation){
             runAccurate();
         }else{
-            runCheap();
+            try {
+                runCheap();
+            } catch (Exception ex) {
+                Logger.getLogger(Screen.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -256,7 +264,7 @@ public class Screen extends JPanel {
         repaint();
     }
     
-    private void runCheap() {
+    private void runCheap() throws Exception {
         // Inaccurate PPU emulation.
         // (should be working)
         int lastCPUCycle = 0;
@@ -264,6 +272,7 @@ public class Screen extends JPanel {
         scrollX |= ppuScrollX;
         scrollY = (nametable&0b00000010)<<8;
         scrollY |= ppuScrollY;
+        CHRData chrData = new CHRData(patternTable);
         if(showSprites || showBackground){
             int ppuCycles = 261*341-(odd ? 1 : 0);
             for(int i=0;i<ppuCycles;i++){
@@ -315,17 +324,13 @@ public class Screen extends JPanel {
                                         // Vertical flipping
                                         yPos = 7-yPos;
                                     }
-                                    byte tileLow =
-                                            patternTable[tileIndex*16+yPos];
-                                    byte tileHigh = patternTable[tileIndex*16+8
-                                            +yPos];
                                     int xPos = pixel-oam[index+3];
                                     if((attributes&0b01000000) != 0){
                                         // Horizontal flipping
                                         xPos = 7-xPos;
                                     }
-                                    spritePixel = (byte)((tileLow&1<<xPos)>>xPos
-                                            |(tileHigh&1<<xPos)>>xPos<<1);
+                                    byte[] tile = chrData.getTile(tileIndex);
+                                    spritePixel = tile[yPos*8+xPos];
                                     behindBackground =
                                             (attributes&0b00000100) != 0;
                                     spritePalette = attributes&0b00000011;
@@ -339,11 +344,8 @@ public class Screen extends JPanel {
                                     pixel)&0xFF;
                             int xPos = (scrollX+pixel)%8;
                             int yPos = (scrollY+scanline-1)%8;
-                            byte tileLow = patternTable[tileIndex*16+yPos];
-                            byte tileHigh = patternTable[tileIndex*16+8
-                                    +yPos];
-                            backgroundPixel = (byte)((tileLow&1<<xPos)>>xPos
-                                    |(tileHigh&1<<xPos)>>xPos<<1);
+                            byte[] tile = chrData.getTile(tileIndex);
+                            backgroundPixel = tile[yPos*8+xPos];
                             backgroundPalette = getAttribute(scanline-1,
                                     pixel);
                         }
