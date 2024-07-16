@@ -114,6 +114,7 @@ public class CPU {
         // TODO: Interrupt hijacking.
         if(cycle == 0){
             if(nmi){
+                System.out.printf("NMI: PC=%04X\n", pc);
                 push((byte)(pc>>8));
                 push((byte)pc);
                 push(getStatus());
@@ -122,9 +123,9 @@ public class CPU {
                 irq = false;
             }
             if(irq){
-                push(getStatus());
                 push((byte)(pc>>8));
                 push((byte)pc);
+                push(getStatus());
                 this.pc = rom.irq();
                 irq = false;
             }
@@ -150,10 +151,12 @@ public class CPU {
                 default:
                     break;
             }
-            System.out.printf("%s, %s pc=%02X: %s\n",
-                    addressingMode,
-                    Integer.toBinaryString(getStatus()), pc,
-                    disassemble());
+            String name = Instructions.names[opcode];
+            if(name.equals("ISC")){
+                System.out.printf("%s pc=%02X: %s\n",
+                        addressingMode, pc, disassemble());
+            }
+            
             pc += size;
         }
         if(cycle >= wait){
@@ -209,6 +212,17 @@ public class CPU {
         return name;
     }
     
+    private int getNum() {
+        int num = value;
+        if(addressingMode != AddressingMode.IMMEDIATE){
+            num = rom.read(value);
+        }else if(addressingMode == AddressingMode.ACCUMULATOR){
+            num = a;
+        }
+        num &= 0xFF;
+        return num;
+    }
+    
     public void runOpcode(int opcode, int value) {
         // Handle indirect addressing
         switch(addressingMode){
@@ -244,12 +258,6 @@ public class CPU {
                         break;
                 }
         }
-        int num = value;
-        if(addressingMode != AddressingMode.IMMEDIATE){
-            num = rom.read(value);
-        }else if(addressingMode == AddressingMode.ACCUMULATOR){
-            num = a;
-        }
         switch(Instructions.names[opcode]) {
             case "BRK":
                 pc++;
@@ -257,6 +265,7 @@ public class CPU {
                 nmi();
                 break;
             case "ORA":
+                int num = getNum();
                 a = a|num;
                 zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
@@ -275,6 +284,7 @@ public class CPU {
                     zero = (a&0xFF) == 0;
                     negative = (a&0b10000000) != 0;
                 }else{
+                    num = getNum();
                     byte out = (byte)(num<<1);
                     carry = (num&0b10000000) != 0;
                     rom.write(value, (byte)(num<<1));
@@ -305,7 +315,8 @@ public class CPU {
                 pc = value;
                 break;
             case "AND":
-                a = a&rom.read(value);
+                num = getNum();
+                a = a&num;
                 zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
@@ -313,11 +324,13 @@ public class CPU {
                 // TODO
                 break;
             case "BIT":
+                num = getNum();
                 zero = (num&a) == 0;
                 overflow = (num&0b01000000) != 0;
                 negative = (num&0b10000000) != 0;
                 break;
             case "ROL":
+                num = getNum();
                 carry = (num&0b10000000) != 0;
                 byte out = (byte)(num<<1);
                 out |= (num&0b10000000)>>7;
@@ -347,6 +360,7 @@ public class CPU {
                 pc |= (pull()&0xFF)<<8;
                 break;
             case "EOR":
+                num = getNum();
                 a ^= num;
                 zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
@@ -361,6 +375,7 @@ public class CPU {
                     zero = (a&0xFF) == 0;
                     negative = (a&0b10000000) != 0;
                 }else{
+                    num = getNum();
                     carry = (num&0b00000001) != 0;
                     num >>= 1;
                     zero = (num&0xFF) == 0;
@@ -388,6 +403,7 @@ public class CPU {
                 pc |= (pull()&0xFF)<<8;
                 break;
             case "ADC":
+                num = getNum();
                 int add = carry ? 1 : 0;
                 out = (byte)(a+num+add);
                 carry = a+num+add > 0xFF;
@@ -400,6 +416,7 @@ public class CPU {
                 // TODO
                 break;
             case "ROR":
+                num = getNum();
                 carry = (num&0b00000001) != 0;
                 out = (byte)(num>>1);
                 out |= (num&0b00000001)<<7;
@@ -483,17 +500,20 @@ public class CPU {
                 // TODO
                 break;
             case "LDY":
-                y = (byte)num;
+                num = getNum();
+                y = num;
                 zero = (y&0xFF) == 0;
                 negative = (y&0b10000000) != 0;
                 break;
             case "LDA":
-                a = (byte)num;
+                num = getNum();
+                a = num;
                 zero = (a&0xFF) == 0;
                 negative = (a&0b10000000) != 0;
                 break;
             case "LDX":
-                x = (byte)num;
+                num = getNum();
+                x = num;
                 zero = (x&0xFF) == 0;
                 negative = (x&0b10000000) != 0;
                 break;
@@ -528,11 +548,13 @@ public class CPU {
                 // TODO
                 break;
             case "CPY":
+                num = getNum();
                 carry = y >= num;
                 zero = (y&0xFF) == num;
                 negative = ((y-num)&0b10000000) != 0;
                 break;
             case "CMP":
+                num = getNum();
                 carry = a >= num;
                 zero = (a&0xFF) == num;
                 negative = ((a-num)&0b10000000) != 0;
@@ -558,6 +580,7 @@ public class CPU {
                 // TODO
                 break;
             case "DEC":
+                num = getNum();
                 num--;
                 if(num < 0){
                     num += 0x100;
@@ -576,11 +599,13 @@ public class CPU {
                 decimal = false;
                 break;
             case "CPX":
+                num = getNum();
                 carry = x >= num;
                 zero = (x&0xFF) == num;
                 negative = ((x-num)&0b10000000) != 0;
                 break;
             case "SBC":
+                num = getNum();
                 add = carry ? 0 : 1;
                 out = (byte)(a-num-add);
                 carry = a-num-add <= 0xFF;
@@ -593,6 +618,7 @@ public class CPU {
                 // TODO
                 break;
             case "INC":
+                num = getNum();
                 num++;
                 num %= 0x100;
                 zero = (num&0xFF) == 0;

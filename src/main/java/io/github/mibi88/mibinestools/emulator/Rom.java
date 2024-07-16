@@ -138,20 +138,28 @@ public class Rom {
                 switch(address%8){
                     case 0:
                         screen.writePPUCTRL(value);
+                        break;
                     case 1:
                         screen.writePPUMASK(value);
+                        break;
                     case 2:
                         screen.writePPUSTATUS(value);
+                        break;
                     case 3:
                         screen.writeOAMADDR(value);
+                        break;
                     case 4:
                         screen.writeOAMDATA(value);
+                        break;
                     case 5:
                         screen.writePPUSCROLL(value);
+                        break;
                     case 6:
                         screen.writePPUADDR(value);
+                        break;
                     default:
                         screen.writePPUDATA(value);
+                        break;
                 }
             }else if(address <= 0x401F){
                 // TODO: APU

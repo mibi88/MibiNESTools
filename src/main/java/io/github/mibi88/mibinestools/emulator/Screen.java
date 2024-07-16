@@ -130,6 +130,7 @@ public class Screen extends JPanel {
         this.accurateEmulation = accurateEmulation;
         this.cpu = cpu;
         oam = new byte[0x100];
+        ppuAddrIncrease = 1;
     }
     
     /**
@@ -141,7 +142,7 @@ public class Screen extends JPanel {
         super.paintComponent(g);
         for(int y=0;y<height;y++){
             for(int x=0;x<width;x++){
-                int[] color = getColor(screen[y*width+x]-Byte.MIN_VALUE);
+                int[] color = getColor(screen[y*width+x]&0xFF);
                 g.setColor(new Color(color[0], color[1], color[2]));
                 g.fillRect(x*scale, y*scale, scale, scale);
             }
@@ -208,9 +209,6 @@ public class Screen extends JPanel {
                     int scanline = (i+(odd ? 1 : 0))/341;
                     int cycle = (i+(odd ? 1 : 0))%341;
                     int pixel = cycle;
-                    System.out.println(scanline);
-                    System.out.println(cycle);
-                    System.out.println(pixel);
                     if(cycle >= 1 && cycle <= 256){
                         if(lastRead < 8){
                             switch(lastRead){
@@ -264,7 +262,7 @@ public class Screen extends JPanel {
         int lastCPUCycle = 0;
         scrollX = (nametable&0b00000001)<<8;
         scrollX |= ppuScrollX;
-        scrollY = (nametable&0b00000010)<<7;
+        scrollY = (nametable&0b00000010)<<8;
         scrollY |= ppuScrollY;
         if(showSprites || showBackground){
             int ppuCycles = 261*341-(odd ? 1 : 0);
@@ -295,10 +293,10 @@ public class Screen extends JPanel {
                             if(scanline-1 >= oam[n] && scanline-1 < oam[n]+8 &&
                                     sprites.size() < 8){
                                 sprites.add(n);
-                            }
-                            if(sprites.size() > 8){
+                            }else{
                                 // TODO: Sprite overflow bug.
                                 spriteOverflow = true;
+                                break;
                             }
                         }
                     }
@@ -309,8 +307,8 @@ public class Screen extends JPanel {
                                 if(pixel <= oam[index+3] &&
                                         pixel < oam[index+3]+8){
                                     byte attributes = oam[index+2];
-                                    int tileIndex = oam[index+1]-Byte.MIN_VALUE;
-                                    int yPos = (scanline-1)-oam[index];
+                                    int tileIndex = oam[index+1]&0xFF;
+                                    int yPos = (scanline-1)-oam[index]&0xFF;
                                     yPos = yPos < 0 ? 0 : yPos;
                                     yPos = yPos >= 8 ? 7 : yPos;
                                     if((attributes&0b10000000) != 0){
@@ -338,7 +336,7 @@ public class Screen extends JPanel {
                         }
                         if(showBackground){
                             int tileIndex = getNametableByte(scanline-1,
-                                    pixel);
+                                    pixel)&0xFF;
                             int xPos = (scrollX+pixel)%8;
                             int yPos = (scrollY+scanline-1)%8;
                             byte tileLow = patternTable[tileIndex*16+yPos];
@@ -424,6 +422,7 @@ public class Screen extends JPanel {
                     lastCPUCycle = (int)(i/cpuCycleInPPUCycles);
                 }
             }
+            Arrays.fill(screen, ppuRAM[0x3F00]);
         }
         repaint();
     }
@@ -566,7 +565,7 @@ public class Screen extends JPanel {
         }else{
             ppuAddrByte1 = value;
         }
-        ppuAddr = (ppuAddrByte1<<8)|ppuAddrByte2;
+        ppuAddr = (ppuAddrByte1&0xFF)<<8|ppuAddrByte2&0xFF;
         ppuAddr %= 0x3FFF;
     }
     
@@ -576,6 +575,8 @@ public class Screen extends JPanel {
      */
     public void writePPUDATA(byte value) {
         ppuRAM[ppuAddr] = value;
+        /*System.out.printf("ADDR=%04X, INC=%d: %02X\n", ppuAddr,
+                ppuAddrIncrease, ppuRAM[ppuAddr]);*/
         ppuAddr += ppuAddrIncrease;
         ppuAddr %= 0x3FFF;
     }
@@ -654,6 +655,7 @@ public class Screen extends JPanel {
         byte value = ppuRAM[ppuAddr];
         ppuAddr += ppuAddrIncrease;
         ppuAddr %= 0x3FFF;
+        System.out.println("PPUDATA read!");
         return value;
     }
 }
