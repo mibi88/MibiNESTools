@@ -199,9 +199,9 @@ public class Screen extends JPanel {
         // Very accurate PPU emulation
         // (currently not working)
         scrollX = (nametable&0b00000001)<<8;
-        scrollX |= ppuScrollX;
-        scrollY = (nametable&0b00000010)<<7;
-        scrollY |= ppuScrollY;
+        scrollX |= ppuScrollX&0xFF;
+        scrollY = (nametable&0b00000010)<<8;
+        scrollY |= ppuScrollY&0xFF;
         int lastCPUCycle = 0;
         byte nameTableByte = 0x00;
         byte attributeTableByte = 0x00;
@@ -269,9 +269,9 @@ public class Screen extends JPanel {
         // (should be working)
         int lastCPUCycle = 0;
         scrollX = (nametable&0b00000001)<<8;
-        scrollX |= ppuScrollX;
+        scrollX |= ppuScrollX&0xFF;
         scrollY = (nametable&0b00000010)<<8;
-        scrollY |= ppuScrollY;
+        scrollY |= ppuScrollY&0xFF;
         CHRData chrData = new CHRData(patternTable);
         if(showSprites || showBackground){
             int ppuCycles = 261*341-(odd ? 1 : 0);
@@ -344,6 +344,8 @@ public class Screen extends JPanel {
                                     pixel)&0xFF;
                             int xPos = (scrollX+pixel)%8;
                             int yPos = (scrollY+scanline-1)%8;
+                            /*System.out.printf("BACKGROUND: %d, %d\n",
+                                    xPos, yPos);*/
                             byte[] tile = chrData.getTile(tileIndex);
                             backgroundPixel = tile[yPos*8+xPos];
                             backgroundPalette = getAttribute(scanline-1,

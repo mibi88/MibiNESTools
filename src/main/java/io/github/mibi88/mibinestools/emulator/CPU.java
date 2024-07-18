@@ -78,12 +78,14 @@ public class CPU {
         if(s < 0){
             s += 0x100;
         }
+        //System.out.println("PUSH: "+Instructions.names[opcode]);
     }
     
     public byte pull() {
         s++;
         s %= 0x100;
         byte value = rom.read(0x0100+s);
+        //System.out.println("PULL: "+Instructions.names[opcode]);
         return value;
     }
     
@@ -114,7 +116,7 @@ public class CPU {
         // TODO: Interrupt hijacking.
         if(cycle == 0){
             if(nmi){
-                System.out.printf("NMI: PC=%04X\n", pc);
+                //System.out.printf("NMI: PC=%04X\n", pc);
                 push((byte)(pc>>8));
                 push((byte)pc);
                 push(getStatus());
@@ -152,10 +154,10 @@ public class CPU {
                     break;
             }
             String name = Instructions.names[opcode];
-            if(name.equals("ISC")){
+            /*if(name.equals("ISC")){
                 System.out.printf("%s pc=%02X: %s\n",
                         addressingMode, pc, disassemble());
-            }
+            }*/
             
             pc += size;
         }
@@ -358,6 +360,7 @@ public class CPU {
                 setStatus(pull());
                 pc = pull()&0xFF;
                 pc |= (pull()&0xFF)<<8;
+                System.out.printf("RTI: %04X\n", pc);
                 break;
             case "EOR":
                 num = getNum();
@@ -639,6 +642,9 @@ public class CPU {
                 break;
             case "SED":
                 decimal = true;
+                break;
+            case "PHA":
+                push((byte)a);
                 break;
         }
     }
