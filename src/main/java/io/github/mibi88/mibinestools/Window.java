@@ -23,12 +23,16 @@ import io.github.mibi88.mibinestools.nametable_editor.NametableEditor;
 import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
 import io.github.mibi88.mibinestools.emulator.Emulator;
+import io.github.mibi88.mibinestools.output_view.OutputView;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 
@@ -68,6 +73,12 @@ public class Window extends JFrame {
     
     private File projectFolder;
     private FileItem[] files;
+    
+    // Set useInternalAssembler to true when the assembler works.
+    private boolean useInternalAssembler = false;
+    
+    private String assemblerCommand = "ca65 {source} -o {output}";
+    private String linkerCommand = "ld65 {files} -o mibinestools.nes -t nes";
     
     /**
      * Initialize the GUI
@@ -121,6 +132,7 @@ public class Window extends JFrame {
         availableEditors.add(NametableEditor.class);
         availableEditors.add(CodeEditor.class);
         availableEditors.add(Emulator.class);
+        availableEditors.add(OutputView.class);
         
         updateMenus();
         
@@ -143,15 +155,15 @@ public class Window extends JFrame {
      * Open a file in a new editor.
      * @param extension The extension of the file.
      * @param file The file to open.
+     * @return Returns the newly created editor.
      */
-    public void openEditor(String extension, File file) {
+    public Editor openEditor(String extension, File file) {
         for(Class c : availableEditors) {
             try {
                 String[] extensions = (String[])c.getMethod("getExtension")
                         .invoke(null);
                 if(Arrays.asList(extensions).contains(extension)){
-                    openEditor(c, file);
-                    return;
+                    return openEditor(c, file);
                 }
             } catch (Exception ex) {
                 Logger.getLogger(Window.class.getName()).log(
@@ -162,6 +174,7 @@ public class Window extends JFrame {
         optionPane.showMessageDialog(this,
                 "Unknown file extension\n"
                 + "Use \"Open with...\" to open this file.");
+        return null;
     }
     
     /**
@@ -169,8 +182,9 @@ public class Window extends JFrame {
      * @param editor The editor class to use.
      * @param file The file to open (can be null).
      * @throws Exception Thrown on failure.
+     * @return Returns the newly created editor.
      */
-    public void openEditor(Class editor, File file) throws Exception {
+    public Editor openEditor(Class editor, File file) throws Exception {
         Constructor constructor = editor.getConstructor(
                 this.getClass());
         Editor editorInstance = (Editor)constructor.newInstance(this);
@@ -201,6 +215,7 @@ public class Window extends JFrame {
         }
         editorInstance.updateTitle();
         editors.add(editorInstance);
+        return editorInstance;
     }
     
     private String getFileExtension(File file) {
@@ -388,23 +403,228 @@ public class Window extends JFrame {
      */
     public void saveProjectSettings(ProjectSettings settings) {
         files = settings.getSourceFiles();
+        useInternalAssembler = !settings.useExternalCompiler();
+        assemblerCommand = settings.getAssemblerCommand();
+        linkerCommand = settings.getLinkerCommand();
+    }
+    
+    public boolean useExternalCompiler() {
+        return !useInternalAssembler;
+    }
+    
+    public String getAssemblerCommand() {
+        return assemblerCommand;
+    }
+    
+    public String getLinkerCommand() {
+        return linkerCommand;
     }
     
     /**
      * Build the current project.
      */
     public void build() {
+        OutputView output;
+        ArrayList<String> commands = new ArrayList<String>();
         if(files != null){
-            for(FileItem file : files) {
-                System.out.println("Assembling " + file + "...");
-                try {
-                    Assembler assembler = new Assembler(file.getFile());
-                } catch (Exception ex) {
-                    Logger.getLogger(Window.class.getName()).log(
-                            Level.SEVERE, null, ex);
-                }
+            try {
+                output = (OutputView)openEditor(OutputView.class,
+                        null);
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        ArrayList<String> outputFiles = new ArrayList<String>();
+                        for(FileItem file : files) {
+                            String outputFile = buildFile(output, file);
+                            if(outputFile != null){
+                                outputFiles.add(outputFile);
+                            }
+                        }
+                        linkFiles(output, outputFiles);
+                    }
+                };
+                thread.start();
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    public void linkFiles(OutputView output, ArrayList <String> objectFiles) {
+        if(useInternalAssembler){
+            // TODO
+        }else{
+            try {
+                String fileList = "";
+                for(int i=0;i<objectFiles.size();i++){
+                    fileList += objectFiles.get(i) + " ";
+                }
+                String command = linkerCommand
+                        .replace("{files}", fileList)
+                        .replace("{folder}",
+                                projectFolder != null ?
+                                        projectFolder.getAbsolutePath() : "");
+                String[] dir = {projectFolder != null ?
+                                        projectFolder.getAbsolutePath() : ""};
+                Process process = Runtime.getRuntime().exec(command, dir);
+                Thread killProcess = new Thread() {
+                    @Override
+                    public void run() {
+                        process.destroy();
+                    }
+                };
+                Runtime.getRuntime().addShutdownHook(killProcess);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        output.println("Running command \"" + command +
+                                "\"...");
+                    }
+                });
+                BufferedReader stdout = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
+                BufferedReader stderr = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()));
+                while(process.isAlive()){
+                    try {
+                        String line;
+                        String text = "";
+                        while((line = stdout.readLine()) != null){
+                            text += line+"\n";
+                        }
+                        while((line = stderr.readLine()) != null){
+                            text += line+"\n";
+                        }
+                        String toPrint = text;
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                output.print(toPrint);
+                            }
+                        });
+                    } catch (IOException ex) {
+                        Logger.getLogger(Window.class
+                                .getName()).log(Level.SEVERE,
+                                        null, ex);
+                    }
+                }
+                process.waitFor();
+                int rc = process.exitValue();
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(rc == 0){
+                            output.println(
+                                    "Program successfully linked!\n");
+                        }else{
+                            output.println(
+                                    "Failed to link the program!\n");
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public String buildFile(OutputView output, FileItem file) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                output.println("=== Assembling " + file + "... ===");
+            }
+        });
+        String outputFile = file.getFile().getAbsolutePath()+".o";
+        if(useInternalAssembler){
+            try {
+                Assembler assembler = new Assembler(file.getFile());
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        output.println("Failed to assemble " + file + "!\n");
+                    }
+                });
+                Logger.getLogger(Window.class.getName())
+                        .log(Level.SEVERE, null, ex);
+                return null;
+            }
+        }else{
+            try {
+                String command = assemblerCommand
+                        .replace("{source}",
+                                file.getFile().getAbsolutePath())
+                        .replace("{output}", outputFile)
+                        .replace("{folder}",
+                                projectFolder != null ?
+                                        projectFolder.getAbsolutePath() : "");
+                /*String  command = "ls";*/
+                String[] dir = {projectFolder != null ?
+                                        projectFolder.getAbsolutePath() : ""};
+                Process process = Runtime.getRuntime().exec(command, dir);
+                Thread killProcess = new Thread() {
+                    @Override
+                    public void run() {
+                        process.destroy();
+                    }
+                };
+                Runtime.getRuntime().addShutdownHook(killProcess);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        output.println("Running command \"" + command +
+                                "\"...");
+                    }
+                });
+                BufferedReader stdout = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
+                BufferedReader stderr = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()));
+                while(process.isAlive()){
+                    try {
+                        String line;
+                        String text = "";
+                        while((line = stdout.readLine()) != null){
+                            text += line+"\n";
+                        }
+                        while((line = stderr.readLine()) != null){
+                            text += line+"\n";
+                        }
+                        String toPrint = text;
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                output.print(toPrint);
+                            }
+                        });
+                    } catch (IOException ex) {
+                        Logger.getLogger(Window.class
+                                .getName()).log(Level.SEVERE,
+                                        null, ex);
+                    }
+                }
+                process.waitFor();
+                int rc = process.exitValue();
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(rc == 0){
+                            output.println(file + " assembled successfully!\n");
+                        }else{
+                            output.println("Failed to assemble " + file +
+                                    "!\n");
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(
+                        Level.SEVERE, null, ex);
+            }
+        }
+        return outputFile;
     }
     
     /**

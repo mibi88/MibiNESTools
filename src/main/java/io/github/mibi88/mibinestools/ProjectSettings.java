@@ -19,14 +19,19 @@
 package io.github.mibi88.mibinestools;
 
 import java.awt.ComponentOrientation;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 
 /**
  *
@@ -35,7 +40,15 @@ import javax.swing.JTabbedPane;
 public class ProjectSettings extends JDialog {
     private JTabbedPane tabs;
     private FileList fileList;
+    private JPanel buildSettings;
     private JPanel buttons;
+    
+    private JLabel useExternalCompilerLabel;
+    private JCheckBox useExternalCompiler;
+    private JLabel assemblerCommandLabel;
+    private JTextField assemblerCommand;
+    private JLabel linkerCommandLabel;
+    private JTextField linkerCommand;
     
     private JButton applyButton;
     private JButton okButton;
@@ -53,6 +66,28 @@ public class ProjectSettings extends JDialog {
         
         fileList = new FileList(window);
         tabs.addTab("Source files", fileList);
+        
+        buildSettings = new JPanel(new GridLayout(3, 2));
+        tabs.addTab("Build settings", buildSettings);
+        
+        useExternalCompilerLabel = new JLabel("Use external compiler");
+        useExternalCompiler = new JCheckBox();
+        useExternalCompiler.setSelected(window.useExternalCompiler());
+        assemblerCommandLabel = new JLabel("Assembler command:");
+        assemblerCommand = new JTextField(window.getAssemblerCommand());
+        assemblerCommand.setFont(new Font(Font.MONOSPACED, Font.PLAIN,
+                12));
+        linkerCommandLabel = new JLabel("Linker command:");
+        linkerCommand = new JTextField(window.getLinkerCommand());
+        linkerCommand.setFont(new Font(Font.MONOSPACED, Font.PLAIN,
+                12));
+        
+        buildSettings.add(useExternalCompilerLabel);
+        buildSettings.add(useExternalCompiler);
+        buildSettings.add(assemblerCommandLabel);
+        buildSettings.add(assemblerCommand);
+        buildSettings.add(linkerCommandLabel);
+        buildSettings.add(linkerCommand);
         
         buttons = new JPanel();
         
@@ -106,5 +141,17 @@ public class ProjectSettings extends JDialog {
      */
     public FileItem[] getSourceFiles() {
         return fileList.getFiles();
+    }
+    
+    public boolean useExternalCompiler() {
+        return useExternalCompiler.isSelected();
+    }
+    
+    public String getAssemblerCommand() {
+        return assemblerCommand.getText();
+    }
+    
+    public String getLinkerCommand() {
+        return linkerCommand.getText();
     }
 }

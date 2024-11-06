@@ -55,6 +55,8 @@ public class TilePicker extends JPanel {
     
     private NametableEditor editor;
     
+    private Window window;
+    
     /**
      * Create a new TilePicker.
      * @param editor The nametable editor to create the tile picker for.
@@ -64,6 +66,7 @@ public class TilePicker extends JPanel {
         super(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         this.editor = editor;
+        this.window = window;
         chrData = new CHRData();
         patternTable = new PatternTable(chrData,
                 editor.getCurrentPalette(), window.getScale(),
@@ -119,6 +122,9 @@ public class TilePicker extends JPanel {
         FileNameExtensionFilter chrFilter =
                 new FileNameExtensionFilter("CHR Files", "chr");
         fileChooser.addChoosableFileFilter(chrFilter);
+        if(window.getProjectFolder() != null){
+            fileChooser.setCurrentDirectory(window.getProjectFolder());
+        }
         int out = fileChooser.showOpenDialog(this);
         if(out == JFileChooser.APPROVE_OPTION){
             file = fileChooser.getSelectedFile();
