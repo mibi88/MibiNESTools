@@ -54,8 +54,7 @@ public class NametableEditor extends Editor {
      * @param window The editor window
      */
     public NametableEditor(Window window) {
-        super(window, new GridLayout(1, 4));
-        setEditorName(editorName);
+        super(window, new GridLayout(1, 4), editorName);
         undoManager = new UndoManager();
         currentPalette = new int[][]{
             {0, 0, 0},
@@ -301,6 +300,7 @@ public class NametableEditor extends Editor {
         addEdit(new NametableEdit(this, oldAttributes, oldNametable,
                 nametablePane.getAttributes(),
                 nametablePane.getNametable()));
+        fileEdited();
     }
     
     /**
@@ -316,6 +316,7 @@ public class NametableEditor extends Editor {
             addEdit(new NametableEdit(this, oldAttributes, oldNametable,
                     nametablePane.getAttributes(),
                     nametablePane.getNametable()));
+            fileEdited();
         }
     }
     

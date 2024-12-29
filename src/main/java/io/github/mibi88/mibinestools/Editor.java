@@ -31,17 +31,18 @@ import javax.swing.SwingUtilities;
  * @author mibi88
  */
 public abstract class Editor extends JPanel {
-    private static String editorName = "Unknown Editor";
     private File file;
     private boolean fileSaved;
+    private static String editorName = "Unknown Editor";
     
     /**
      * Create a new editor.
      * @param window The window to use with this editor.
      */
-    public Editor(Window window) {
+    public Editor(Window window, String name) {
         super();
         fileSaved = true;
+        editorName = name;
     }
     
     /**
@@ -49,17 +50,10 @@ public abstract class Editor extends JPanel {
      * @param window The window to use with this editor.
      * @param lm The LayoutManager to use.
      */
-    public Editor(Window window, LayoutManager lm) {
+    public Editor(Window window, LayoutManager lm, String name) {
         super(lm);
         fileSaved = true;
-    }
-    
-    /**
-     * Set the name of the editor.
-     * @param editorName The new name of the editor.
-     */
-    public void setEditorName(String editorName) {
-        this.editorName = editorName;
+        editorName = name;
     }
     
     /**

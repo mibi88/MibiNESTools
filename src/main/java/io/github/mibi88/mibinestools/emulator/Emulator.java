@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * @author mibi88
  */
 public class Emulator extends Editor {
-    private static String editorName = "Emulator";
+    private static final String editorName = "Emulator";
     private Screen screen;
     private CPU cpu;
 
@@ -40,7 +40,7 @@ public class Emulator extends Editor {
      * @param window The window to use with this emulator.
      */
     public Emulator(Window window) {
-        super(window, new BorderLayout());
+        super(window, new BorderLayout(), editorName);
         
         try {
             Rom rom = new Rom(null);
@@ -50,7 +50,6 @@ public class Emulator extends Editor {
             rom.setScreen(screen);
             screen.play();
             add(screen, BorderLayout.CENTER);
-            setEditorName(editorName);
         } catch (Exception ex) {
             Logger.getLogger(Emulator.class.getName()).log(
                     Level.SEVERE, null, ex);

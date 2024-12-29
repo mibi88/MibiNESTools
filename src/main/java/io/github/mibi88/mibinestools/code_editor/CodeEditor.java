@@ -40,8 +40,7 @@ public class CodeEditor extends Editor {
     private JScrollPane codeAreaPane;
     private CodeAreaEvent event;
     public CodeEditor(Window window) {
-        super(window, new GridLayout(1, 1));
-        setEditorName(editorName);
+        super(window, new GridLayout(1, 1), editorName);
         codeArea = new CodeArea(12);
         event = new CodeAreaEvent() {
             @Override

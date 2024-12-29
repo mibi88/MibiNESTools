@@ -35,7 +35,7 @@ public class OutputView extends Editor {
     private JTextArea output;
     
     public OutputView(Window window) {
-        super(window, new BorderLayout());
+        super(window, new BorderLayout(), editorName);
         toolBar = new OutputBar();
         add(toolBar, BorderLayout.WEST);
         output = new JTextArea();

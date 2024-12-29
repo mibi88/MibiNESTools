@@ -63,8 +63,7 @@ public class CHREditor extends Editor {
      * @param window The window in which the editor is.
      */
     public CHREditor(Window window) {
-        super(window, new GridLayout(1, 2));
-        setEditorName(editorName);
+        super(window, new GridLayout(1, 2), editorName);
         scale = window.getScale();
         chrData = new CHRData();
         currentPalette = new int[][]{
@@ -307,6 +306,7 @@ public class CHREditor extends Editor {
         addEdit(new CHREdit(this, oldTile, newTile,
                 patternTable.getSelectedX(),
                 patternTable.getSelectedY()));
+        fileEdited();
     }
     
     /**
@@ -314,12 +314,14 @@ public class CHREditor extends Editor {
      */
     @Override
     public void paste() {
+        if(clipboard == null) return;
         byte[] oldTile = tileEditor.getTile();
         updateTile(clipboard.clone(), patternTable.getSelectedX(),
                 patternTable.getSelectedY());
         addEdit(new CHREdit(this, oldTile, clipboard,
                 patternTable.getSelectedX(),
                 patternTable.getSelectedY()));
+        fileEdited();
     }
     
     /**

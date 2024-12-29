@@ -158,7 +158,8 @@ public class PatternTable extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 int tileX = e.getX()/(scale*8);
                 int tileY = e.getY()/(scale*8);
-                if(tileX != selectedX || tileY != selectedY){
+                if((tileX != selectedX || tileY != selectedY) &&
+                        (tileX < 16 && tileY < chrData.chrBanks*16)){
                     selectedX = tileX;
                     selectedY = tileY;
                     if(event != null){
