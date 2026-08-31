@@ -18,21 +18,10 @@
 
 package io.github.mibi88.mibinestools.output_view;
 
-import javax.swing.JButton;
-import javax.swing.JToolBar;
-
 /**
  *
  * @author mibi88
  */
-public class OutputBar extends JToolBar {
-    protected JButton killProcess;
-    
-    public OutputBar() {
-        super("Output settings", JToolBar.VERTICAL);
-        setFloatable(false);
-        setRollover(true);
-        killProcess = new JButton("Kill process");
-        add(killProcess);
-    }
+public interface OutputViewHandler {
+    public void killRunningProcess();
 }

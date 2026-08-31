@@ -22,6 +22,9 @@ import io.github.mibi88.mibinestools.Editor;
 import io.github.mibi88.mibinestools.Window;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 /**
@@ -31,8 +34,10 @@ import javax.swing.JTextArea;
 public class OutputView extends Editor {
     private static String editorName = "Terminal Output";
     private OutputBar toolBar;
-    // TODO: Add JScrollPane
+    private JScrollPane outputPane;
     private JTextArea output;
+    
+    private OutputViewHandler handler;
     
     public OutputView(Window window) {
         super(window, new BorderLayout(), editorName);
@@ -42,7 +47,17 @@ public class OutputView extends Editor {
         output.setEditable(false);
         output.getCaret().setVisible(true);
         output.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        add(output, BorderLayout.CENTER);
+        outputPane = new JScrollPane(output);
+        add(outputPane, BorderLayout.CENTER);
+        
+        handler = null;
+        
+        toolBar.killProcess.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(handler != null) handler.killRunningProcess();
+            }
+        });
     }
     
     public void print(String text) {
@@ -51,6 +66,10 @@ public class OutputView extends Editor {
     
     public void println(String text) {
         output.append(text + "\n");
+    }
+    
+    public void setOutputViewHandler(OutputViewHandler handler) {
+        this.handler = handler;
     }
     
     public static String getEditorName() {

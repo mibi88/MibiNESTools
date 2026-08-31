@@ -24,6 +24,7 @@ import io.github.mibi88.mibinestools.chr_editor.CHREditor;
 import io.github.mibi88.mibinestools.code_editor.CodeEditor;
 import io.github.mibi88.mibinestools.emulator.Emulator;
 import io.github.mibi88.mibinestools.output_view.OutputView;
+import io.github.mibi88.mibinestools.output_view.OutputViewHandler;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.WindowAdapter;
@@ -463,9 +464,7 @@ public class Window extends JFrame {
                 killProcess = new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
-                        if(!ec.kill()){
-                            System.out.println("Failed to kill the process!");
-                        }
+                        ec.kill();
                     }
                 };
                 addWindowListener(killProcess);
@@ -488,10 +487,19 @@ public class Window extends JFrame {
                 }else{
                     output.println("Failed to assemble " + file + "!\n");
                 }
+                output.setOutputViewHandler(null);
                 System.out.println("Remove a window listener.");
                 removeWindowListener(killProcess);
             }
         });
+        
+        output.setOutputViewHandler(new OutputViewHandler() {
+            @Override
+            public void killRunningProcess() {
+                if(!cmd.finished()) cmd.kill();
+            }
+        });
+        
         return outputFile;
     }
     
@@ -511,16 +519,15 @@ public class Window extends JFrame {
                                 "\"...");
         ExternalCommand cmd = new ExternalCommand(command, dir,
                 new ExternalCommandHandler() {
+            private WindowListener killProcess;
+                    
             @Override
             public void onStart(ExternalCommand ec) {
-                WindowListener killProcess = new WindowAdapter() {
+                killProcess = new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
                         if(!ec.finished()){
-                            if(!ec.kill()){
-                                System.out
-                                        .println("Failed to kill the process!");
-                            }
+                            ec.kill();
                         }else{
                             System.out.println("Command already finished!");
                         }
@@ -546,6 +553,16 @@ public class Window extends JFrame {
                 }else{
                     output.println("Failed to link the program!\n");
                 }
+                output.setOutputViewHandler(null);
+                System.out.println("Remove a window listener.");
+                removeWindowListener(killProcess);
+            }
+        });
+        
+        output.setOutputViewHandler(new OutputViewHandler() {
+            @Override
+            public void killRunningProcess() {
+                if(!cmd.finished()) cmd.kill();
             }
         });
     }

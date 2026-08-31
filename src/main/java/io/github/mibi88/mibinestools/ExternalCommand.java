@@ -21,10 +21,14 @@ package io.github.mibi88.mibinestools;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+
+// FIXME: This is a bit messy and could probably be done in a way cleaner way.
 
 /**
  *
@@ -36,11 +40,14 @@ public class ExternalCommand {
         String directory;
         ExternalCommandHandler handler;
         ExternalCommand ec;
+        ExecutorService service;
         public CommandRunnable(String command, String directory,
-                ExternalCommandHandler handler, ExternalCommand ec) {
+                ExternalCommandHandler handler, ExecutorService service,
+                ExternalCommand ec) {
             this.command = command;
             this.directory = directory;
             this.handler = handler;
+            this.service = service;
             this.ec = ec;
         }
         
@@ -56,59 +63,77 @@ public class ExternalCommand {
                             new InputStreamReader(process.getInputStream()));
                     BufferedReader stderr = new BufferedReader(
                             new InputStreamReader(process.getErrorStream()));
-                    while(process.isAlive()){
+                    do{
                         try {
                             String line;
-                            String stdoutText = "";
-                            String stderrText = "";
-                            while((line = stdout.readLine()) != null){
-                                stdoutText += line+"\n";
+                            while(!stop && (line = stdout.readLine()) != null){
+                                String outputLine = line;
+                                SwingUtilities.invokeLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        handler.stdout(outputLine+"\n");
+                                    }
+                                });
                             }
-                            while((line = stderr.readLine()) != null){
-                                stderrText += line+"\n";
+                            while(!stop && (line = stderr.readLine()) != null){
+                                String outputLine = line;
+                                SwingUtilities.invokeLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        handler.stderr(outputLine+"\n");
+                                    }
+                                });
                             }
-                            String toPrintStdout = stdoutText;
-                            String toPrintStderr = stderrText;
-                            SwingUtilities.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    handler.stdout(toPrintStdout);
-                                    handler.stderr(toPrintStderr);
-                                }
-                            });
+                            System.out.println("Checking stop...");
+                            if(stop){
+                                process.destroyForcibly();
+                                System.out.println("Forcibly destroyed process!");
+                            }
                         } catch (IOException ex) {
                             Logger.getLogger(Window.class
                                     .getName()).log(Level.SEVERE,
                                             null, ex);
                         }
-                    }
+                    }while(process.isAlive());
                     process.waitFor();
                     int rc = process.exitValue();
-                    handler.onReturn(rc);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            handler.onReturn(rc);
+                        }
+                    });
                 }catch(InterruptedException ex){
                     process.destroyForcibly();
                     System.out.println("Killed process!");
                 }
             } catch (IOException ex) {
+                handler.stderr(ex.getMessage());
                 Logger.getLogger(ExternalCommand.class.getName())
                         .log(Level.SEVERE, null, ex);
             }
+            service.shutdown();
             System.out.println("Finished running!");
         }
     }
+
+    protected boolean stop = false;
     
     public FutureTask<Integer> task;
     
     public ExternalCommand(String command, String folder,
             ExternalCommandHandler handler) {
+        ExecutorService service = Executors.newFixedThreadPool(1);
+
         Runnable runnable = new CommandRunnable(command, folder,
-                handler, this);
+                handler, service, this);
         task = new FutureTask<Integer>(runnable, 0);
-        task.run();
+        
+        service.submit(task);
     }
     
-    public boolean kill() {
-        return task.cancel(true);
+    public void kill() {
+        stop = true;
     }
     
     public boolean finished() {
