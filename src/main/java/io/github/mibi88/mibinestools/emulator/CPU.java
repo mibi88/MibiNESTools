@@ -23,47 +23,347 @@ package io.github.mibi88.mibinestools.emulator;
  * @author mibi88
  */
 public class CPU {
-    int pc;
+    private Rom rom;
     
-    byte s;
-    byte p;
-    byte a;
-    byte x;
-    byte y;
+    private int pc;
     
-    int cycle;
-    int targetCycle;
+    private int s;
+    private int p;
+    private int a;
+    private int x;
+    private int y;
     
-    int opcode;
-    byte t;
-    byte tmp1, tmp2;
-    byte last_read;
+    private int cycle;
+    private int targetCycle;
     
-    int jammed;
-    int halted;
+    private int opcode;
+    private int t;
+    private int tmp1, tmp2;
+    private int lastRead;
     
-    short pin_handling;
+    private boolean jammed;
+    private boolean halted;
     
-    boolean irq_pin;
-    boolean nmi_pin;
-    boolean nmi_pin_last;
-    boolean should_nmi;
-    boolean should_irq;
-    boolean nmi_detected;
-    boolean irq_detected;
+    private short pinHandling;
     
-    boolean execute_int_next;
-    boolean execute_int;
+    private boolean rdy;
     
-    boolean is_irq;
+    private boolean irqPin;
+    private boolean nmiPin;
+    private boolean nmiPinLast;
+    private boolean shouldNmi;
+    private boolean shouldIrq;
+    private boolean nmiDetected;
+    private boolean irqDetected;
     
-    boolean opcode_loaded;
+    private boolean executeIntNext;
+    private boolean executeInt;
     
-    boolean skip_and;
+    private boolean isIrq;
+    
+    private boolean opcodeLoaded;
+    
+    private boolean skipAnd;
+    
+    private static final int C_FLAG = 1;
+    private static final int Z_FLAG = 1<<1;
+    private static final int I_FLAG = 1<<2;
+    private static final int D_FLAG = 1<<3;
+    private static final int B_FLAG = 1<<4;
+    private static final int V_FLAG = 1<<6;
+    private static final int N_FLAG = 1<<7;
     
     public CPU(Rom rom) {
+        this.rom = rom;
+        
+        pc = 0;
+        jammed = false;
+        halted = false;
+        
+        s = 0xFD;
+        a = 0;
+        x = 0;
+        y = 0;
+        p = I_FLAG;
+        
+        cycle = 8;
+        targetCycle = 0;
+        
+        rdy = true;
+        
+        irqPin = false;
+        nmiPin = false;
+        nmiPinLast = false;
+        
+        shouldNmi = false;
+        shouldIrq = false;
+        nmiDetected = false;
+        irqDetected = false;
+        
+        executeIntNext = false;
+        executeInt = false;
+        
+        opcodeLoaded = false;
+        
+        skipAnd = false;
+    }
+    
+    private int read(int addr) {
+        int v = Byte.toUnsignedInt(rom.read(addr));
+        
+        if(!rdy) halted = true;
+        
+        lastRead = v;
+        
+        return v;
+    }
+    
+    private void write(int addr, int value) {
+        rom.write(addr, (byte)value);
+    }
+    
+    private void updateNZ(int reg) {
+        if(reg == 0) p |= Z_FLAG;
+        else p &= ~Z_FLAG;
+        if((reg&(1<<7)) != 0) p |= N_FLAG;
+        else p &= ~N_FLAG;
+    }
+    
+    private void cmp(int reg, int value) {
+        if(reg >= value) p |= C_FLAG;
+        else p &= ~C_FLAG;
+        if(reg == value) p |= Z_FLAG;
+        else p &= ~Z_FLAG;
+        if(((reg-value)&(1<<7)) != 0) p |= N_FLAG;
+        else p &= ~N_FLAG;
+    }
+    
+    private void adc(int value) {
+        int oldA = this.a;
+        
+        a = (a+value+(p&C_FLAG));
+        
+        if((a&(~0xFF)) != 0) p |= C_FLAG;
+        else p &= ~C_FLAG;
+        
+        if(((a^oldA)&(a^value)&(1<<7)) != 0) p |= V_FLAG;
+        else p &= ~V_FLAG;
+        
+        a &= 0xFF;
+        
+        updateNZ(a);
+    }
+    
+    private void sbc(int value) {
+        int oldA = this.a;
+        
+        a = (a-value-(p&C_FLAG));
+        
+        if((a&(~0xFF)) == 0) p |= C_FLAG;
+        else p &= ~C_FLAG;
+        
+        if(((a^oldA)&(a^(~value))&(1<<7)) != 0) p |= V_FLAG;
+        else p &= ~V_FLAG;
+        
+        a &= 0xFF;
+        
+        updateNZ(a);
+    }
+    
+    public int asl(int value) {
+        p &= ~C_FLAG;
+        p |= (value>>7)&1;
+        
+        value <<= 1;
+        
+        value &= 0xFF;
+        
+        updateNZ(value);
+        
+        return value;
+    }
+    
+    public int rol(int value) {
+        int cFlag = p&C_FLAG;
+        
+        p &= ~C_FLAG;
+        p |= (value>>7)&1;
+        
+        value <<= 1;
+        value |= cFlag;
+        
+        value &= 0xFF;
+        
+        updateNZ(value);
+        
+        return value;
+    }
+    
+    public int lsr(int value) {
+        p &= ~C_FLAG;
+        p |= value&1;
+        
+        value >>= 1;
+        
+        value &= 0xFF;
+        
+        updateNZ(value);
+        
+        return value;
+    }
+    
+    public int ror(int value) {
+        int cFlag = p&C_FLAG;
+        
+        p &= ~C_FLAG;
+        p |= value&1;
+        
+        value >>= 1;
+        value |= cFlag<<7;
+        
+        value &= 0xFF;
+        
+        updateNZ(value);
+        
+        return value;
+    }
+    
+    public void bit(int value) {
+        if((value&a) == 0) p |= Z_FLAG;
+        else p &= ~Z_FLAG;
+        
+        p &= (1<<6)-1;
+        p |= value&(0b11<<6);
     }
     
     public void cycle() {
+        /*
+         * To implement this, I read https://www.nesdev.org/6502_cpu.txt.
+         *
+         * The follwing websites were also useful:
+         * https://www.nesdev.org/wiki/CPU_unofficial_opcodes
+         * http://www.6502.org/users/obelisk/6502/reference.html
+         * https://www.oxyron.de/html/opcodes02.html
+         * https://www.nesdev.org/wiki/Instruction_reference#ADC
+         */
+        
+        if(jammed) return;
+        if(halted){
+            read(lastRead);
+            
+            if(rdy) halted = false; // XXX: Is it accurate?
+            return;
+        }
+        
+        // The internal signals are raised during phi 1 of each cycle
+        if(nmiDetected) shouldNmi = true;
+        if(irqDetected) shouldIrq = true;
+        
+        if(cycle == 2){
+            t = read(lastRead);
+        }else if(cycle > targetCycle){
+            opcode = read(pc);
+            
+            cycle = 1;
+            targetCycle = 2;
+            if(executeIntNext){
+                executeInt = true;
+                executeIntNext = false;
+            }else{
+                pc++;
+            }
+        }
+        
+        do{
+            if(opcodeLoaded){
+                cycle = 1;
+                targetCycle = 2;
+                if(executeIntNext){
+                    executeInt = true;
+                    executeIntNext = false;
+                }else{
+                    pc++;
+                }
+                
+                opcodeLoaded = false;
+            }
+            
+            if(executeInt){
+                switch(cycle){
+                    case 1:
+                        targetCycle = 7;
+                        
+                        // BRK is forced into the opcode register
+                        opcode = 0x00;
+                        
+                    case 2:
+                        // NOTE: PC inrement is not performed on interrupt,
+                        //       only on BRK
+                        break;
+                        
+                    case 3:
+                        write(0x0100+s, pc>>8);
+                        s--;
+                        break;
+                        
+                    case 4:
+                        // NOTE: write only keeps the lower 8 bits anyways
+                        write(0x0100+s, pc);
+                        s--;
+                        
+                        isIrq = true;
+                        if(shouldNmi){
+                            isIrq = false;
+                            shouldNmi = false;
+                        }
+                        break;
+                        
+                    case 5:
+                        write(0x0100+s, p);
+                        s--;
+                        break;
+                        
+                    case 6:
+                        pc &= 0xFF00;
+                        pc |= read(isIrq ? 0xFFFE : 0xFFFA);
+                        break;
+                        
+                    case 7:
+                        pc &= 0xFF;
+                        pc |= read(isIrq ? 0xFFFF : 0xFFFB)<<8;
+                        
+                        if(!isIrq) shouldNmi = false;
+                        executeInt = false;
+                }
+                
+                cycle++;
+                return;
+            }
+            
+            switch(opcode){
+                //
+            }
+        }while(opcodeLoaded);
+        
+        if((opcode&31) != 16 && opcode != 0 && cycle == targetCycle-1){
+            // Check for interrupts
+
+            if(shouldNmi || (shouldIrq && (p&I_FLAG) == 0)){
+                executeIntNext = true;
+            }
+        }
+
+        // The edge detector and level detector polling is performed on
+        // phi 2 of each cycle
+        nmiDetected = (nmiPin != nmiPinLast) && !nmiPin;
+        irqDetected = !irqPin;
+
+        // The internal signal for a detected IRQ is only high during a
+        // single cycle
+        shouldIrq = false;
+
+        cycle++;
+
+        nmiPinLast = nmiPin;
     }
 }

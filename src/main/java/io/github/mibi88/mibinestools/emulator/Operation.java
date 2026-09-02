@@ -18,23 +18,10 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
-import java.util.Random;
-
 /**
  *
  * @author mibi88
  */
-public class PPU {
-    private Rom rom;
-    
-    private Screen screen;
-    
-    public PPU(Rom rom, Screen screen) {
-        this.rom = rom;
-        this.screen = screen;
-    }
-    
-    void emulateFrame() {
-        // TODO
-    }
+public interface Operation {
+    public void operation(CPU cpu);
 }
