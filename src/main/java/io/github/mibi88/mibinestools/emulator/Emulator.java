@@ -20,11 +20,13 @@ package io.github.mibi88.mibinestools.emulator;
 
 import io.github.mibi88.mibinestools.Editor;
 import io.github.mibi88.mibinestools.Window;
-import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Timer;
 
 /**
  *
@@ -32,9 +34,21 @@ import java.util.logging.Logger;
  */
 public class Emulator extends Editor {
     private static final String editorName = "Emulator";
+    
     private Screen screen;
+    
+    private Rom rom;
+    
     private CPU cpu;
-
+    private PPU ppu;
+    private APU apu;
+    private DMA dma;
+    
+    private Controller controller1;
+    private Controller controller2;
+    
+    private Timer timer = null;
+    
     /**
      * Create a new emulator.
      * @param window The window to use with this emulator.
@@ -43,18 +57,39 @@ public class Emulator extends Editor {
         super(window, new BorderLayout(), editorName);
         
         try {
-            Rom rom = new Rom(null);
-            cpu = new CPU(rom);
-            screen = new Screen(rom.getRawCHRData(),
-                    Region.NTSC, 2, false, cpu);
-            rom.setScreen(screen);
-            screen.play();
+            rom = new Rom(null);
+            
+            screen = new Screen(window.getScale());
             add(screen, BorderLayout.CENTER);
+            
+            hardReset();
         } catch (Exception ex) {
             Logger.getLogger(Emulator.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
-        // TODO: screen.powerOff(); when closing the editor?
+    }
+    
+    public void hardReset() {
+        cpu = new CPU(rom);
+        ppu = new PPU(rom, screen);
+        apu = new APU();
+        dma = new DMA(rom);
+
+        controller1 = new Controller() {
+        };
+        controller2 = new Controller() {
+        };
+        
+        if(timer != null) timer.stop();
+        timer = new Timer(16, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ppu.emulateFrame();
+            }
+        });
+        timer.setRepeats(true);
+        timer.setCoalesce(true);
+        timer.start();
     }
     
     /**
@@ -85,12 +120,8 @@ public class Emulator extends Editor {
         }
         try {
             Rom rom = new Rom(file);
-            screen.powerOff();
-            cpu = new CPU(rom);
-            screen.reset(rom.getRawCHRData(), Region.NTSC,
-                    2, false, cpu);
-            rom.setScreen(screen);
-            screen.play();
+            
+            hardReset();
         } catch (Exception ex) {
             Logger.getLogger(Emulator.class.getName()).log(
                     Level.SEVERE, null, ex);
@@ -100,6 +131,15 @@ public class Emulator extends Editor {
     
     @Override
     public void close() {
-        screen.powerOff();
+        if(timer != null) timer.stop();
+    }
+    
+    /**
+     * Set the scale of the pixels on the screen.
+     * @param scale The scale of the pixels on the screen.
+     */
+    @Override
+    public void setScale(int scale) {
+        screen.setScale(scale);
     }
 }

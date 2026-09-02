@@ -18,52 +18,30 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
+import java.util.Random;
+
 /**
  *
  * @author mibi88
  */
-public class CPU {
-    int pc;
+public class PPU {
+    private Rom rom;
     
-    byte s;
-    byte p;
-    byte a;
-    byte x;
-    byte y;
+    private Screen screen;
     
-    int cycle;
-    int targetCycle;
-    
-    int opcode;
-    byte t;
-    byte tmp1, tmp2;
-    byte last_read;
-    
-    int jammed;
-    int halted;
-    
-    short pin_handling;
-    
-    boolean irq_pin;
-    boolean nmi_pin;
-    boolean nmi_pin_last;
-    boolean should_nmi;
-    boolean should_irq;
-    boolean nmi_detected;
-    boolean irq_detected;
-    
-    boolean execute_int_next;
-    boolean execute_int;
-    
-    boolean is_irq;
-    
-    boolean opcode_loaded;
-    
-    boolean skip_and;
-    
-    public CPU(Rom rom) {
+    public PPU(Rom rom, Screen screen) {
+        this.rom = rom;
+        this.screen = screen;
     }
     
-    public void cycle() {
+    void emulateFrame() {
+        int x, y;
+        Random random = new Random();
+        
+        for(y=0;y<240;y++){
+            for(x=0;x<256;x++){
+                screen.putPixel((byte)(random.nextInt()&0xFF));
+            }
+        }
     }
 }

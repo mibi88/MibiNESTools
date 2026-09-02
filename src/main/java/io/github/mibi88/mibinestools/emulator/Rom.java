@@ -18,10 +18,8 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
-import io.github.mibi88.mibinestools.chr_editor.CHRData;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Arrays;
 
 /**
  *
@@ -31,7 +29,6 @@ public class Rom {
     private byte[] data;
     private Screen screen;
     private byte[] ram;
-    private byte[] prgRom;
 
     /**
      * Load a NES ROM.
@@ -48,46 +45,6 @@ public class Rom {
             data = new byte[0x10000];
         }
         ram = new byte[0x800];
-        prgRom = Arrays.copyOfRange(data, 0x0010, 0x4010);
-    }
-    
-    public int nmi() {
-        byte[] vectors = getVectors();
-        return vectors[0]&0xFF|((vectors[1]&0xFF)<<8);
-    }
-    
-    public int reset() {
-        byte[] vectors = getVectors();
-        return vectors[2]&0xFF|((vectors[3]&0xFF)<<8);
-    }
-    
-    public int irq() {
-        byte[] vectors = getVectors();
-        return vectors[4]&0xFF|((vectors[5]&0xFF)<<8);
-    }
-    
-    /**
-     * Get the CHR data from the ROM.
-     * @return The CHR data.
-     */
-    public CHRData getCHRData() {
-        return new CHRData(getRawCHRData());
-    }
-    
-    /**
-     * Get the raw CHR data from the ROM.
-     * @return The CHR data.
-     */
-    public byte[] getRawCHRData() {
-        return Arrays.copyOfRange(data, 0x4010, 0x6010);
-    }
-    
-    public byte[] getVectors() {
-        return Arrays.copyOfRange(data, 0x400A, 0x4010);
-    }
-    
-    public void setScreen(Screen screen) {
-        this.screen = screen;
     }
     
     /**
@@ -96,74 +53,18 @@ public class Rom {
      * @return The byte read.
      */
     public byte read(int address) {
-        if(address >= 0){
-            if(address <= 0x1FFF){
-                return ram[address%0x800];
-            }else if(address <= 0x3FFF){
-                switch(address%8){
-                    case 0:
-                        return screen.readPPUCTRL();
-                    case 1:
-                        return screen.readPPUMASK();
-                    case 2:
-                        return screen.readPPUSTATUS();
-                    case 3:
-                        return screen.readOAMADDR();
-                    case 4:
-                        return screen.readOAMDATA();
-                    case 5:
-                        return screen.readPPUSCROLL();
-                    case 6:
-                        return screen.readPPUADDR();
-                    default:
-                        return screen.readPPUDATA();
-                }
-            }else if(address <= 0x401F){
-                // TODO: APU
-                return 0x00;
-            }else if(address >= 0x8000 && address <= 0xFFFF){
-                int pos = address-0x8000;
-                pos %= 0x4000;
-                return prgRom[pos];
-            }
-        }
-        return 0x00;
+        return 0; // TODO
     }
     
     public void write(int address, byte value) {
-        if(address >= 0){
-            if(address <= 0x1FFF){
-                ram[address%0x800] = value;
-            }else if(address <= 0x3FFF){
-                switch(address%8){
-                    case 0:
-                        screen.writePPUCTRL(value);
-                        break;
-                    case 1:
-                        screen.writePPUMASK(value);
-                        break;
-                    case 2:
-                        screen.writePPUSTATUS(value);
-                        break;
-                    case 3:
-                        screen.writeOAMADDR(value);
-                        break;
-                    case 4:
-                        screen.writeOAMDATA(value);
-                        break;
-                    case 5:
-                        screen.writePPUSCROLL(value);
-                        break;
-                    case 6:
-                        screen.writePPUADDR(value);
-                        break;
-                    default:
-                        screen.writePPUDATA(value);
-                        break;
-                }
-            }else if(address <= 0x401F){
-                // TODO: APU
-            }
-        }
+        //
+    }
+    
+    public byte readVram(int address) {
+        return 0; // TODO
+    }
+    
+    public void writeVram(int address, byte value) {
+        //
     }
 }

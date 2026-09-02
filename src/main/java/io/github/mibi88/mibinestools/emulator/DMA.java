@@ -22,48 +22,23 @@ package io.github.mibi88.mibinestools.emulator;
  *
  * @author mibi88
  */
-public class CPU {
-    int pc;
+public class DMA {
+    private boolean cycle;
     
-    byte s;
-    byte p;
-    byte a;
-    byte x;
-    byte y;
+    private byte value;
     
-    int cycle;
-    int targetCycle;
+    private int step;
     
-    int opcode;
-    byte t;
-    byte tmp1, tmp2;
-    byte last_read;
+    private boolean aligned;
     
-    int jammed;
-    int halted;
+    private boolean do_oam_dma;
+    private boolean do_dmc_dma;
     
-    short pin_handling;
+    private int page;
     
-    boolean irq_pin;
-    boolean nmi_pin;
-    boolean nmi_pin_last;
-    boolean should_nmi;
-    boolean should_irq;
-    boolean nmi_detected;
-    boolean irq_detected;
+    private Rom rom;
     
-    boolean execute_int_next;
-    boolean execute_int;
-    
-    boolean is_irq;
-    
-    boolean opcode_loaded;
-    
-    boolean skip_and;
-    
-    public CPU(Rom rom) {
-    }
-    
-    public void cycle() {
+    public DMA(Rom rom) {
+        this.rom = rom;
     }
 }
