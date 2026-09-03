@@ -23,5 +23,5 @@ package io.github.mibi88.mibinestools.emulator;
  * @author mibi88
  */
 public interface Operation {
-    public void operation(CPU cpu);
+    public int operation(CPU cpu, int value);
 }

@@ -236,6 +236,382 @@ public class CPU {
         p |= value&(0b11<<6);
     }
     
+    private void imp(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 2;
+                
+                break;
+                
+            case 2:
+                op.operation(this, 0);
+                
+                break;
+        }
+    }
+    
+    private void imm(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 2;
+                
+                break;
+                
+            case 2:
+                op.operation(this, t);
+                
+                pc++;
+                
+                break;
+        }
+    }
+    
+    private void absRead(Operation op) {
+        switch(cycle) {
+            case 1:
+                targetCycle = 4;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = t|(read(pc)<<8);
+                pc++;
+
+                break;
+                
+            case 4:
+                op.operation(this, read(tmp1));
+                
+                break;
+        }
+    }
+    
+    private void absRMW(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = t|(read(pc)<<8);
+                
+                pc++;
+                
+                break;
+                
+            case 4:
+                t = read(tmp1);
+                
+                break;
+                
+            case 5:
+                write(tmp1, t);
+                
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 6:
+                write(tmp1, t);
+                
+                break;
+        }
+    }
+    
+    private void absStore(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 4;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = t|(read(pc)<<8);
+                
+                pc++;
+                
+                break;
+                
+            case 4:
+                write(tmp1, op.operation(this, 0));
+                
+                break;
+        }
+    }
+    
+    private void zpRead(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 3;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                op.operation(this, read(t));
+        }
+    }
+    
+    private void zpRMW(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 5;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                tmp1 = t;
+                
+                break;
+                
+            case 3:
+                t = read(tmp1);
+                
+                break;
+                
+            case 4:
+                write(tmp1, t);
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 5:
+                write(tmp1, t);
+                
+                break;
+        }
+    }
+    
+    private void zpStore(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 3;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                write(t, op.operation(this, 0));
+                
+                break;
+        }
+    }
+    
+    private void zpIRead(int i, Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 4;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                t += i;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                op.operation(this, read(t));
+                
+                break;
+        }
+    }
+    
+    private void zpIRMW(Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                
+                t += x;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                tmp1 = t;
+                t = read(tmp1);
+                
+                break;
+                
+            case 5:
+                write(tmp1, t);
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 6:
+                write(tmp1, t);
+                
+                break;
+        }
+    }
+    
+    private void zpIStore(int i, Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 4;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                
+                t += i;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                write(t, op.operation(this, 0));
+                
+                break;
+        }
+    }
+    
+    private void absIRead(int i, Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 4;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+            {
+                tmp1 = t;
+                
+                t = read(pc);
+                
+                tmp1 += i;
+                
+                int tmp = tmp1>>8;
+                tmp1 = (tmp1&0xFF)|(t<<8);
+                t = tmp;
+                
+                pc++;
+                
+                break;
+            }
+            
+            case 4:
+            {
+                int tmp = read(tmp1);
+                if(t != 0){
+                    tmp1 += t<<8;
+                    tmp1 &= 0xFFFF;
+                    
+                    targetCycle++;
+                }else{
+                    op.operation(this, tmp);
+                }
+                
+                break;
+            }
+            
+            case 5:
+                // NOTE: This case is only executed if a page boundary has been
+                //       crossed.
+                op.operation(this, read(tmp1));
+                
+                break;
+        }
+    }
+    
+    private void absIRMW(int i, Operation op) {
+        // TODO
+    }
+    
+    private void absIStore(int i, Operation op) {
+        // TODO
+    }
+    
+    private void relative(boolean shouldBranch) {
+        // TODO
+    }
+    
+    private void idxIndRead(Operation op) {
+        // TODO
+    }
+    
+    private void idxIndRMW(Operation op) {
+        // TODO
+    }
+    
+    private void idxIndStore(Operation op) {
+        // TODO
+    }
+    
+    private void indIdxRead(Operation op) {
+        // TODO
+    }
+    
+    private void indIdxRMW(Operation op) {
+        // TODO
+    }
+    
+    private void indIdxStore(Operation op) {
+        // TODO
+    }
+    
+    private void indIdxSH(Operation op) {
+        // TODO
+    }
+    
+    private void absISH(Operation op) {
+        // TODO
+    }
+    
     public void cycle() {
         /*
          * To implement this, I read https://www.nesdev.org/6502_cpu.txt.
@@ -246,6 +622,8 @@ public class CPU {
          * https://www.oxyron.de/html/opcodes02.html
          * https://www.nesdev.org/wiki/Instruction_reference#ADC
          */
+        
+        rom.cpuCycleStart();
         
         if(jammed) return;
         if(halted){
@@ -365,5 +743,7 @@ public class CPU {
         cycle++;
 
         nmiPinLast = nmiPin;
+        
+        rom.cpuCycleEnd();
     }
 }

@@ -67,4 +67,12 @@ public class Rom {
     public void writeVram(int address, byte value) {
         //
     }
+    
+    public void cpuCycleStart() {
+        //
+    }
+    
+    public void cpuCycleEnd() {
+        //
+    }
 }
