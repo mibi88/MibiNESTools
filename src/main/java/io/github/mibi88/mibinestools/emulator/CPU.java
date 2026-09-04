@@ -530,7 +530,6 @@ public class CPU {
             case 3:
             {
                 tmp1 = t;
-                
                 t = read(pc);
                 
                 tmp1 += i;
@@ -569,15 +568,154 @@ public class CPU {
     }
     
     private void absIRMW(int i, Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 7;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+            {
+                tmp1 = t;
+                t = read(pc);
+                
+                tmp1 += i;
+                
+                int tmp = tmp1>>8;
+                tmp1 = (tmp1&0xFF)|(t<<8);
+                t = tmp;
+                
+                pc++;
+                
+                break;
+            }
+            
+            case 4:
+                read(tmp1);
+                
+                tmp1 += t<<8;
+                tmp1 &= 0xFFFF;
+                
+                break;
+                
+            case 5:
+                t = read(tmp1);
+                
+                break;
+                
+            case 6:
+                write(tmp1, t);
+                
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 7:
+                write(tmp1, t);
+                
+                break;
+        }
     }
     
     private void absIStore(int i, Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 5;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+            {
+                tmp1 = t;
+                t = read(pc);
+                
+                tmp1 += i;
+                
+                int tmp = tmp1>>8;
+                tmp1 = (tmp1&0xFF)|(t<<8);
+                t = tmp;
+                
+                pc++;
+                
+                break;
+            }
+            
+            case 4:
+                read(tmp1);
+                
+                tmp1 += t<<8;
+                tmp1 &= 0xFFFF;
+                
+                break;
+                
+            case 5:
+                write(tmp1, op.operation(this, 0));
+                
+                break;
+        }
     }
     
     private void relative(boolean shouldBranch) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 3;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+            {
+                int tmp = read(pc);
+                
+                if(shouldBranch){
+                    tmp1 = pc+(byte)t;
+                    
+                    pc = (tmp&0xFF)|(pc&0xFF00);
+                    if(pc != tmp1){
+                        // Check for interrupts
+
+                        if(shouldNmi || (shouldIrq && (p&I_FLAG) == 0)){
+                            executeIntNext = true;
+                        }
+                    }
+                    
+                    targetCycle++;
+                }else{
+                    opcode = tmp;
+                    opcodeLoaded = true;
+                }
+                
+                break;
+            }
+            
+            case 4:
+            {
+                int tmp = read(pc);
+                
+                if(pc != tmp1){
+                    pc = tmp1;
+                }else{
+                    opcode = tmp;
+                    opcodeLoaded = true;
+                }
+                
+                break;
+            }
+        }
     }
     
     private void idxIndRead(Operation op) {
