@@ -719,35 +719,330 @@ public class CPU {
     }
     
     private void idxIndRead(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                t += x;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 5:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                
+                break;
+                
+            case 6:
+                op.operation(this, read(tmp1));
+                
+                break;
+        }
     }
     
     private void idxIndRMW(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 8;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                t += x;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 5:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                
+                break;
+                
+            case 6:
+                t = read(tmp1);
+                
+                break;
+                
+            case 7:
+                write(tmp1, t);
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 8:
+                write(tmp1, t);
+                
+                break;
+        }
     }
     
     private void idxIndStore(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                read(t);
+                t += x;
+                t &= 0xFF;
+                
+                break;
+                
+            case 4:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 5:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                
+                break;
+                
+            case 6:
+                write(tmp1, op.operation(this, 0));
+        }
     }
     
     private void indIdxRead(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 5;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 4:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                tmp2 = tmp1+y;
+                tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
+                
+                break;
+                
+            case 5:
+            {
+                int tmp = read(tmp1);
+                
+                if(tmp1 != tmp2){
+                    tmp1 = tmp2;
+                    targetCycle++;
+                }else{
+                    op.operation(this, tmp);
+                }
+                
+                break;
+            }
+            
+            case 6:
+                // This cycle is only executed if the effective address was
+                // fixed
+                
+                op.operation(this, read(tmp1));
+                
+                break;
+        }
     }
     
     private void indIdxRMW(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 8;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 4:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                tmp2 = tmp1+y;
+                tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
+                
+                break;
+                
+            case 5:
+                read(tmp1);
+                
+                break;
+                
+            case 6:
+                t = read(tmp2);
+                
+                break;
+                
+            case 7:
+                write(tmp1, t);
+                t = op.operation(this, t);
+                
+                break;
+                
+            case 8:
+                write(tmp1, t);
+        }
     }
     
     private void indIdxStore(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 = read(t);
+                
+                break;
+                
+            case 4:
+                tmp1 |= read((t+1)&0xFF)<<8;
+                tmp2 = tmp1+y;
+                tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
+                
+                break;
+                
+            case 5:
+            {
+                read(tmp1);
+                
+                break;
+            }
+            
+            case 6:
+                write(tmp2, op.operation(this, 0));
+                
+                break;
+        }
     }
     
     private void indIdxSH(Operation op) {
-        // TODO
+        switch(cycle){
+            case 1:
+                targetCycle = 6;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+                tmp1 |= read(t);
+                
+                break;
+                
+            case 4:
+                skipAnd = !rdy;
+                
+                tmp1 |= read((t+1)&0xFF)<<8;
+                tmp2 = tmp1+y;
+                tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
+                
+                break;
+                
+            case 5:
+                t = tmp2-read(tmp1);
+                t &= 0xFF;
+                
+                break;
+                
+            case 6:
+                if(t != 0 && !skipAnd) tmp1 &= (tmp1<<8)|0xFF;
+                write(tmp1, op.operation(this, t));
+                
+                break;
+        }
     }
     
-    private void absISH(Operation op) {
-        // TODO
+    private void absISH(int i, Operation op) {
+        switch(cycle){
+            case 1:
+                targetCycle = 5;
+                
+                break;
+                
+            case 2:
+                pc++;
+                
+                break;
+                
+            case 3:
+            {
+                skipAnd = !rdy;
+                tmp1 = t;
+                t = read(pc);
+                tmp1 += i;
+                tmp1 &= 0xFF;
+                int tmp = tmp1>>8;
+                tmp1 = (tmp1&0xFF)|(t<<8);
+                t = tmp;
+                pc++;
+                
+                break;
+            }
+            
+            case 4:
+                read(tmp1);
+                tmp1 += t<<8;
+                
+                break;
+                
+            case 5:
+                if(t != 0 && !skipAnd) tmp1 &= (tmp1<<8)|0xFF;
+                write(tmp1, op.operation(this, a));
+        }
     }
     
     public void cycle() {
