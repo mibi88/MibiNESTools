@@ -1152,7 +1152,2445 @@ public class CPU {
             }
             
             switch(opcode){
-                //
+                case 0x00:
+                    // BRK
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 7;
+                            
+                            break;
+                            
+                        case 2:
+                            pc++;
+                            
+                            break;
+                            
+                        case 3:
+                            write(0x0100+s, pc>>8);
+                            s--;
+                            p |= B_FLAG;
+                            
+                            break;
+                            
+                        case 4:
+                            write(0x0100+s, pc);
+                            s--;
+                            
+                            isIrq = true;
+                            
+                            if(shouldNmi){
+                                isIrq = false;
+                                shouldNmi = false;
+                            }
+                            
+                            break;
+                            
+                        case 5:
+                            write(0x0100+s, p);
+                            s--;
+                            
+                            break;
+                            
+                        case 6:
+                            pc &= 0xFF00;
+                            pc |= read(isIrq ? 0xFFFE : 0xFFFA);
+                            
+                            break;
+                            
+                        case 7:
+                            pc &= 0xFF;
+                            pc |= read(isIrq ? 0xFFFF : 0xFFFB)<<8;
+                            
+                            if(!isIrq) shouldNmi = false;
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x40:
+                    // RTI
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 6;
+                            
+                            break;
+                            
+                        case 3:
+                            s++;
+                            
+                            break;
+                            
+                        case 4:
+                            p = read(0x0100+s);
+                            s++;
+                            
+                            break;
+                            
+                        case 5:
+                            pc &= 0xFF00;
+                            pc |= read(0x0100+s);
+                            s++;
+                            
+                            break;
+                            
+                        case 6:
+                            pc &= 0xFF;
+                            pc |= read(0x0100+s)<<8;
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x60:
+                    // RTS
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 6;
+                            
+                            break;
+                            
+                        case 3:
+                            s++;
+                            
+                            break;
+                            
+                        case 4:
+                            pc &= 0xFF00;
+                            pc |= read(0x0100+s);
+                            s++;
+                            
+                            break;
+                            
+                        case 5:
+                            pc &= 0xFF;
+                            pc |= read(0x0100+s)<<8;
+                            
+                            break;
+                            
+                        case 6:
+                            pc++;
+                    }
+                    
+                    break;
+                    
+                case 0x48:
+                    // PHA
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 3;
+                            
+                            break;
+                            
+                        case 3:
+                            write(0x0100+s, a);
+                            s--;
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x08:
+                    // PHP
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 3;
+                            
+                            break;
+                            
+                        case 3:
+                            write(0x0100+s, p|(1<<5)|B_FLAG);
+                            s--;
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x68:
+                    // PLA
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 4;
+                            
+                            break;
+                            
+                        case 3:
+                            s++;
+                            
+                            break;
+                            
+                        case 4:
+                            a = read(0x0100+s);
+                            
+                            updateNZ(a);
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x28:
+                    // PLP
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 4;
+                            
+                            break;
+                            
+                        case 3:
+                            s++;
+                            
+                            break;
+                            
+                        case 4:
+                            p = read(0x0100+s)&~B_FLAG;
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                case 0x20:
+                    // JSR
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 6;
+                            
+                            break;
+                            
+                        case 2:
+                            pc++;
+                            
+                            break;
+                            
+                        case 4:
+                            write(0x0100+s, pc>>8);
+                            s--;
+                            
+                            break;
+                            
+                        case 5:
+                            write(0x0100+s, pc);
+                            s--;
+                            
+                            break;
+                            
+                        case 6:
+                            pc = t|(read(pc)<<8);
+                            
+                            break;
+                    }
+                    
+                    break;
+                    
+                // Official opcodes with implied or accumulator addressing
+                
+                case 0x0A:
+                    // ASL
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a = asl(a);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x18:
+                    // CLC
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p &= ~C_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x2A:
+                    // ROL
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a = rol(a);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x38:
+                    // SEC
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p |= C_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x4A:
+                    // LSR
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a = lsr(a);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x58:
+                    // CLI
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p &= ~I_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x6A:
+                    // ROR
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a = ror(a);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x78:
+                    // SEI
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p |= I_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x88:
+                    // DEY
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y--;
+                            y &= 0xFF;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x8A:
+                    // TXA
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = x;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x98:
+                    // TYA
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = y;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x9A:
+                    // TXS
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            s = x;
+                            
+                            updateNZ(s);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA8:
+                    // TAY
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = a;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xAA:
+                    // TAX
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = a;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xB8:
+                    // CLV
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p &= ~V_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xBA:
+                    // TSX
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = s;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC8:
+                    // INY
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y++;
+                            y &= 0xFF;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xCA:
+                    // DEX
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x--;
+                            x &= 0xFF;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xEA:
+                    // NOP
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return 0; // Do nothing
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xF8:
+                    // SED
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return p |= D_FLAG;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Opcodes with immediate addressing
+                
+                case 0x09:
+                    // ORA
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x29:
+                    // AND
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x49:
+                    // EOR
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x69:
+                    // ADC
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA0:
+                    // LDY
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = value;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA2:
+                    // LDX
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = value;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA9:
+                    // LDA
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC0:
+                    // CPY
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(y, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC9:
+                    // CMP
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE0:
+                    // CPX
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(x, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE9:
+                    // NOTE: According to No More Secrets, instructions $EB and
+                    //       $E9 are the same, said Fiskbit on the NesDev
+                    //       discord.
+                case 0xEB:
+                    // SBC
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Absolute addressing
+                // Absolute addressing -- read instructions
+                
+                case 0x0D:
+                    // ORA
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x2C:
+                    // BIT
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            bit(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x2D:
+                    // AND
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x4D:
+                    // EOR
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x6D:
+                    // ADC
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xAC:
+                    // LDY
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = value;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xAD:
+                    // LDA
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xAE:
+                    // LDX
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = value;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xCC:
+                    // CPY
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(y, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xCD:
+                    // CMP
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xEC:
+                    // CPX
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(x, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xED:
+                    // SBC
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Absolute addressing -- read-modify-write (RMW) instructions.
+                
+                case 0x0E:
+                    // ASL
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return asl(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x2E:
+                    // ROL
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return rol(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x4E:
+                    // LSR
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return lsr(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x6E:
+                    // ROR
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return ror(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xCE:
+                    // DEC
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value--;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xEE:
+                    // INC
+                    
+                    absRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value++;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Absolute addressing -- store instructions
+                
+                case 0x8C:
+                    // STY
+                    
+                    absStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return y;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x8D:
+                    // STA
+                    
+                    absStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x8E:
+                    // STX
+                    
+                    absStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return x;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Zeropage addressing
+                // Zeropage addressing -- read instructions
+                
+                case 0x05:
+                    // ORA
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x24:
+                    // BIT
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            bit(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x25:
+                    // AND
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x45:
+                    // EOR
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x65:
+                    // ADC
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA4:
+                    // LDY
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = value;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA5:
+                    // LDA
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA6:
+                    // LDX
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = value;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC4:
+                    // CPY
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(y, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC5:
+                    // CMP
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE4:
+                    // CPX
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(x, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE5:
+                    // SBC
+                    
+                    zpRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Zeropage addressing -- RMW instructions
+                
+                case 0x06:
+                    // ASL
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return asl(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x26:
+                    // ROL
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return rol(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x46:
+                    // LSR
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return lsr(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x66:
+                    // ROR
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return ror(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC6:
+                    // DEC
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value--;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE6:
+                    // INC
+                    
+                    zpRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value++;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Zeropage addressing -- store instructions
+                
+                case 0x84:
+                    // STY
+                    
+                    zpStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return y;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x85:
+                    // STA
+                    
+                    zpStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x86:
+                    // STX
+                    
+                    zpStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return x;
+                        }
+                    });
+                    
+                    break;
+                    
+                // Indexed zeropage addressing
+                // Indexed zeropage addressing -- read instructions
+                // Indexed with X
+                    
+                case 0x15:
+                    // ORA
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x35:
+                    // AND
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x55:
+                    // EOR
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x75:
+                    // ADC
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xB4:
+                    // LDY
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = value;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xB5:
+                    // LDA
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xD5:
+                    // CMP
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xF5:
+                    // SBC
+                    
+                    zpIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed with Y
+                    
+                case 0xB6:
+                    // LDX
+                    
+                    zpIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = value;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed zeropage addressing -- RMW instructions
+                    
+                case 0x16:
+                    // ASL
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return asl(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x36:
+                    // ROL
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return rol(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x56:
+                    // LSR
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return lsr(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x76:
+                    // ROR
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return ror(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xD6:
+                    // DEC
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value--;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xF6:
+                    // INC
+                    
+                    zpIRMW(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value++;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed zeropage addressing -- store instructions
+                // Indexed with X
+                    
+                case 0x94:
+                    // STY
+                    
+                    zpIStore(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return y;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x95:
+                    // STA
+                    
+                    zpIStore(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed with Y
+                    
+                case 0x96:
+                    // STX
+                    
+                    zpIStore(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return x;
+                        }
+                    });
+                    
+                    break;
+                
+                // Absolute indexed addressing
+                // Absolute indexed addressing -- read instructions
+                // Indexed with X
+                    
+                case 0xBC:
+                    // LDY
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            y = value;
+                            
+                            updateNZ(y);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x1D:
+                    // ORA
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x3D:
+                    // AND
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x5D:
+                    // EOR
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x7D:
+                    // ADC
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xBD:
+                    // LDA
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xDD:
+                    // CMP
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xFD:
+                    // SBC
+                    
+                    absIRead(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed with Y
+                    
+                case 0x19:
+                    // ORA
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x39:
+                    // AND
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x59:
+                    // EOR
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x79:
+                    // ADC
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xB9:
+                    // LDA
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xD9:
+                    // CMP
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xF9:
+                    // SBC
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xBE:
+                    // LDX
+                    
+                    absIRead(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x = value;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Absolute indexed addressing -- RMW instructions
+                    
+                case 0x1E:
+                    // ASL
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return asl(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x3E:
+                    // ROL
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return rol(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x5E:
+                    // LSR
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return lsr(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x7E:
+                    // ROR
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return ror(value);
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xDE:
+                    // DEC
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value--;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xFE:
+                    // INC
+                    
+                    absIRMW(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            value++;
+                            value &= 0xFF;
+                            
+                            updateNZ(value);
+                            
+                            return value;
+                        }
+                    });
+                    
+                    break;
+                
+                // Absolute addressing -- store instructions
+                // Indexed with X
+                
+                case 0x9D:
+                    // STA
+                    
+                    absIStore(x, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed with Y
+                    
+                case 0x99:
+                    // STA
+                    
+                    absIStore(y, new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                
+                // Relative addressing
+                    
+                case 0x10:
+                    // BPL
+                    
+                    relative((p&N_FLAG) == 0);
+                    
+                    break;
+                    
+                case 0x30:
+                    // BMI
+                    
+                    relative((p&N_FLAG) != 0);
+                    
+                    break;
+                    
+                case 0x50:
+                    // BVC
+                    
+                    relative((p&V_FLAG) == 0);
+                    
+                    break;
+                    
+                case 0x70:
+                    // BVS
+                    
+                    relative((p&V_FLAG) != 0);
+                    
+                    break;
+                    
+                case 0x90:
+                    // BCC
+                    
+                    relative((p&C_FLAG) == 0);
+                    
+                    break;
+                    
+                case 0xB0:
+                    // BCS
+                    
+                    relative((p&C_FLAG) != 0);
+                    
+                    break;
+                    
+                case 0xD0:
+                    // BNE
+                    
+                    relative((p&Z_FLAG) == 0);
+                    
+                    break;
+                    
+                case 0xF0:
+                    // BEQ
+                    
+                    relative((p&Z_FLAG) != 0);
+                    
+                    break;
+                
+                // Indexed indirect addressing
+                // Indexed indirect addressing -- read instructions
+                    
+                case 0x01:
+                    // ORA
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x21:
+                    // AND
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x41:
+                    // EOR
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x61:
+                    // ADC
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xA1:
+                    // LDA
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xC1:
+                    // CMP
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE1:
+                    // SBC
+                    
+                    idxIndRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indexed indirect addressing -- store instructions
+                    
+                case 0x81:
+                    // STA
+                    
+                    idxIndStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indirect indexed addressing
+                // Indirect indexed addressing -- read instructions
+                    
+                case 0x11:
+                    // ORA
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a |= value;
+                            
+                            updateNZ(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x31:
+                    // AND
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= value;
+                            
+                            updateNZ(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x51:
+                    // EOR
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a ^= value;
+                            
+                            updateNZ(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x71:
+                    // ADC
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            adc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xB1:
+                    // LDA
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = value;
+                            
+                            updateNZ(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xD1:
+                    // CMP
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a, value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xF1:
+                    // SBC
+                    
+                    indIdxRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            sbc(value);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Indirect indexed addressing -- write instructions
+                    
+                case 0x91:
+                    // STA
+                    
+                    indIdxStore(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return a;
+                        }
+                    });
+                
+                // Indirect absolute addressing
+                    
+                case 0x6C:
+                    // JMP
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 5;
+                            
+                            break;
+                            
+                        case 2:
+                            pc++;
+                            
+                            break;
+                            
+                        case 3:
+                            tmp1 = read(pc)<<8;
+                            tmp1 |= t;
+                            pc++;
+                            
+                            break;
+                            
+                        case 4:
+                            t = read(tmp1);
+                            
+                            break;
+                            
+                        case 5:
+                            pc = read((tmp1&0xFF00)|((tmp1+1)&0xFF))<<8;
+                            pc |= t;
+                            
+                            break;
+                    }
+                    
+                    break;
+                
+                // Unofficial opcodes
+                // Implied addressing
+                    
+                case 0x1A:
+                    // NOP
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return 0; // Do nothing
+                        }
+                    });
+                    
+                    break;
+                
+                // Immediate addressing
+                    
+                case 0x80:
+                    // NOP
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return 0; // Do nothing
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xAB:
+                    // LAX
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = t;
+                            x = a;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x0B:
+                case 0x2B:
+                    // ANC
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= t;
+                            
+                            updateNZ(a);
+                            
+                            p &= ~C_FLAG;
+                            p |= (p>>7)&1;
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x4B:
+                    // ALR
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= t;
+                            
+                            updateNZ(a);
+                            a = lsr(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x6B:
+                    // ARR
+                    
+                    // FIXME: The overflow flag doesn't get set correctly
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a &= t;
+                            
+                            int tmp = a;
+                            a = ror(a);
+                            
+                            p &= ~(1<<7);
+                            p |= a&(1<<7);
+                            
+                            if(a != 0){
+                                p &= ~Z_FLAG;
+                            }else{
+                                p |= Z_FLAG;
+                            }
+                            
+                            p &= ~V_FLAG;
+                            p |= (tmp^(a<<1))&(1<<6);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0x8B:
+                    // XAA
+                    
+                    // XXX: Maybe I should make it a bit unreliable
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            a = x;
+                            a &= t;
+                            
+                            updateNZ(a);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xCB:
+                    // AXS
+                    
+                    imm(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            cmp(a&x, t);
+                            x = (a&x)-t;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                
+                // Absolute addressing
+                    
+                case 0x0C:
+                case 0x3C:
+                    // NOP
+                    
+                    absRead(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            return 0; // Do nothing
+                        }
+                    });
+                    
+                    break;
             }
         }while(opcodeLoaded);
         
