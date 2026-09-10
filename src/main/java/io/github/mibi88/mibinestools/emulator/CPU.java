@@ -1045,6 +1045,22 @@ public class CPU {
         }
     }
     
+    public void setRdyPin(boolean rdy) {
+        this.rdy = rdy;
+    }
+    
+    public void setIrqPin(boolean irq) {
+        this.irqPin = irq;
+    }
+    
+    public void setNmiPin(boolean nmi) {
+        this.nmiPin = nmi;
+    }
+    
+    public boolean isHalted() {
+        return halted;
+    }
+    
     public void cycle() {
         /*
          * To implement this, I read https://www.nesdev.org/6502_cpu.txt.

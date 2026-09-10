@@ -31,8 +31,8 @@ public class DMA {
     
     private boolean aligned;
     
-    private boolean do_oam_dma;
-    private boolean do_dmc_dma;
+    private boolean doOAMDMA;
+    private boolean doDMCDMA;
     
     private int page;
     
@@ -40,5 +40,52 @@ public class DMA {
     
     public DMA(Rom rom) {
         this.rom = rom;
+        
+        cycle = false; // TODO: Pick a random value
+        
+        value = 0;
+        step = 0;
+        
+        doOAMDMA = false;
+        doDMCDMA = false;
+        
+        aligned = true;
+    }
+    
+    public void cycle(CPU cpu) {
+        if(doOAMDMA){
+            cpu.setRdyPin(false);
+            if(cpu.isHalted() && ((!cycle && !aligned) || aligned)){
+                if(cycle){
+                    // put cycle
+
+                    rom.write(0x2004, value);
+                    
+                    step++;
+                    
+                    if(step >= 256){
+                        doOAMDMA = false;
+                        cpu.setRdyPin(true);
+                    }
+                }else{
+                    // get cycle
+
+                    value = rom.read(page|step);
+                }
+                
+                aligned = true;
+            }
+        }else{
+            aligned = false;
+            step = 0;
+        }
+        
+        cycle = !cycle;
+    }
+    
+    public void startOAMDMA(int page){
+        this.page = page<<8;
+        
+        doOAMDMA = true;
     }
 }
