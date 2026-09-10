@@ -1651,6 +1651,35 @@ public class CPU {
                     
                     break;
                     
+                case 0xD8:
+                    // CLD
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            p &= ~D_FLAG;
+                            
+                            return 0;
+                        }
+                    });
+                    
+                    break;
+                    
+                case 0xE8:
+                    // INX
+                    
+                    imp(new Operation() {
+                        @Override
+                        public int operation(CPU cpu, int value) {
+                            x++;
+                            x &= 0xFF;
+                            
+                            updateNZ(x);
+                            
+                            return 0;
+                        }
+                    });
+                    
                 case 0xEA:
                     // NOP
                     
@@ -1848,6 +1877,29 @@ public class CPU {
                     break;
                     
                 // Absolute addressing
+                    
+                case 0x4C:
+                    // JMP
+                    
+                    switch(cycle){
+                        case 1:
+                            targetCycle = 3;
+                            
+                            break;
+                            
+                        case 2:
+                            pc++;
+                            
+                            break;
+                            
+                        case 3:
+                            pc = t|(read(pc)<<8);
+                            
+                            break;
+                    }
+                    
+                    break;
+                
                 // Absolute addressing -- read instructions
                 
                 case 0x0D:
@@ -3432,6 +3484,11 @@ public class CPU {
                 // Implied addressing
                     
                 case 0x1A:
+                case 0x3A:
+                case 0x5A:
+                case 0x7A:
+                case 0xDA:
+                case 0xFA:
                     // NOP
                     imp(new Operation() {
                         @Override
@@ -3445,6 +3502,10 @@ public class CPU {
                 // Immediate addressing
                     
                 case 0x80:
+                case 0x82:
+                case 0x89:
+                case 0xC2:
+                case 0xE2:
                     // NOP
                     
                     imm(new Operation() {
@@ -3732,6 +3793,10 @@ public class CPU {
                 // Indexed with X
                     
                 case 0x1C:
+                case 0x5C:
+                case 0x7C:
+                case 0xDC:
+                case 0xFC:
                     absIRMW(x, new Operation() {
                         @Override
                         public int operation(CPU cpu, int value) {
@@ -4050,6 +4115,8 @@ public class CPU {
                 // Zeropage addressing
                     
                 case 0x04:
+                case 0x44:
+                case 0x64:
                     // NOP
                     
                     zpRead(new Operation() {
@@ -4194,6 +4261,11 @@ public class CPU {
                 // Indexed with X
                     
                 case 0x14:
+                case 0x34:
+                case 0x54:
+                case 0x74:
+                case 0xD4:
+                case 0xF4:
                     // NOP
                     
                     zpIRead(x, new Operation() {
@@ -4616,6 +4688,17 @@ public class CPU {
                 // STP
                     
                 case 0x02:
+                case 0x12:
+                case 0x22:
+                case 0x32:
+                case 0x42:
+                case 0x52:
+                case 0x62:
+                case 0x72:
+                case 0x92:
+                case 0xB2:
+                case 0xD2:
+                case 0xF2:
                     // STP
                     
                     // XXX: Am I emulating it accurately?
