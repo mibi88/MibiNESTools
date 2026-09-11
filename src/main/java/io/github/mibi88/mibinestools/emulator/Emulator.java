@@ -1,6 +1,6 @@
 /*
  * MibiNESTools - Create NES games easily!
- * Copyright (C) 2024  Mibi88
+ * Copyright (C) 2024, 2026  Mibi88
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ public class Emulator extends Editor {
     
     public void hardReset() {
         cpu = new CPU(rom);
-        ppu = new PPU(rom, screen);
+        ppu = new PPU(rom, screen, cpu);
         apu = new APU();
         dma = new DMA(rom);
 

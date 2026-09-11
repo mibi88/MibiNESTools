@@ -22,6 +22,6 @@ package io.github.mibi88.mibinestools.emulator;
  *
  * @author mibi88
  */
-public interface Controller {
-    
+public interface PPUHandler {
+    public void onCycle();
 }
