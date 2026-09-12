@@ -76,7 +76,8 @@ public class CPU {
     public CPU(Rom rom) {
         this.rom = rom;
         
-        pc = 0;
+        pc = Byte.toUnsignedInt(rom.read(0xFFFC))|
+                (Byte.toUnsignedInt(rom.read(0xFFFD))<<8);
         jammed = false;
         halted = false;
         

@@ -295,4 +295,12 @@ public class PPU {
         
         isEven = !isEven;
     }
+    
+    public byte read(int address) {
+        return 0; // TODO
+    }
+    
+    public void write(int address, byte value) {
+        // TODO
+    }
 }

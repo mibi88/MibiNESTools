@@ -18,33 +18,27 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
-import java.io.File;
-import java.io.FileInputStream;
-
 /**
  *
  * @author mibi88
  */
-public class Rom {
-    private byte[] data;
-    private Screen screen;
-    private byte[] ram;
-
+public abstract class Rom {
+    protected byte[] data;
+    
+    protected byte ppuIOBus;
+    
+    protected PPU ppu;
+    protected APU apu;
+    
+    protected Controller controller1;
+    protected Controller controller2;
+    
     /**
-     * Load a NES ROM.
-     * @param file The file to load.
-     * @throws Exception Thrown if the file could not be read.
+     * Create a new instance of the Rom class.
+     * @param data The content of the ROM file.
      */
-    public Rom(File file) throws Exception {
-        if(file != null){
-            FileInputStream fileStream = new FileInputStream(file);
-            data = new byte[fileStream.available()];
-            fileStream.read(data);
-            fileStream.close();
-        }else{
-            data = new byte[0x10000];
-        }
-        ram = new byte[0x800];
+    public Rom(byte[] data) {
+        this.data = data;
     }
     
     /**
@@ -52,27 +46,47 @@ public class Rom {
      * @param address The address to read from.
      * @return The byte read.
      */
-    public byte read(int address) {
-        return 0; // TODO
-    }
+    public abstract byte read(int address);
     
-    public void write(int address, byte value) {
-        //
-    }
+    public abstract void write(int address, byte value);
     
-    public byte readVram(int address) {
-        return 0; // TODO
-    }
+    public abstract byte readVram(int address);
     
-    public void writeVram(int address, byte value) {
-        //
-    }
+    public abstract void writeVram(int address, byte value);
     
     public void cpuCycleStart() {
-        //
+        // Do nothing
     }
     
     public void cpuCycleEnd() {
-        //
+        // Do nothing
+    }
+    
+    public byte setPPUIOBus(byte ppuIOBus) {
+        return this.ppuIOBus = ppuIOBus;
+    }
+    
+    public byte getPPUIOBus() {
+        return ppuIOBus;
+    }
+    
+    public void setPPU(PPU ppu) {
+        this.ppu = ppu;
+    }
+    
+    public void setAPU(APU apu) {
+        this.apu = apu;
+    }
+    
+    public void setController1(Controller controller) {
+        controller1 = controller;
+    }
+    
+    public void setController2(Controller controller) {
+        controller2 = controller;
+    }
+    
+    public void reset() {
+        // Do nothing
     }
 }

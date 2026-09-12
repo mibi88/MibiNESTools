@@ -22,6 +22,9 @@ package io.github.mibi88.mibinestools.emulator;
  *
  * @author mibi88
  */
-public interface Controller {
-    public byte read();
+public class RomUtils {
+    public static int getMapperId(byte[] data)
+            throws ArrayIndexOutOfBoundsException {
+        return (data[6]>>4)|(data[7]&0xF0);
+    }
 }
