@@ -25,7 +25,7 @@ package io.github.mibi88.mibinestools.emulator;
 public abstract class Rom {
     protected byte[] data;
     
-    protected byte ppuIOBus;
+    public byte ppuIOBus; // TODO: Move it to the PPU class
     
     protected PPU ppu;
     protected APU apu;
