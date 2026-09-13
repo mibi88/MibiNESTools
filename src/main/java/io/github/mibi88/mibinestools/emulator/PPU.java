@@ -379,7 +379,7 @@ public class PPU {
         
         onCycle();
         
-        cpu.setNmiPin(false);
+        //cpu.setNmiPin(false);
         
         for(int i=0;i<339;i++) onCycle();
         
@@ -503,6 +503,138 @@ public class PPU {
     }
     
     public void write(int register, byte value) {
-        // TODO
+        rom.ppuIOBus = value;
+        
+        switch(register){
+            case 0:
+                // PPUCTRL
+                
+                // TODO: Handle PPU startup properly
+                
+                t &= ~(3<<10);
+                t |= (value&3)<<10;
+                
+                ctrl = value;
+                
+                break;
+                
+            case 1:
+                // PPUMASK
+                
+                // TODO: Handle PPU startup properly
+                
+                mask = value;
+                
+                break;
+                
+            case 2:
+                // PPUSTATUS
+                
+                break;
+                
+            case 3:
+                // OAMADDR
+                
+                // TODO: Emulate corruption
+                
+                oamAddr = value;
+                
+                break;
+                
+            case 4:
+                // OAMDATA
+                
+                oam[oamAddr] = value;
+                oamAddr++;
+                
+                break;
+                
+            case 5:
+                // PPUSCROLL
+                
+                // TODO: Handle PPU startup properly
+                
+                if(w){
+                    // 2nd write
+                    
+                    t &= ~((7<<12)|(0b1111100000));
+                    t |= (value&7)<<12;
+                    t |= ((value>>3)&0b11111)<<5;
+                    
+                    w = false;
+                }else{
+                    // First write
+                    
+                    t &= ~0b11111;
+                    t |= (value>>3);
+                    x = value;
+                    w = true;
+                }
+                
+                break;
+                
+            case 6:
+                // PPUADDR
+                
+                // TODO: Handle PPU startup properly
+                
+                if(w){
+                    // 2nd write
+                    
+                    t &= ~0xFF;
+                    t |= value;
+                    
+                    v = t;
+                    
+                    w = false;
+                }else{
+                    // First write
+                    
+                    t &= 0xFF;
+                    t |= (value&0b111111)<<8;
+                    
+                    w = true;
+                }
+                
+                break;
+                
+            case 7:
+                // PPUDATA
+                
+                rom.writeVram(v&0b11111111111111, value);
+                
+                if(isRendering){
+                    // Increment coarse X in v
+                    int x = (v&0b11111)+1;
+
+                    v &= ~0b11111;
+                    v |= x&0b11111;
+
+                    // Switch nametable on overflow
+                    v ^= (x&(1<<5))<<5;
+
+                    // Increment the vertical position in v
+                    int y = v;
+
+                    y += (1<<12);
+                    y += (y&(y<<15))>>10;
+
+                    if((y&0b1111100000) == (30<<5)){
+                        y &= ~0b1111100000;
+                        v ^= 0x800;
+                    }
+
+                    v &= ~((7<<12)|0b1111100000);
+                    v |= y&((7<<12)|0b1111100000);
+                    
+                    // Have I understood the "read next value" that is written
+                    // in the wiki correctly?
+                    rom.ppuIOBus = rom.readVram(v&0b11111111111111);
+                }else{
+                    v += ((ctrl&CTRL_INC)>>2)*31+1;
+                }
+                
+                break;
+        }
     }
 }

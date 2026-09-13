@@ -125,9 +125,9 @@ public class Emulator extends Editor {
     
     public void hardReset() {
         cpu = new CPU(rom);
-        ppu = new PPU(rom, screen, cpu);
-        apu = new APU();
         dma = new DMA(rom);
+        apu = new APU(dma);
+        ppu = new PPU(rom, screen, cpu);
         
         rom.setPPU(ppu);
         rom.setAPU(apu);

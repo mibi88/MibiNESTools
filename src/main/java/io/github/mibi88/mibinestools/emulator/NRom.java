@@ -103,7 +103,30 @@ public class NRom extends Rom {
     
     @Override
     public void write(int address, byte value) {
-        //
+        if(address < 0x0800){
+            ram[address] = value;
+            bus = value;
+        }else if(address < 0x2000){
+            ram[address%0x0800] = value;
+            bus = value;
+        }else if(address < 0x4000){
+            ppu.write(address&7, value);
+            bus = value;
+        }else if(address < 0x4018){
+            // TODO: Write to the APU
+            
+            if(address == 0x4014){
+                apu.dma.startOAMDMA(Byte.toUnsignedInt(value));
+            }else if(address == 0x4016){
+                // TODO: Let the APU handle $4016
+                
+                bus = value;
+                controller1.strobe = value;
+                controller2.strobe = value;
+            }
+        }else if(address < 0x4020){
+            // CPU test mode
+        }
     }
     
     @Override

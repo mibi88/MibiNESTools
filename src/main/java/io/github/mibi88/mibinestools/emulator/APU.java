@@ -23,5 +23,9 @@ package io.github.mibi88.mibinestools.emulator;
  * @author mibi88
  */
 public class APU {
+    protected DMA dma;
     
+    public APU(DMA dma) {
+        this.dma = dma;
+    }
 }

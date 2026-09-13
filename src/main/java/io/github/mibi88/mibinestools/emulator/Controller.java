@@ -22,6 +22,8 @@ package io.github.mibi88.mibinestools.emulator;
  *
  * @author mibi88
  */
-public interface Controller {
-    public byte read();
+public abstract class Controller {
+    public byte strobe;
+    
+    public abstract byte read();
 }

@@ -18,6 +18,8 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
+import io.github.mibi88.mibinestools.cpu.Instructions;
+
 /**
  *
  * @author mibi88
@@ -56,6 +58,10 @@ public class CPU {
     private boolean nmiDetected;
     private boolean irqDetected;
     
+    private boolean shouldUpdateI;
+    
+    private int iValue;
+    
     private boolean executeIntNext;
     private boolean executeInt;
     
@@ -78,6 +84,7 @@ public class CPU {
         
         pc = Byte.toUnsignedInt(rom.read(0xFFFC))|
                 (Byte.toUnsignedInt(rom.read(0xFFFD))<<8);
+        pc = 0xC000;
         jammed = false;
         halted = false;
         
@@ -85,7 +92,7 @@ public class CPU {
         a = 0;
         x = 0;
         y = 0;
-        p = I_FLAG;
+        p = I_FLAG|(1<<5);
         
         cycle = 8;
         targetCycle = 0;
@@ -158,7 +165,7 @@ public class CPU {
     private void sbc(int value) {
         int oldA = this.a;
         
-        a = (a-value-(p&C_FLAG));
+        a = a-value-((p&C_FLAG)^1);
         
         if((a&(~0xFF)) == 0) p |= C_FLAG;
         else p &= ~C_FLAG;
@@ -262,6 +269,7 @@ public class CPU {
                 op.operation(this, t);
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
         }
@@ -276,12 +284,14 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
             case 3:
                 tmp1 = t|(read(pc)<<8);
                 pc++;
+                pc &= 0xFFFF;
 
                 break;
                 
@@ -301,6 +311,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -308,6 +319,7 @@ public class CPU {
                 tmp1 = t|(read(pc)<<8);
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -339,6 +351,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -346,6 +359,7 @@ public class CPU {
                 tmp1 = t|(read(pc)<<8);
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -365,6 +379,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -382,6 +397,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 tmp1 = t;
                 
@@ -414,6 +430,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -433,6 +450,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -444,6 +462,8 @@ public class CPU {
                 break;
                 
             case 4:
+                System.out.printf("Zeropage indexed load at address %02X!\n",
+                        t);
                 op.operation(this, read(t));
                 
                 break;
@@ -459,6 +479,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -483,6 +504,8 @@ public class CPU {
                 break;
                 
             case 6:
+                System.out.printf("Zeropage indexed RMW at address %02X!\n",
+                        tmp1);
                 write(tmp1, t);
                 
                 break;
@@ -498,6 +521,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -510,6 +534,8 @@ public class CPU {
                 break;
                 
             case 4:
+                System.out.printf("Zeropage indexed store at address %02X!\n",
+                        t);
                 write(t, op.operation(this, 0));
                 
                 break;
@@ -525,6 +551,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -540,6 +567,7 @@ public class CPU {
                 t = tmp;
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
             }
@@ -577,6 +605,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -592,6 +621,7 @@ public class CPU {
                 t = tmp;
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
             }
@@ -632,6 +662,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -647,6 +678,7 @@ public class CPU {
                 t = tmp;
                 
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
             }
@@ -669,12 +701,26 @@ public class CPU {
     private void relative(boolean shouldBranch) {
         switch(cycle){
             case 1:
+                // Check for interrupts
+                        
+                if(shouldUpdateI){
+                    System.out.println("Updated I!");
+                    p &= ~I_FLAG;
+                    p |= iValue;
+                    shouldUpdateI = false;
+                }
+
+                if(shouldNmi || (shouldIrq && (p&I_FLAG) == 0)){
+                    executeIntNext = true;
+                }
+                
                 targetCycle = 3;
                 
                 break;
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -688,6 +734,13 @@ public class CPU {
                     pc = (tmp&0xFF)|(pc&0xFF00);
                     if(pc != tmp1){
                         // Check for interrupts
+                        
+                        if(shouldUpdateI){
+                            System.out.println("Updated I!");
+                            p &= ~I_FLAG;
+                            p |= iValue;
+                            shouldUpdateI = false;
+                        }
 
                         if(shouldNmi || (shouldIrq && (p&I_FLAG) == 0)){
                             executeIntNext = true;
@@ -728,6 +781,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -764,6 +818,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -811,6 +866,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -845,6 +901,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -856,6 +913,7 @@ public class CPU {
             case 4:
                 tmp1 |= read((t+1)&0xFF)<<8;
                 tmp2 = tmp1+y;
+                tmp2 &= 0xFFFF;
                 tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
                 
                 break;
@@ -865,9 +923,9 @@ public class CPU {
                 int tmp = read(tmp1);
                 
                 if(tmp1 != tmp2){
-                    tmp1 = tmp2;
                     targetCycle++;
                 }else{
+                    System.out.printf("Read address: %04X\n", tmp1);
                     op.operation(this, tmp);
                 }
                 
@@ -878,7 +936,8 @@ public class CPU {
                 // This cycle is only executed if the effective address was
                 // fixed
                 
-                op.operation(this, read(tmp1));
+                System.out.printf("Read address: %04X\n", tmp2);
+                op.operation(this, read(tmp2));
                 
                 break;
         }
@@ -893,6 +952,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -904,6 +964,7 @@ public class CPU {
             case 4:
                 tmp1 |= read((t+1)&0xFF)<<8;
                 tmp2 = tmp1+y;
+                tmp2 &= 0xFFFF;
                 tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
                 
                 break;
@@ -938,6 +999,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -949,6 +1011,7 @@ public class CPU {
             case 4:
                 tmp1 |= read((t+1)&0xFF)<<8;
                 tmp2 = tmp1+y;
+                tmp2 &= 0xFFFF;
                 tmp1 = (tmp2&0xFF)|(tmp1&0xFF00);
                 
                 break;
@@ -976,6 +1039,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -1016,6 +1080,7 @@ public class CPU {
                 
             case 2:
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
                 
@@ -1030,6 +1095,7 @@ public class CPU {
                 tmp1 = (tmp1&0xFF)|(t<<8);
                 t = tmp;
                 pc++;
+                pc &= 0xFFFF;
                 
                 break;
             }
@@ -1088,7 +1154,7 @@ public class CPU {
         if(irqDetected) shouldIrq = true;
         
         if(cycle == 2){
-            t = read(lastRead);
+            t = read(pc);
         }else if(cycle > targetCycle){
             opcode = read(pc);
             
@@ -1099,6 +1165,7 @@ public class CPU {
                 executeIntNext = false;
             }else{
                 pc++;
+                pc &= 0xFFFF;
             }
         }
         
@@ -1111,11 +1178,23 @@ public class CPU {
                     executeIntNext = false;
                 }else{
                     pc++;
+                    pc &= 0xFFFF;
                 }
                 
                 opcodeLoaded = false;
             }
             
+            if(cycle == 1){
+                System.out.printf("Instruction %s (%02X) -- cycle: %d PC: %04X "
+                        + "A: %02X X: %02X Y: %02X S: %02X "
+                        + "P: %c%c-%c%c%c%c%c (%02X)\n",
+                        Instructions.names[opcode], opcode, cycle, pc-1, a, x, y, s,
+                        (p&N_FLAG) != 0 ? 'N' : '-', (p&V_FLAG) != 0 ? 'V' : '-',
+                        (p&B_FLAG) != 0 ? 'B' : '-', (p&D_FLAG) != 0 ? 'D' : '-',
+                        (p&I_FLAG) != 0 ? 'I' : '-', (p&Z_FLAG) != 0 ? 'Z' : '-',
+                        (p&C_FLAG) != 0 ? 'C' : '-', p);
+            }
+                
             if(executeInt){
                 switch(cycle){
                     case 1:
@@ -1132,12 +1211,15 @@ public class CPU {
                     case 3:
                         write(0x0100+s, pc>>8);
                         s--;
+                        s &= 0xFF;
+                        
                         break;
                         
                     case 4:
                         // NOTE: write only keeps the lower 8 bits anyways
                         write(0x0100+s, pc);
                         s--;
+                        s &= 0xFF;
                         
                         isIrq = true;
                         if(shouldNmi){
@@ -1149,6 +1231,8 @@ public class CPU {
                     case 5:
                         write(0x0100+s, p);
                         s--;
+                        s &= 0xFF;
+                        
                         break;
                         
                     case 6:
@@ -1180,12 +1264,15 @@ public class CPU {
                             
                         case 2:
                             pc++;
+                            pc &= 0xFFFF;
                             
                             break;
                             
                         case 3:
                             write(0x0100+s, pc>>8);
                             s--;
+                            s &= 0xFF;
+                            
                             p |= B_FLAG;
                             
                             break;
@@ -1193,6 +1280,7 @@ public class CPU {
                         case 4:
                             write(0x0100+s, pc);
                             s--;
+                            s &= 0xFF;
                             
                             isIrq = true;
                             
@@ -1206,6 +1294,7 @@ public class CPU {
                         case 5:
                             write(0x0100+s, p);
                             s--;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1237,12 +1326,14 @@ public class CPU {
                             
                         case 3:
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
                         case 4:
                             p = read(0x0100+s);
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1250,6 +1341,7 @@ public class CPU {
                             pc &= 0xFF00;
                             pc |= read(0x0100+s);
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1273,6 +1365,7 @@ public class CPU {
                             
                         case 3:
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1280,6 +1373,7 @@ public class CPU {
                             pc &= 0xFF00;
                             pc |= read(0x0100+s);
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1291,6 +1385,9 @@ public class CPU {
                             
                         case 6:
                             pc++;
+                            pc &= 0xFFFF;
+                            
+                            break;
                     }
                     
                     break;
@@ -1307,6 +1404,7 @@ public class CPU {
                         case 3:
                             write(0x0100+s, a);
                             s--;
+                            s &= 0xFF;
                             
                             break;
                     }
@@ -1325,6 +1423,7 @@ public class CPU {
                         case 3:
                             write(0x0100+s, p|(1<<5)|B_FLAG);
                             s--;
+                            s &= 0xFF;
                             
                             break;
                     }
@@ -1342,6 +1441,7 @@ public class CPU {
                             
                         case 3:
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1366,13 +1466,24 @@ public class CPU {
                             
                         case 3:
                             s++;
+                            s &= 0xFF;
                             
                             break;
                             
                         case 4:
-                            p = read(0x0100+s)&~B_FLAG;
+                        {
+                            p &= B_FLAG|(1<<5)|I_FLAG;
+                            
+                            int value = read(0x0100+s);
+                            System.out.printf("PLP read %04X from the stack!\n", value);
+                            
+                            iValue = value&I_FLAG;
+                            shouldUpdateI = true;
+                            
+                            p |= value&~(B_FLAG|(1<<5)|I_FLAG);
                             
                             break;
+                        }
                     }
                     
                     break;
@@ -1388,18 +1499,21 @@ public class CPU {
                             
                         case 2:
                             pc++;
+                            pc &= 0xFFFF;
                             
                             break;
                             
                         case 4:
                             write(0x0100+s, pc>>8);
                             s--;
+                            s &= 0xFF;
                             
                             break;
                             
                         case 5:
                             write(0x0100+s, pc);
                             s--;
+                            s &= 0xFF;
                             
                             break;
                             
@@ -1479,7 +1593,10 @@ public class CPU {
                     imp(new Operation() {
                         @Override
                         public int operation(CPU cpu, int value) {
-                            return p &= ~I_FLAG;
+                            iValue = 0;
+                            shouldUpdateI = true;
+                            
+                            return 0;
                         }
                     });
                     
@@ -1503,7 +1620,10 @@ public class CPU {
                     imp(new Operation() {
                         @Override
                         public int operation(CPU cpu, int value) {
-                            return p |= I_FLAG;
+                            iValue = I_FLAG;
+                            shouldUpdateI = true;
+                            
+                            return 0;
                         }
                     });
                     
@@ -1565,8 +1685,6 @@ public class CPU {
                         @Override
                         public int operation(CPU cpu, int value) {
                             s = x;
-                            
-                            updateNZ(s);
                             
                             return 0;
                         }
@@ -1906,6 +2024,7 @@ public class CPU {
                             
                         case 2:
                             pc++;
+                            pc &= 0xFFFF;
                             
                             break;
                             
@@ -2731,7 +2850,7 @@ public class CPU {
                             
                             updateNZ(value);
                             
-                            return 0;
+                            return value;
                         }
                     });
                     
@@ -3350,7 +3469,7 @@ public class CPU {
                         public int operation(CPU cpu, int value) {
                             a |= value;
                             
-                            updateNZ(value);
+                            updateNZ(a);
                             
                             return 0;
                         }
@@ -3366,7 +3485,7 @@ public class CPU {
                         public int operation(CPU cpu, int value) {
                             a &= value;
                             
-                            updateNZ(value);
+                            updateNZ(a);
                             
                             return 0;
                         }
@@ -3382,7 +3501,7 @@ public class CPU {
                         public int operation(CPU cpu, int value) {
                             a ^= value;
                             
-                            updateNZ(value);
+                            updateNZ(a);
                             
                             return 0;
                         }
@@ -3459,6 +3578,8 @@ public class CPU {
                             return a;
                         }
                     });
+                    
+                    break;
                 
                 // Indirect absolute addressing
                     
@@ -3473,6 +3594,7 @@ public class CPU {
                             
                         case 2:
                             pc++;
+                            pc &= 0xFFFF;
                             
                             break;
                             
@@ -3480,6 +3602,7 @@ public class CPU {
                             tmp1 = read(pc)<<8;
                             tmp1 |= t;
                             pc++;
+                            pc &= 0xFFFF;
                             
                             break;
                             
@@ -4726,6 +4849,13 @@ public class CPU {
         
         if((opcode&31) != 16 && opcode != 0 && cycle == targetCycle-1){
             // Check for interrupts
+            
+            if(shouldUpdateI){
+                System.out.println("Updated I!");
+                p &= ~I_FLAG;
+                p |= iValue;
+                shouldUpdateI = false;
+            }
 
             if(shouldNmi || (shouldIrq && (p&I_FLAG) == 0)){
                 executeIntNext = true;
