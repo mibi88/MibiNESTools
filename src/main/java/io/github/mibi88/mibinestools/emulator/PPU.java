@@ -379,7 +379,7 @@ public class PPU {
         
         onCycle();
         
-        //cpu.setNmiPin(false);
+        cpu.setNmiPin(false);
         
         for(int i=0;i<339;i++) onCycle();
         

@@ -84,7 +84,6 @@ public class CPU {
         
         pc = Byte.toUnsignedInt(rom.read(0xFFFC))|
                 (Byte.toUnsignedInt(rom.read(0xFFFD))<<8);
-        pc = 0xC000;
         jammed = false;
         halted = false;
         
@@ -462,8 +461,6 @@ public class CPU {
                 break;
                 
             case 4:
-                System.out.printf("Zeropage indexed load at address %02X!\n",
-                        t);
                 op.operation(this, read(t));
                 
                 break;
@@ -504,8 +501,6 @@ public class CPU {
                 break;
                 
             case 6:
-                System.out.printf("Zeropage indexed RMW at address %02X!\n",
-                        tmp1);
                 write(tmp1, t);
                 
                 break;
@@ -534,8 +529,6 @@ public class CPU {
                 break;
                 
             case 4:
-                System.out.printf("Zeropage indexed store at address %02X!\n",
-                        t);
                 write(t, op.operation(this, 0));
                 
                 break;
@@ -704,7 +697,6 @@ public class CPU {
                 // Check for interrupts
                         
                 if(shouldUpdateI){
-                    System.out.println("Updated I!");
                     p &= ~I_FLAG;
                     p |= iValue;
                     shouldUpdateI = false;
@@ -736,7 +728,6 @@ public class CPU {
                         // Check for interrupts
                         
                         if(shouldUpdateI){
-                            System.out.println("Updated I!");
                             p &= ~I_FLAG;
                             p |= iValue;
                             shouldUpdateI = false;
@@ -925,7 +916,6 @@ public class CPU {
                 if(tmp1 != tmp2){
                     targetCycle++;
                 }else{
-                    System.out.printf("Read address: %04X\n", tmp1);
                     op.operation(this, tmp);
                 }
                 
@@ -936,7 +926,6 @@ public class CPU {
                 // This cycle is only executed if the effective address was
                 // fixed
                 
-                System.out.printf("Read address: %04X\n", tmp2);
                 op.operation(this, read(tmp2));
                 
                 break;
@@ -1184,14 +1173,18 @@ public class CPU {
                 opcodeLoaded = false;
             }
             
-            if(cycle == 1){
+            if(cycle == 1 && false){
                 System.out.printf("Instruction %s (%02X) -- cycle: %d PC: %04X "
                         + "A: %02X X: %02X Y: %02X S: %02X "
                         + "P: %c%c-%c%c%c%c%c (%02X)\n",
-                        Instructions.names[opcode], opcode, cycle, pc-1, a, x, y, s,
-                        (p&N_FLAG) != 0 ? 'N' : '-', (p&V_FLAG) != 0 ? 'V' : '-',
-                        (p&B_FLAG) != 0 ? 'B' : '-', (p&D_FLAG) != 0 ? 'D' : '-',
-                        (p&I_FLAG) != 0 ? 'I' : '-', (p&Z_FLAG) != 0 ? 'Z' : '-',
+                        Instructions.names[opcode], opcode, cycle,
+                        pc-1, a, x, y, s,
+                        (p&N_FLAG) != 0 ? 'N' : '-',
+                        (p&V_FLAG) != 0 ? 'V' : '-',
+                        (p&B_FLAG) != 0 ? 'B' : '-',
+                        (p&D_FLAG) != 0 ? 'D' : '-',
+                        (p&I_FLAG) != 0 ? 'I' : '-',
+                        (p&Z_FLAG) != 0 ? 'Z' : '-',
                         (p&C_FLAG) != 0 ? 'C' : '-', p);
             }
                 
@@ -4851,7 +4844,6 @@ public class CPU {
             // Check for interrupts
             
             if(shouldUpdateI){
-                System.out.println("Updated I!");
                 p &= ~I_FLAG;
                 p |= iValue;
                 shouldUpdateI = false;
