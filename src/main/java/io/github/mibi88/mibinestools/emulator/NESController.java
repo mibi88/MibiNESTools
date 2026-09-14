@@ -22,15 +22,34 @@ package io.github.mibi88.mibinestools.emulator;
  *
  * @author mibi88
  */
-public abstract class Controller {
-    public boolean strobe;
-    public byte reg;
+public abstract class NESController extends Controller {
+    public static final byte A_BUTTON = (byte)(1);
+    public static final byte B_BUTTON = (byte)(1<<1);
+    public static final byte SELECT_BUTTON = (byte)(1<<2);
+    public static final byte START_BUTTON = (byte)(1<<3);
+    public static final byte UP_BUTTON = (byte)(1<<4);
+    public static final byte DOWN_BUTTON = (byte)(1<<5);
+    public static final byte LEFT_BUTTON = (byte)(1<<6);
+    public static final byte RIGHT_BUTTON = (byte)(1<<7);
     
-    public Controller() {
-        strobe = true;
+    @Override
+    public byte read() {
+        byte value = (byte)(reg&1);
+        
+        // Shift reg
+        reg >>= 1;
+        reg |= 1<<7;
+        
+        return value;
+    }
+
+    @Override
+    public void cycle() {
+        if(strobe){
+            reg = getInput();
+        }
     }
     
-    public abstract byte read();
+    public abstract byte getInput();
     
-    public abstract void cycle();
 }

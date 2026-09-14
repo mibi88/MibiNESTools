@@ -21,8 +21,11 @@ package io.github.mibi88.mibinestools.emulator;
 import io.github.mibi88.mibinestools.Editor;
 import io.github.mibi88.mibinestools.Window;
 import java.awt.BorderLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Constructor;
@@ -57,6 +60,19 @@ public class Emulator extends Editor {
     
     private HashMap<Integer, Class> mappers;
     
+    private byte player1Buttons = 0;
+    
+    private int[] player1Keys = new int[] {
+        KeyEvent.VK_E,
+        KeyEvent.VK_R,
+        KeyEvent.VK_SPACE,
+        KeyEvent.VK_ENTER,
+        KeyEvent.VK_UP,
+        KeyEvent.VK_DOWN,
+        KeyEvent.VK_LEFT,
+        KeyEvent.VK_RIGHT,
+    };
+    
     /**
      * Create a new emulator.
      * @param window The window to use with this emulator.
@@ -81,6 +97,31 @@ public class Emulator extends Editor {
             Logger.getLogger(Emulator.class.getName()).log(
                     Level.SEVERE, null, ex);
         }
+        
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent e) {
+                int keyEvent = e.getID();
+                int keyCode = e.getKeyCode();
+                
+                if(keyEvent == KeyEvent.KEY_PRESSED){
+                    for(int i=0;i<8;i++){
+                        if(keyCode == player1Keys[i]){
+                            System.out.printf("Button %d pressed!\n", i);
+                            player1Buttons |= 1<<i;
+                        }
+                    }
+                }else if(keyEvent == KeyEvent.KEY_RELEASED){
+                    for(int i=0;i<8;i++){
+                        if(keyCode == player1Keys[i]){
+                            System.out.printf("Button %d released!\n", i);
+                            player1Buttons &= ~(1<<i);
+                        }
+                    }
+                }
+                return false;
+            }
+        });
     }
     
     private void romFromFile(File file) {
@@ -132,16 +173,16 @@ public class Emulator extends Editor {
         rom.setPPU(ppu);
         rom.setAPU(apu);
 
-        controller1 = new Controller() {
+        controller1 = new NESController() {
             @Override
-            public byte read() {
-                return 0;
+            public byte getInput() {
+                return player1Buttons; //
             }
         };
-        controller2 = new Controller() {
+        controller2 = new NESController() {
             @Override
-            public byte read() {
-                return 0;
+            public byte getInput() {
+                return 0; //
             }
         };
         

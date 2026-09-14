@@ -154,7 +154,6 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
@@ -232,7 +231,6 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
@@ -310,7 +308,6 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             onCycle();
@@ -423,7 +420,6 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             onCycle();

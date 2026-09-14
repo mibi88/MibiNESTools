@@ -121,8 +121,8 @@ public class NRom extends Rom {
                 // TODO: Let the APU handle $4016
                 
                 bus = value;
-                controller1.strobe = value;
-                controller2.strobe = value;
+                controller1.strobe = value != 0;
+                controller2.strobe = value != 0;
             }
         }else if(address < 0x4020){
             // CPU test mode
