@@ -111,8 +111,8 @@ public class PPU {
     private void outputAPixel() {
         // TODO
         
-        int attribute = (attr1Shift>>7)&1;
-        int bgColor = ((lowShift>>7)&1)|(((highShift>>7)&1)<<1);
+        int attribute = (attr1Shift>>(7-x))&1;
+        int bgColor = ((lowShift>>(15-x))&1)|(((highShift>>(15-x))&1)<<1);
         
         byte color = rom.readVram(0x3F00+4*attribute+bgColor);
         
@@ -133,12 +133,12 @@ public class PPU {
     
     private void emulateVisibleScanline(boolean preRender, boolean first) {
         if(first && !isEven){
-            rom.readVram(0x2000|(v&0x0FFF));
+            if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
         }
         onCycle();
         
         if(preRender){
-            cpu.setNmiPin(true);
+            if((ctrl&CTRL_NMI) != 0) cpu.setNmiPin(true);
             
             vBlank = false;
             sprite0Hit = false;
@@ -149,280 +149,361 @@ public class PPU {
         for(int i=0;i<2;i++){
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            // XXX: What value should it contain when rendering is disabled?
+            int tileId = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
+                        (v&0x0FFF)));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
-
-            onCycle();
-            outputAPixel();
-            shiftBackground();
-
-            int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                    ((v>>2)&7));
-            onCycle();
-            outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    ((v>>12)&7));
+            // XXX: What value should it contain when rendering is disabled?
+            int attr = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
-
-            onCycle();
-            outputAPixel();
-            shiftBackground();
-
-            int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    (1<<3)|((v>>12)&7));
-
-            // Fill the shift registers
-            lowShift &= ~0xFF;
-            highShift &= ~0xFF;
-
-            lowShift |= lowBp;
-            highShift |= highBp;
-
-            attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-            attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
-
-            // Increment coarse X in v
-            int x = (v&0b11111)+1;
-
-            v &= ~0b11111;
-            v |= x&0b11111;
-
-            // Switch nametable on overflow
-            v ^= (x&(1<<5))<<5;
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            // XXX: What value should it contain when rendering is disabled?
+            int lowBp = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        ((v>>12)&7));
+            }
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            if((mask&MASK_BACKGROUND) != 0){
+                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        (1<<3)|((v>>12)&7));
+                
+                // Fill the shift registers
+                lowShift &= ~0xFF;
+                highShift &= ~0xFF;
+
+                lowShift |= lowBp;
+                highShift |= highBp;
+
+                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
+                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+
+                // Increment coarse X in v
+                int x = (v&0b11111)+1;
+
+                v &= ~0b11111;
+                v |= x&0b11111;
+
+                // Switch nametable on overflow
+                v ^= (x&(1<<5))<<5;
+            }
+
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
 
         for(int i=0;i<29;i++){
             // TODO: Evaluate sprites
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            // XXX: What value should it contain when rendering is disabled?
+            int tileId = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
+                        (v&0x0FFF)));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
-
-            onCycle();
-            outputAPixel();
-            shiftBackground();
-
-            int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                    ((v>>2)&7));
-            onCycle();
-            outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    ((v>>12)&7));
+            // XXX: What value should it contain when rendering is disabled?
+            int attr = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
-
-            onCycle();
-            outputAPixel();
-            shiftBackground();
-
-            int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    (1<<3)|((v>>12)&7));
-
-            // Fill the shift registers
-            lowShift &= ~0xFF;
-            highShift &= ~0xFF;
-
-            lowShift |= lowBp;
-            highShift |= highBp;
-
-            attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-            attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
-
-            // Increment coarse X in v
-            int x = (v&0b11111)+1;
-
-            v &= ~0b11111;
-            v |= x&0b11111;
-
-            // Switch nametable on overflow
-            v ^= (x&(1<<5))<<5;
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            // XXX: What value should it contain when rendering is disabled?
+            int lowBp = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        ((v>>12)&7));
+            }
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            if((mask&MASK_BACKGROUND) != 0){
+                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        (1<<3)|((v>>12)&7));
+                
+                // Fill the shift registers
+                lowShift &= ~0xFF;
+                highShift &= ~0xFF;
+
+                lowShift |= lowBp;
+                highShift |= highBp;
+
+                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
+                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+
+                // Increment coarse X in v
+                int x = (v&0b11111)+1;
+
+                v &= ~0b11111;
+                v |= x&0b11111;
+
+                // Switch nametable on overflow
+                v ^= (x&(1<<5))<<5;
+            }
+
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
         
         {
             // TODO: Evaluate sprites
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
-            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            // XXX: What value should it contain when rendering is disabled?
+            int tileId = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
-            
-            onCycle();
-            outputAPixel();
-            shiftBackground();
-            
-            int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                    ((v>>2)&7));
-            onCycle();
-            outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
-            int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    ((v>>12)&7));
+            // XXX: What value should it contain when rendering is disabled?
+            int attr = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
-            int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    (1<<3)|((v>>12)&7));
+            // XXX: What value should it contain when rendering is disabled?
+            int lowBp = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        ((v>>12)&7));
+            }
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
-            // Fill the shift registers
-            lowShift &= ~0xFF;
-            highShift &= ~0xFF;
+            onCycle();
+            outputAPixel();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
-            lowShift |= lowBp;
-            highShift |= highBp;
-            
-            attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-            attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
-            
-            // Increment coarse X in v
-            int x = (v&0b11111)+1;
-            
-            v &= ~0b11111;
-            v |= x&0b11111;
-            
-            // Switch nametable on overflow
-            v ^= (x&(1<<5))<<5;
-            
-            // Increment the vertical position in v
-            int y = v;
-            
-            y += (1<<12);
-            y += (y&(y<<15))>>10;
-            
-            if((y&0b1111100000) == (30<<5)){
-                y &= ~0b1111100000;
-                v ^= 0x800;
+            if((mask&MASK_BACKGROUND) != 0){
+                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        (1<<3)|((v>>12)&7));
+
+                // Fill the shift registers
+                lowShift &= ~0xFF;
+                highShift &= ~0xFF;
+
+                lowShift |= lowBp;
+                highShift |= highBp;
+
+                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
+                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+
+                // Increment coarse X in v
+                int x = (v&0b11111)+1;
+
+                v &= ~0b11111;
+                v |= x&0b11111;
+
+                // Switch nametable on overflow
+                v ^= (x&(1<<5))<<5;
+
+                // Increment the vertical position in v
+                int y = v;
+
+                y += (1<<12);
+                y += (y&(y<<15))>>10;
+
+                if((y&0b1111100000) == (30<<5)){
+                    y &= ~0b1111100000;
+                    v ^= 0x800;
+                }
+
+                v &= ~((7<<12)|0b1111100000);
+                v |= y&((7<<12)|0b1111100000);
             }
             
-            v &= ~((7<<12)|0b1111100000);
-            v |= y&((7<<12)|0b1111100000);
-            
             onCycle();
             outputAPixel();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0){
+                shiftBackground();
+                v &= ~(0b11111|0x400);
+                v |= t&(0b11111|0x400);
+            }
         }
         
         // TODO: Load the sprite tile data
-        for(int i=0;i<320-257;i++) onCycle();
+        for(int i=0;i<280-257;i++) onCycle();
+        
+        if(preRender){
+            for(int i=0;i<304-280;i++){
+                if((mask&MASK_BACKGROUND) != 0){
+                    v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                    v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+                }
+
+                onCycle();
+            }
+        }else{
+            for(int i=0;i<304-280;i++){
+                onCycle();
+            }
+        }
+        
+        for(int i=0;i<320-304;i++) onCycle();
         
         for(int i=0;i<2;i++){
             onCycle();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            // XXX: What value should it contain when rendering is disabled?
+            int tileId = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+            }
             onCycle();
-            shiftBackground();
-
-            onCycle();
-            shiftBackground();
-
-            int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                    ((v>>2)&7));
-            onCycle();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
-            int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    ((v>>12)&7));
+            // XXX: What value should it contain when rendering is disabled?
+            int attr = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
             onCycle();
-            shiftBackground();
-
-            onCycle();
-            shiftBackground();
-
-            int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                    (1<<3)|((v>>12)&7));
-
-            // Fill the shift registers
-            lowShift &= ~0xFF;
-            highShift &= ~0xFF;
-
-            lowShift |= lowBp;
-            highShift |= highBp;
-
-            attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-            attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
-
-            // Increment coarse X in v
-            int x = (v&0b11111)+1;
-
-            v &= ~0b11111;
-            v |= x&0b11111;
-
-            // Switch nametable on overflow
-            v ^= (x&(1<<5))<<5;
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            shiftBackground();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            // XXX: What value should it contain when rendering is disabled?
+            int lowBp = 0;
+            if((mask&MASK_BACKGROUND) != 0){
+                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        ((v>>12)&7));
+            }
+            onCycle();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            onCycle();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+
+            if((mask&MASK_BACKGROUND) != 0){
+                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                        (1<<3)|((v>>12)&7));
+
+                // Fill the shift registers
+                lowShift &= ~0xFF;
+                highShift &= ~0xFF;
+
+                lowShift |= lowBp;
+                highShift |= highBp;
+
+                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
+                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+
+                // Increment coarse X in v
+                int x = (v&0b11111)+1;
+
+                v &= ~0b11111;
+                v |= x&0b11111;
+
+                // Switch nametable on overflow
+                v ^= (x&(1<<5))<<5;
+            }
+
+            onCycle();
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
         
         // Dummy nametable fetches
         
         onCycle();
 
-        rom.readVram(0x2000|(v&0x0FFF));
+        if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
         onCycle();
         
         onCycle();
         
         if(!preRender && isEven){
-            rom.readVram(0x2000|(v&0x0FFF));
+            if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
             onCycle();
         }
     }
     
     public void emulateFrame() {
+        isRendering = true;
         emulateVisibleScanline(true, false);
         
         emulateVisibleScanline(false, true);
         for(int i=0;i<239;i++){
             emulateVisibleScanline(false, false);
         }
+        isRendering = false;
         
         // Post-render scanline
         for(int i=0;i<340;i++) onCycle();
@@ -434,7 +515,7 @@ public class PPU {
         if(!keepVBlankClear) vBlank = true;
         keepVBlankClear = false;
         
-        cpu.setNmiPin(false);
+        if((ctrl&CTRL_NMI) != 0) cpu.setNmiPin(false);
         
         for(int i=0;i<339;i++) onCycle();
         
@@ -507,7 +588,7 @@ public class PPU {
                 readBuffer = rom.readVram(address);
                 rom.ppuIOBus = readBuffer;
                 
-                if(isRendering){
+                if(isRendering && (mask&MASK_RENDER) != 0){
                     // Increment coarse X in v
                     int x = (v&0b11111)+1;
 
@@ -559,6 +640,11 @@ public class PPU {
     
     public void write(int register, byte value) {
         rom.ppuIOBus = value;
+        
+        if(false){
+            System.out.printf("Writing %02X to register %d -- v: %04X\n",
+                    value, register, v);
+        }
         
         switch(register){
             case 0:
@@ -658,7 +744,7 @@ public class PPU {
                 
                 rom.writeVram(v&0b11111111111111, value);
                 
-                if(isRendering){
+                if(isRendering && (mask&MASK_RENDER) != 0){
                     // Increment coarse X in v
                     int x = (v&0b11111)+1;
 

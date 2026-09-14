@@ -1468,7 +1468,6 @@ public class CPU {
                             p &= B_FLAG|(1<<5)|I_FLAG;
                             
                             int value = read(0x0100+s);
-                            System.out.printf("PLP read %04X from the stack!\n", value);
                             
                             iValue = value&I_FLAG;
                             shouldUpdateI = true;
