@@ -111,12 +111,24 @@ public class PPU {
     private void outputAPixel() {
         // TODO
         
-        int attribute = (attr1Shift>>7);
-        int bgColor = (lowShift>>7)|((highShift>>7)<<1);
+        int attribute = (attr1Shift>>7)&1;
+        int bgColor = ((lowShift>>7)&1)|(((highShift>>7)&1)<<1);
         
         byte color = rom.readVram(0x3F00+4*attribute+bgColor);
         
         screen.putPixel(color);
+    }
+    
+    private void shiftBackground() {
+        lowShift <<= 1;
+        lowShift |= 1;
+        highShift <<= 1;
+        highShift |= 1;
+        
+        attr1Shift <<= 1;
+        attr1Shift |= attrLatch1;
+        attr2Shift <<= 1;
+        attr2Shift |= attrLatch2;
     }
     
     private void emulateVisibleScanline(boolean preRender, boolean first) {
@@ -124,34 +136,49 @@ public class PPU {
             rom.readVram(0x2000|(v&0x0FFF));
         }
         onCycle();
+        
+        if(preRender){
+            cpu.setNmiPin(true);
+            
+            vBlank = false;
+            sprite0Hit = false;
+            spriteOverflow = false;
+        }
 
         Arrays.fill(secondaryOAM, (byte)0xFF);
         for(int i=0;i<2;i++){
             onCycle();
             outputAPixel();
+            shiftBackground();
 
-            int tileId = rom.readVram(0x2000|(v&0x0FFF));
+            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                     ((v>>2)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     ((v>>12)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     (1<<3)|((v>>12)&7));
@@ -177,35 +204,43 @@ public class PPU {
 
             onCycle();
             outputAPixel();
+            shiftBackground();
         }
 
         for(int i=0;i<29;i++){
             // TODO: Evaluate sprites
             onCycle();
             outputAPixel();
+            shiftBackground();
 
-            int tileId = rom.readVram(0x2000|(v&0x0FFF));
+            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                     ((v>>2)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     ((v>>12)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             onCycle();
             outputAPixel();
+            shiftBackground();
 
             int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     (1<<3)|((v>>12)&7));
@@ -231,35 +266,43 @@ public class PPU {
 
             onCycle();
             outputAPixel();
+            shiftBackground();
         }
         
         {
             // TODO: Evaluate sprites
             onCycle();
             outputAPixel();
+            shiftBackground();
             
-            int tileId = rom.readVram(0x2000|(v&0x0FFF));
+            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                     ((v>>2)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     ((v>>12)&7));
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             onCycle();
             outputAPixel();
+            shiftBackground();
             
             int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     (1<<3)|((v>>12)&7));
@@ -299,6 +342,7 @@ public class PPU {
             
             onCycle();
             outputAPixel();
+            shiftBackground();
         }
         
         // TODO: Load the sprite tile data
@@ -306,23 +350,30 @@ public class PPU {
         
         for(int i=0;i<2;i++){
             onCycle();
+            shiftBackground();
 
-            int tileId = rom.readVram(0x2000|(v&0x0FFF));
+            int tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             onCycle();
+            shiftBackground();
 
             onCycle();
+            shiftBackground();
 
             int attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                     ((v>>2)&7));
             onCycle();
+            shiftBackground();
 
             onCycle();
+            shiftBackground();
 
             int lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     ((v>>12)&7));
             onCycle();
+            shiftBackground();
 
             onCycle();
+            shiftBackground();
 
             int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                     (1<<3)|((v>>12)&7));
@@ -347,6 +398,7 @@ public class PPU {
             v ^= (x&(1<<5))<<5;
 
             onCycle();
+            shiftBackground();
         }
         
         // Dummy nametable fetches
@@ -378,6 +430,9 @@ public class PPU {
         // First VBlank scanline
         
         onCycle();
+        
+        if(!keepVBlankClear) vBlank = true;
+        keepVBlankClear = false;
         
         cpu.setNmiPin(false);
         

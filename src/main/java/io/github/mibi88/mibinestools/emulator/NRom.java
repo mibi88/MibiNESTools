@@ -131,7 +131,7 @@ public class NRom extends Rom {
     
     @Override
     public byte readVram(int address) {
-        if(address < 0x200){
+        if(address < 0x2000){
             return chr[address];
         }else if(address < 0x3000){
             if(horizontal){
