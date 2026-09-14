@@ -154,6 +154,7 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
+                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
@@ -231,6 +232,7 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
+                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
@@ -308,6 +310,7 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
+                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             onCycle();
@@ -373,7 +376,7 @@ public class PPU {
                 int y = v;
 
                 y += (1<<12);
-                y += (y&(y<<15))>>10;
+                y += (y&(1<<15))>>10;
 
                 if((y&0b1111100000) == (30<<5)){
                     y &= ~0b1111100000;
@@ -420,6 +423,7 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
+                System.out.printf("v: %04X\n", 0x2000|(v&0x0FFF));
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             onCycle();
@@ -602,7 +606,7 @@ public class PPU {
                     int y = v;
 
                     y += (1<<12);
-                    y += (y&(y<<15))>>10;
+                    y += (y&(1<<15))>>10;
 
                     if((y&0b1111100000) == (30<<5)){
                         y &= ~0b1111100000;
@@ -758,7 +762,7 @@ public class PPU {
                     int y = v;
 
                     y += (1<<12);
-                    y += (y&(y<<15))>>10;
+                    y += (y&(1<<15))>>10;
 
                     if((y&0b1111100000) == (30<<5)){
                         y &= ~0b1111100000;

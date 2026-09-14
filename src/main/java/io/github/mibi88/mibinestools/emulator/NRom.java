@@ -131,7 +131,6 @@ public class NRom extends Rom {
     
     @Override
     public byte readVram(int address) {
-        if((address&0xF000) == 0x2000) System.out.printf("Read at address %04X\n", address);
         if(address < 0x2000){
             return chr[address];
         }else if(address < 0x3000){
