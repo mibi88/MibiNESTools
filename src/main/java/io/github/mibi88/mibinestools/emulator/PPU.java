@@ -148,7 +148,7 @@ public class PPU {
         Arrays.fill(secondaryOAM, (byte)0xFF);
         for(int i=0;i<2;i++){
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -158,11 +158,11 @@ public class PPU {
                         (v&0x0FFF)));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -172,11 +172,11 @@ public class PPU {
                         ((v>>2)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -186,11 +186,11 @@ public class PPU {
                         ((v>>12)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             if((mask&MASK_BACKGROUND) != 0){
@@ -218,14 +218,14 @@ public class PPU {
             }
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
 
         for(int i=0;i<29;i++){
             // TODO: Evaluate sprites
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -235,11 +235,11 @@ public class PPU {
                         (v&0x0FFF)));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -249,11 +249,11 @@ public class PPU {
                         ((v>>2)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             // XXX: What value should it contain when rendering is disabled?
@@ -263,11 +263,11 @@ public class PPU {
                         ((v>>12)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             if((mask&MASK_BACKGROUND) != 0){
@@ -295,14 +295,14 @@ public class PPU {
             }
 
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
         
         {
             // TODO: Evaluate sprites
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             // XXX: What value should it contain when rendering is disabled?
@@ -311,11 +311,11 @@ public class PPU {
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             // XXX: What value should it contain when rendering is disabled?
@@ -325,11 +325,11 @@ public class PPU {
                         ((v>>2)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             // XXX: What value should it contain when rendering is disabled?
@@ -339,11 +339,11 @@ public class PPU {
                         ((v>>12)&7));
             }
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             
             if((mask&MASK_BACKGROUND) != 0){
@@ -385,7 +385,7 @@ public class PPU {
             }
             
             onCycle();
-            outputAPixel();
+            if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0){
                 shiftBackground();
                 v &= ~(0b11111|0x400);
