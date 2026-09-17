@@ -19,7 +19,6 @@
 package io.github.mibi88.mibinestools.emulator;
 
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  *
@@ -82,6 +81,8 @@ public class PPU {
     private static final byte MASK_SPRITES = (byte)(1<<4);
     private static final byte MASK_RENDER = (byte)(3<<3);
     
+    private int cycleCount;
+    
     public PPU(Rom rom, Screen screen, CPU cpu) {
         this.rom = rom;
         this.screen = screen;
@@ -106,6 +107,8 @@ public class PPU {
         cycle %= 3;
         
         if(handler != null) handler.onCycle();
+        
+        cycleCount++;
     }
     
     private void outputAPixel() {
@@ -132,7 +135,7 @@ public class PPU {
     }
     
     private void emulateVisibleScanline(boolean preRender, boolean first) {
-        if(first && !isEven){
+        if(first && !isEven && (mask&MASK_RENDER) != 0){
             if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
         }
         onCycle();
@@ -394,7 +397,7 @@ public class PPU {
         }
         
         // TODO: Load the sprite tile data
-        for(int i=0;i<280-257;i++) onCycle();
+        for(int i=0;i<280-256;i++) onCycle();
         
         if(preRender){
             for(int i=0;i<304-280;i++){
@@ -489,24 +492,28 @@ public class PPU {
         
         onCycle();
         
-        if(!preRender && isEven){
+        if(!((mask&MASK_RENDER) != 0 && preRender && isEven)){
             if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
             onCycle();
         }
     }
     
     public void emulateFrame() {
+        cycleCount = 0;
+        
         isRendering = true;
         emulateVisibleScanline(true, false);
         
         emulateVisibleScanline(false, true);
         for(int i=0;i<239;i++){
+            //System.out.printf("Before scanline: %d", cycleCount);
             emulateVisibleScanline(false, false);
+            //System.out.printf("After scanline: %d", cycleCount);
         }
         isRendering = false;
         
         // Post-render scanline
-        for(int i=0;i<340;i++) onCycle();
+        for(int i=0;i<341;i++) onCycle();
         
         // First VBlank scanline
         
@@ -517,12 +524,14 @@ public class PPU {
         
         if((ctrl&CTRL_NMI) != 0) cpu.setNmiPin(false);
         
-        for(int i=0;i<339;i++) onCycle();
+        for(int i=0;i<340;i++) onCycle();
         
         // VBlank scanlines
-        for(int i=0;i<(260-241)*340;i++) onCycle();
+        for(int i=0;i<(260-241)*341;i++) onCycle();
         
         isEven = !isEven;
+        
+        System.out.println(cycleCount);
     }
     
     public byte read(int register) {

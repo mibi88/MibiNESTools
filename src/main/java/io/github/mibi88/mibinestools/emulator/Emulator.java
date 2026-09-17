@@ -98,7 +98,8 @@ public class Emulator extends Editor {
                     Level.SEVERE, null, ex);
         }
         
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
                 int keyEvent = e.getID();
