@@ -56,6 +56,8 @@ public abstract class Rom {
     
     public void cpuCycleStart() {
         // Do nothing
+        // TODO: Check when I should run this
+        controller1.cycle();
     }
     
     public void cpuCycleEnd() {

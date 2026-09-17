@@ -81,7 +81,7 @@ public class PPU {
     private static final byte MASK_SPRITES = (byte)(1<<4);
     private static final byte MASK_RENDER = (byte)(3<<3);
     
-    private int cycleCount;
+    // private int cycleCount;
     
     public PPU(Rom rom, Screen screen, CPU cpu) {
         this.rom = rom;
@@ -108,7 +108,7 @@ public class PPU {
         
         if(handler != null) handler.onCycle();
         
-        cycleCount++;
+        // cycleCount++;
     }
     
     private void outputAPixel() {
@@ -499,7 +499,7 @@ public class PPU {
     }
     
     public void emulateFrame() {
-        cycleCount = 0;
+        // cycleCount = 0;
         
         isRendering = true;
         emulateVisibleScanline(true, false);
@@ -531,7 +531,7 @@ public class PPU {
         
         isEven = !isEven;
         
-        System.out.println(cycleCount);
+        // System.out.println(cycleCount);
     }
     
     public byte read(int register) {
