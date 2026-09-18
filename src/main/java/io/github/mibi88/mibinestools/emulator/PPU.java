@@ -134,7 +134,8 @@ public class PPU {
         attr2Shift |= attrLatch2;
     }
     
-    private void emulateVisibleScanline(boolean preRender, boolean first) {
+    private void emulateVisibleScanline(int scanline,
+            boolean preRender, boolean first) {
         if(first && !isEven && (mask&MASK_RENDER) != 0){
             if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
         }
@@ -147,12 +148,13 @@ public class PPU {
             sprite0Hit = false;
             spriteOverflow = false;
         }
+        
+        int secondaryOAMAddr = 0;
 
-        Arrays.fill(secondaryOAM, (byte)0xFF);
-        for(int i=0;i<2;i++){
-            onCycle();
+        for(int i=0;i<8;i++){
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
@@ -160,13 +162,16 @@ public class PPU {
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
-            onCycle();
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
+            }
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
@@ -174,13 +179,16 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
-            onCycle();
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
+            }
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
@@ -188,13 +196,16 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
-            onCycle();
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
+            }
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_BACKGROUND) != 0){
                 int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
@@ -220,16 +231,41 @@ public class PPU {
                 v ^= (x&(1<<5))<<5;
             }
 
-            onCycle();
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
+            }
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
         }
 
-        for(int i=0;i<29;i++){
+        secondaryOAMAddr = 0;
+        boolean copy = false;
+        byte value = 0;
+        
+        for(int i=0;i<23;i++){
             // TODO: Evaluate sprites
-            onCycle();
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                // TODO: Finish implementing this
+                if(copy){
+                    value = oam[oamAddr];
+                    oamAddr++;
+                }else{
+                    if(secondaryOAMAddr < 32){
+                        if(oam[oamAddr] <= scanline &&
+                                oam[oamAddr]+8 > scanline){
+                            // Y is in range
+                        }
+                    }else{
+                        // TODO
+                    }
+                    oamAddr += 4;
+                }
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
@@ -237,13 +273,13 @@ public class PPU {
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
@@ -251,13 +287,13 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
@@ -265,13 +301,13 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_BACKGROUND) != 0){
                 int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
@@ -297,29 +333,29 @@ public class PPU {
                 v ^= (x&(1<<5))<<5;
             }
 
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
         }
         
         {
             // TODO: Evaluate sprites
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
@@ -327,13 +363,13 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
@@ -341,13 +377,13 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
-            onCycle();
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
             
             if((mask&MASK_BACKGROUND) != 0){
                 int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
@@ -387,17 +423,21 @@ public class PPU {
                 v |= y&((7<<12)|0b1111100000);
             }
             
-            onCycle();
             if(!preRender) outputAPixel();
-            if((mask&MASK_BACKGROUND) != 0){
-                shiftBackground();
-                v &= ~(0b11111|0x400);
-                v |= t&(0b11111|0x400);
-            }
+            if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
+        }
+        
+        if((mask&MASK_BACKGROUND) != 0){
+            v &= ~(0b11111|0x400);
+            v |= t&(0b11111|0x400);
         }
         
         // TODO: Load the sprite tile data
-        for(int i=0;i<280-256;i++) onCycle();
+        for(int i=0;i<280-256;i++){
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+        }
         
         if(preRender){
             for(int i=0;i<304-280;i++){
@@ -406,17 +446,23 @@ public class PPU {
                     v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
                 }
 
+                if((mask&MASK_SPRITES) != 0) oamAddr = 0;
                 onCycle();
             }
         }else{
             for(int i=0;i<304-280;i++){
+                if((mask&MASK_SPRITES) != 0) oamAddr = 0;
                 onCycle();
             }
         }
         
-        for(int i=0;i<320-304;i++) onCycle();
+        for(int i=0;i<320-304;i++){
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+        }
         
         for(int i=0;i<2;i++){
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
@@ -425,9 +471,11 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
@@ -437,9 +485,11 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
@@ -449,9 +499,11 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
@@ -479,6 +531,7 @@ public class PPU {
                 v ^= (x&(1<<5))<<5;
             }
 
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
         }
@@ -502,12 +555,12 @@ public class PPU {
         // cycleCount = 0;
         
         isRendering = true;
-        emulateVisibleScanline(true, false);
+        emulateVisibleScanline(261, true, false);
         
-        emulateVisibleScanline(false, true);
+        emulateVisibleScanline(0, false, true);
         for(int i=0;i<239;i++){
             //System.out.printf("Before scanline: %d", cycleCount);
-            emulateVisibleScanline(false, false);
+            emulateVisibleScanline(i+1, false, false);
             //System.out.printf("After scanline: %d", cycleCount);
         }
         isRendering = false;
