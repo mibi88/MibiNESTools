@@ -58,6 +58,7 @@ public class DMA {
             if(cpu.isHalted() && ((!cycle && !aligned) || aligned)){
                 if(cycle){
                     // put cycle
+                    // System.out.printf("Put cycle #%d\n", step);
 
                     rom.write(0x2004, value);
                     
@@ -69,6 +70,7 @@ public class DMA {
                     }
                 }else{
                     // get cycle
+                    // System.out.printf("Get cycle #%d\n", step);
 
                     value = rom.read(page|step);
                 }
@@ -84,6 +86,7 @@ public class DMA {
     }
     
     public void startOAMDMA(int page){
+        // System.out.println("Start DMA!");
         this.page = page<<8;
         
         doOAMDMA = true;

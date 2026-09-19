@@ -18,19 +18,18 @@
 
 package io.github.mibi88.mibinestools.emulator;
 
-import java.util.Arrays;
-
 /**
  *
  * @author mibi88
  */
 public class PPU {
     private class Sprite {
+        public int downCounter;
+        
         public byte lowBp;
         public byte highBp;
-        public byte flags;
         
-        public int downCounter;
+        public byte flags;
     }
     
     private Rom rom;
@@ -130,12 +129,48 @@ public class PPU {
     }
     
     private void outputAPixel() {
-        // TODO
-        
         int attribute = (attr1Shift>>(7-x))&1;
         int bgColor = ((lowShift>>(15-x))&1)|(((highShift>>(15-x))&1)<<1);
         
-        byte color = rom.readVram(0x3F00+4*attribute+bgColor);
+        int spriteColor = 0;
+        
+        int spritePalette = 0;
+        int spritePriority = 0;
+        
+        int i;
+        for(i=0;i<8;i++){
+            if(spriteFIFO[i].downCounter <= 0){
+                int color = (spriteFIFO[i].lowBp>>7)&1;
+                color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
+                
+                if(color != 0){
+                    spriteColor = color;
+                    spritePalette = spriteFIFO[i].flags&2;
+                    spritePriority = spriteFIFO[i].flags&(1<<5);
+                    
+                    break;
+                }
+                
+                spriteFIFO[i].lowBp <<= 1;
+                spriteFIFO[i].highBp <<= 1;
+            }else{
+                spriteFIFO[i].downCounter--;
+            }
+        }
+        
+        int colorIndex = 0;
+        
+        byte color;
+        // FIXME: Make sprite 0 hit detection accurate.
+        if(i == 0 && spriteColor != 0 && bgColor != 0) sprite0Hit = true;
+        if(spriteColor == 0 || spritePriority == 1){
+            color = rom.readVram(0x3F00+4*attribute+bgColor);
+        }else{
+            color = rom.readVram(0x3F00+4*(spritePalette+4)+spriteColor);
+        }
+        
+        color &= 0x3F;
+        if((mask&MASK_GRAYSCALE) != 0) color &= 0x30;
         
         screen.putPixel(color);
     }
@@ -164,6 +199,10 @@ public class PPU {
                 secondaryOAM[secondaryOAMAddr] = spriteValue;
                 if(Byte.toUnsignedInt(spriteValue) <= scanline &&
                         Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                    if(false){
+                        System.out.printf("%03d: Sprite at %02X in range!\n",
+                                scanline, oamAddr);
+                    }
                     secondaryOAMAddr++;
                     spriteEvalState = 1;
                     oamAddr++;
@@ -651,11 +690,14 @@ public class PPU {
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             
-            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr+1]);
+            int y = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            byte attr = secondaryOAM[secondaryOAMAddr+2];
+            
+            int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|((v>>12)&7));
+                spriteFIFO[i].lowBp = rom.readVram((tileId<<4)|bpLine);
             }
             
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
@@ -665,8 +707,7 @@ public class PPU {
             onCycle();
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                spriteFIFO[i].highBp = rom.readVram((tileId<<4)|8|bpLine);
                 
                 // XXX: When should I initialize the sprite FIFO?
                 spriteFIFO[i].downCounter = Byte
@@ -730,11 +771,14 @@ public class PPU {
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             
-            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr+1]);
+            int y = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            byte attr = secondaryOAM[secondaryOAMAddr+2];
+            
+            int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|((v>>12)&7));
+                spriteFIFO[i+3].lowBp = rom.readVram((tileId<<4)|bpLine);
             }
             
             if(preRender && (mask&MASK_BACKGROUND) != 0){
@@ -754,13 +798,12 @@ public class PPU {
             onCycle();
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                spriteFIFO[i+3].highBp = rom.readVram((tileId<<4)|8|bpLine);
                 
                 // XXX: When should I initialize the sprite FIFO?
-                spriteFIFO[i].downCounter = Byte
+                spriteFIFO[i+3].downCounter = Byte
                         .toUnsignedInt(secondaryOAM[secondaryOAMAddr+3]);
-                spriteFIFO[i].flags = secondaryOAM[secondaryOAMAddr+2];
+                spriteFIFO[i+3].flags = secondaryOAM[secondaryOAMAddr+2];
                 
                 secondaryOAMAddr += 4;
             }
@@ -799,11 +842,14 @@ public class PPU {
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
             
-            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr+1]);
+            int y = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            byte attr = secondaryOAM[secondaryOAMAddr+2];
+            
+            int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|((v>>12)&7));
+                spriteFIFO[i+6].lowBp = rom.readVram((tileId<<4)|bpLine);
             }
             
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
@@ -813,13 +859,12 @@ public class PPU {
             onCycle();
             
             if((mask&MASK_SPRITES) != 0){
-                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
-                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                spriteFIFO[i+6].highBp = rom.readVram((tileId<<4)|8|bpLine);
                 
                 // XXX: When should I initialize the sprite FIFO?
-                spriteFIFO[i].downCounter = Byte
+                spriteFIFO[i+6].downCounter = Byte
                         .toUnsignedInt(secondaryOAM[secondaryOAMAddr+3]);
-                spriteFIFO[i].flags = secondaryOAM[secondaryOAMAddr+2];
+                spriteFIFO[i+6].flags = secondaryOAM[secondaryOAMAddr+2];
                 
                 secondaryOAMAddr += 4;
             }
@@ -916,10 +961,27 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0) rom.readVram(0x2000|(v&0x0FFF));
             onCycle();
         }
+        
+        if(false){
+            for(int i=0;i<8;i++){
+                System.out.printf("%03d: Sprite fifo #%d -- "
+                        + "c: %03d l: %02X h: %02X f: %02X\n", scanline, i,
+                        spriteFIFO[i].downCounter, spriteFIFO[i].lowBp,
+                        spriteFIFO[i].highBp, spriteFIFO[i].flags);
+            }
+        }
     }
     
     public void emulateFrame() {
         // cycleCount = 0;
+        
+        if(false){
+            for(int i=0,n=0;i<64;i++,n+=4){
+                System.out.printf("Sprite #%02d: x: %03d y: %03d "
+                        + "t: %02x a: %02x\n",
+                        i, oam[n+3], oam[n], oam[n+1], oam[n+2]);
+            }
+        }
         
         isRendering = true;
         emulateVisibleScanline(261, true, false);

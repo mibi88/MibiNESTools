@@ -171,6 +171,8 @@ public class Emulator extends Editor {
         apu = new APU(dma);
         ppu = new PPU(rom, screen, cpu);
         
+        rom.setCPU(cpu);
+        rom.setDMA(dma);
         rom.setPPU(ppu);
         rom.setAPU(apu);
 

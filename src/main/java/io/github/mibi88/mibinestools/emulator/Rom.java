@@ -27,6 +27,8 @@ public abstract class Rom {
     
     public byte ppuIOBus; // TODO: Move it to the PPU class
     
+    protected CPU cpu;
+    protected DMA dma;
     protected PPU ppu;
     protected APU apu;
     
@@ -55,7 +57,8 @@ public abstract class Rom {
     public abstract void writeVram(int address, byte value);
     
     public void cpuCycleStart() {
-        // Do nothing
+        dma.cycle(cpu);
+        
         // TODO: Check when I should run this
         controller1.cycle();
     }
@@ -70,6 +73,14 @@ public abstract class Rom {
     
     public byte getPPUIOBus() {
         return ppuIOBus;
+    }
+    
+    public void setCPU(CPU cpu) {
+        this.cpu = cpu;
+    }
+    
+    public void setDMA(DMA dma) {
+        this.dma = dma;
     }
     
     public void setPPU(PPU ppu) {
