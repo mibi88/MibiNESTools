@@ -25,6 +25,14 @@ import java.util.Arrays;
  * @author mibi88
  */
 public class PPU {
+    private class Sprite {
+        public byte lowBp;
+        public byte highBp;
+        public byte flags;
+        
+        public int downCounter;
+    }
+    
     private Rom rom;
     
     private Screen screen;
@@ -43,12 +51,17 @@ public class PPU {
     private byte[] oam;
     private byte[] secondaryOAM;
     
+    private Sprite[] spriteFIFO;
+    
     private int lowShift;
     private int highShift;
     
     private int cycle;
     
     private int oamAddr;
+    private int secondaryOAMAddr;
+    private int spriteEvalState;
+    private byte spriteValue;
     
     private byte readBuffer;
     
@@ -90,6 +103,11 @@ public class PPU {
         
         oam = new byte[256];
         secondaryOAM = new byte[32];
+        spriteFIFO = new Sprite[8];
+        
+        for(int i=0;i<8;i++){
+            spriteFIFO[i] = new Sprite();
+        }
         
         handler = null;
     }
@@ -134,6 +152,130 @@ public class PPU {
         attr2Shift |= attrLatch2;
     }
     
+    private void spriteReadCycle(int scanline) {
+        spriteValue = oam[oamAddr];
+    }
+    
+    private void spriteWriteCycle(int scanline) {
+        switch(spriteEvalState){
+            case 0:
+                // Copy the first byte and check if the Y coordinate is in
+                // range
+                secondaryOAM[secondaryOAMAddr] = spriteValue;
+                if(Byte.toUnsignedInt(spriteValue) <= scanline &&
+                        Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                    secondaryOAMAddr++;
+                    spriteEvalState = 1;
+                    oamAddr++;
+                }else{
+                    oamAddr += 4;
+                
+                    if(oamAddr >= 256){
+                        // All sprites got evaluated
+                        
+                        oamAddr = 0;
+                        spriteEvalState = 8;
+                    }else if(secondaryOAMAddr < 32){
+                        spriteEvalState = 0;
+                    }else{
+                        // Exactly eight sprites have been found
+
+                        spriteEvalState = 4;
+                        
+                        // NOTE: The following code is the same as in case 4
+                        if(Byte.toUnsignedInt(spriteValue) <= scanline &&
+                                Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                            spriteOverflow = true;
+
+                            spriteEvalState = 5;
+                        }else{
+                            oamAddr += 5;
+                            oamAddr &= 0xFF;
+
+                            if((oamAddr&~3) == 0){
+                                // All sprites got evaluated
+
+                                spriteEvalState = 8;
+                            }
+                        }
+                    }
+                }
+                
+                break;
+                
+            case 1:
+            case 2:
+                // Copy the remaining bytes
+                secondaryOAM[secondaryOAMAddr++] = spriteValue;
+                spriteEvalState++;
+                oamAddr++;
+                
+                break;
+                
+            case 3:
+                // Copy the remaining bytes
+                secondaryOAM[secondaryOAMAddr++] = spriteValue;
+                spriteEvalState++;
+                oamAddr++;
+                
+                if(oamAddr >= 256){
+                    // All sprites got evaluated
+                    
+                    oamAddr = 0;
+                    spriteEvalState = 8;
+                    
+                    break;
+                }else if(secondaryOAMAddr < 32){
+                    spriteEvalState = 0;
+                    
+                    break;
+                }else{
+                    // Exactly eight sprites have been found
+                    
+                    spriteEvalState = 4;
+                }
+                
+            case 4:
+                if(Byte.toUnsignedInt(spriteValue) <= scanline &&
+                        Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                    spriteOverflow = true;
+                    oamAddr++;
+                    
+                    spriteEvalState = 5;
+                }else{
+                    oamAddr += 5;
+                    oamAddr &= 0xFF;
+                    
+                    if((oamAddr&~3) == 0){
+                        // All sprites got evaluated
+                        
+                        spriteEvalState = 8;
+                    }
+                }
+                
+                break;
+                
+            case 5:
+            case 6:
+                oamAddr++;
+                spriteEvalState++;
+                
+                break;
+                
+            case 7:
+                oamAddr++;
+                spriteEvalState = 4;
+                
+                break;
+                
+            case 8:
+                break;
+                
+            default:
+                System.err.println("Sprite evaluation state out of range!");
+        }
+    }
+    
     private void emulateVisibleScanline(int scanline,
             boolean preRender, boolean first) {
         if(first && !isEven && (mask&MASK_RENDER) != 0){
@@ -149,7 +291,7 @@ public class PPU {
             spriteOverflow = false;
         }
         
-        int secondaryOAMAddr = 0;
+        secondaryOAMAddr = 0;
 
         for(int i=0;i<8;i++){
             if(!preRender) outputAPixel();
@@ -240,27 +382,11 @@ public class PPU {
         }
 
         secondaryOAMAddr = 0;
-        boolean copy = false;
-        byte value = 0;
+        spriteEvalState = 0;
         
         for(int i=0;i<23;i++){
-            // TODO: Evaluate sprites
             if(!preRender && (mask&MASK_SPRITES) != 0){
-                // TODO: Finish implementing this
-                if(copy){
-                    value = oam[oamAddr];
-                    oamAddr++;
-                }else{
-                    if(secondaryOAMAddr < 32){
-                        if(oam[oamAddr] <= scanline &&
-                                oam[oamAddr]+8 > scanline){
-                            // Y is in range
-                        }
-                    }else{
-                        // TODO
-                    }
-                    oamAddr += 4;
-                }
+                spriteReadCycle(scanline);
             }
             
             if(!preRender) outputAPixel();
@@ -273,10 +399,19 @@ public class PPU {
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
@@ -287,10 +422,19 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
@@ -301,10 +445,19 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
-
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
@@ -333,13 +486,20 @@ public class PPU {
                 v ^= (x&(1<<5))<<5;
             }
 
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
         }
         
         {
-            // TODO: Evaluate sprites
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
@@ -349,9 +509,18 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
             
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
@@ -363,9 +532,18 @@ public class PPU {
                 attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
                         ((v>>2)&7));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
             
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
@@ -377,9 +555,18 @@ public class PPU {
                 lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
                         ((v>>12)&7));
             }
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
+            
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteReadCycle(scanline);
+            }
             
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
@@ -423,6 +610,10 @@ public class PPU {
                 v |= y&((7<<12)|0b1111100000);
             }
             
+            if(!preRender && (mask&MASK_SPRITES) != 0){
+                spriteWriteCycle(scanline);
+            }
+            
             if(!preRender) outputAPixel();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
@@ -433,30 +624,206 @@ public class PPU {
             v |= t&(0b11111|0x400);
         }
         
-        // TODO: Load the sprite tile data
-        for(int i=0;i<280-256;i++){
+        secondaryOAMAddr = 0;
+        
+        for(int i=0;i<3;i++){
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram(0x2000|(v&0x0FFF));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|((v>>12)&7));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                
+                // XXX: When should I initialize the sprite FIFO?
+                spriteFIFO[i].downCounter = Byte
+                        .toUnsignedInt(secondaryOAM[secondaryOAMAddr+3]);
+                spriteFIFO[i].flags = secondaryOAM[secondaryOAMAddr+2];
+                
+                secondaryOAMAddr += 4;
+            }
+            
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
         }
         
-        if(preRender){
-            for(int i=0;i<304-280;i++){
-                if((mask&MASK_BACKGROUND) != 0){
-                    v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
-                    v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
-                }
+        for(int i=0;i<3;i++){
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
 
-                if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-                onCycle();
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram(0x2000|(v&0x0FFF));
             }
-        }else{
-            for(int i=0;i<304-280;i++){
-                if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-                onCycle();
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
             }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|((v>>12)&7));
+            }
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                
+                // XXX: When should I initialize the sprite FIFO?
+                spriteFIFO[i].downCounter = Byte
+                        .toUnsignedInt(secondaryOAM[secondaryOAMAddr+3]);
+                spriteFIFO[i].flags = secondaryOAM[secondaryOAMAddr+2];
+                
+                secondaryOAMAddr += 4;
+            }
+            
+            if(preRender && (mask&MASK_BACKGROUND) != 0){
+                v &= ~((0b11111<<5)|(0b111111111111<<3)|0x800);
+                v |= t&((0b11111<<5)|(0b111111111111<<3)|0x800);
+            }
+
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
         }
         
-        for(int i=0;i<320-304;i++){
+        for(int i=0;i<2;i++){
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram(0x2000|(v&0x0FFF));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                        ((v>>2)&7));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            int tileId = Byte.toUnsignedInt(secondaryOAM[secondaryOAMAddr]);
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|((v>>12)&7));
+            }
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0) oamAddr = 0;
+            onCycle();
+            
+            if((mask&MASK_SPRITES) != 0){
+                spriteFIFO[i].highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|
+                        (tileId<<4)|(1<<3)|((v>>12)&7));
+                
+                // XXX: When should I initialize the sprite FIFO?
+                spriteFIFO[i].downCounter = Byte
+                        .toUnsignedInt(secondaryOAM[secondaryOAMAddr+3]);
+                spriteFIFO[i].flags = secondaryOAM[secondaryOAMAddr+2];
+                
+                secondaryOAMAddr += 4;
+            }
+            
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
         }
