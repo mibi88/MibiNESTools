@@ -129,7 +129,7 @@ public class PPU {
     }
     
     private void outputAPixel() {
-        int attribute = (attr1Shift>>(7-x))&1;
+        int attribute = (attr1Shift>>(7-x))&1|(((attr2Shift>>(7-x))&1)<<1);
         int bgColor = ((lowShift>>(15-x))&1)|(((highShift>>(15-x))&1)<<1);
         
         int spriteColor = 0;
@@ -403,8 +403,8 @@ public class PPU {
                 lowShift |= lowBp;
                 highShift |= highBp;
 
-                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+                attrLatch1 = (byte)((attr>>((v&2)+((v>>4)&4)))&1);
+                attrLatch2 = (byte)((attr>>((v&2)+((v>>4)&4))>>1)&1);
 
                 // Increment coarse X in v
                 int x = (v&0b11111)+1;
@@ -519,8 +519,8 @@ public class PPU {
                 lowShift |= lowBp;
                 highShift |= highBp;
 
-                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+                attrLatch1 = (byte)((attr>>((v&2)+((v>>4)&4)))&1);
+                attrLatch2 = (byte)((attr>>((v&2)+((v>>4)&4))>>1)&1);
 
                 // Increment coarse X in v
                 int x = (v&0b11111)+1;
@@ -632,8 +632,8 @@ public class PPU {
                 lowShift |= lowBp;
                 highShift |= highBp;
 
-                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+                attrLatch1 = (byte)((attr>>((v&2)+((v>>4)&4)))&1);
+                attrLatch2 = (byte)((attr>>((v&2)+((v>>4)&4))>>1)&1);
 
                 // Increment coarse X in v
                 int x = (v&0b11111)+1;
@@ -1009,8 +1009,8 @@ public class PPU {
                 lowShift |= lowBp;
                 highShift |= highBp;
 
-                attrLatch1 = (byte)(attr>>((v&2)+((v>>4)&4)));
-                attrLatch2 = (byte)(attr>>((v&2)+((v>>4)&4))>>1);
+                attrLatch1 = (byte)((attr>>((v&2)+((v>>4)&4)))&1);
+                attrLatch2 = (byte)((attr>>((v&2)+((v>>4)&4))>>1)&1);
 
                 // Increment coarse X in v
                 int x = (v&0b11111)+1;
