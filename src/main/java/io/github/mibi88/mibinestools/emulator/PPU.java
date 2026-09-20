@@ -164,7 +164,7 @@ public class PPU {
         byte color;
         // FIXME: Make sprite 0 hit detection accurate.
         if(index == 0 && spriteColor != 0 && bgColor != 0) sprite0Hit = true;
-        if(spriteColor == 0 || spritePriority == 1){
+        if(spriteColor == 0 || spritePriority != 0){
             color = rom.readVram(0x3F00+4*attribute+bgColor);
         }else{
             color = rom.readVram(0x3F00+4*(spritePalette+4)+spriteColor);
@@ -358,8 +358,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                        ((v>>2)&7));
+                attr = Byte.toUnsignedInt(
+                        rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                                ((v>>2)&7)));
             }
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
@@ -375,8 +376,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        ((v>>12)&7));
+                lowBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                ((v>>12)&7)));
             }
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
@@ -390,8 +392,9 @@ public class PPU {
             onCycle();
 
             if((mask&MASK_BACKGROUND) != 0){
-                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        (1<<3)|((v>>12)&7));
+                int highBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                (1<<3)|((v>>12)&7)));
                 
                 // Fill the shift registers
                 lowShift &= ~0xFF;
@@ -459,8 +462,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                        ((v>>2)&7));
+                attr = Byte.toUnsignedInt(
+                        rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                                ((v>>2)&7)));
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -482,8 +486,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        ((v>>12)&7));
+                lowBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                ((v>>12)&7)));
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -503,8 +508,9 @@ public class PPU {
             onCycle();
 
             if((mask&MASK_BACKGROUND) != 0){
-                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        (1<<3)|((v>>12)&7));
+                int highBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                            (1<<3)|((v>>12)&7)));
                 
                 // Fill the shift registers
                 lowShift &= ~0xFF;
@@ -569,8 +575,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                        ((v>>2)&7));
+                attr = Byte.toUnsignedInt(
+                        rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                                ((v>>2)&7)));
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -592,8 +599,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        ((v>>12)&7));
+                lowBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                ((v>>12)&7)));
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -613,8 +621,9 @@ public class PPU {
             onCycle();
             
             if((mask&MASK_BACKGROUND) != 0){
-                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        (1<<3)|((v>>12)&7));
+                int highBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                (1<<3)|((v>>12)&7)));
 
                 // Fill the shift registers
                 lowShift &= ~0xFF;
@@ -961,8 +970,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                attr = rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
-                        ((v>>2)&7));
+                attr = Byte.toUnsignedInt(
+                        rom.readVram((0x2000+32*30)|(v&0x0C00)|((v>>4)&0x38)|
+                                ((v>>2)&7)));
             }
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
@@ -975,8 +985,9 @@ public class PPU {
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
             if((mask&MASK_BACKGROUND) != 0){
-                lowBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        ((v>>12)&7));
+                lowBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                ((v>>12)&7)));
             }
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
             onCycle();
@@ -987,8 +998,9 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
 
             if((mask&MASK_BACKGROUND) != 0){
-                int highBp = rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
-                        (1<<3)|((v>>12)&7));
+                int highBp = Byte.toUnsignedInt(
+                        rom.readVram(((ctrl&(1<<4))<<(12-4))|(tileId<<4)|
+                                (1<<3)|((v>>12)&7)));
 
                 // Fill the shift registers
                 lowShift &= ~0xFF;
@@ -1180,7 +1192,7 @@ public class PPU {
             {
                 // PPUDATA
                 
-                System.out.printf("Read to PPUDATA v: %04X\n", v);
+                // System.out.printf("Read to PPUDATA v: %04X\n", v);
                 
                 // XXX: Is it correct?
                 byte value = readBuffer;

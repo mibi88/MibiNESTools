@@ -61,6 +61,7 @@ public abstract class Rom {
         
         // TODO: Check when I should run this
         controller1.cycle();
+        controller2.cycle();
     }
     
     public void cpuCycleEnd() {
