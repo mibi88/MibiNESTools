@@ -44,6 +44,7 @@ public class Screen extends JPanel {
         super();
         
         this.scale = scale;
+        this.scale = 2;
         reset();
     }
     
@@ -75,6 +76,7 @@ public class Screen extends JPanel {
                 thisScreen.repaint();
             }
         });
+        this.scale = 2;
     }
     
     /**

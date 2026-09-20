@@ -137,22 +137,23 @@ public class PPU {
         int spritePalette = 0;
         int spritePriority = 0;
         
-        int i;
-        for(i=0;i<8;i++){
+        int index = -1;
+        
+        for(int i=8;i-- > 0;){
             if(spriteFIFO[i].downCounter <= 0){
                 int color = (spriteFIFO[i].lowBp>>7)&1;
                 color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
+                
+                spriteFIFO[i].lowBp <<= 1;
+                spriteFIFO[i].highBp <<= 1;
                 
                 if(color != 0){
                     spriteColor = color;
                     spritePalette = spriteFIFO[i].flags&2;
                     spritePriority = spriteFIFO[i].flags&(1<<5);
                     
-                    break;
+                    index = i;
                 }
-                
-                spriteFIFO[i].lowBp <<= 1;
-                spriteFIFO[i].highBp <<= 1;
             }else{
                 spriteFIFO[i].downCounter--;
             }
@@ -162,7 +163,7 @@ public class PPU {
         
         byte color;
         // FIXME: Make sprite 0 hit detection accurate.
-        if(i == 0 && spriteColor != 0 && bgColor != 0) sprite0Hit = true;
+        if(index == 0 && spriteColor != 0 && bgColor != 0) sprite0Hit = true;
         if(spriteColor == 0 || spritePriority == 1){
             color = rom.readVram(0x3F00+4*attribute+bgColor);
         }else{
@@ -698,6 +699,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i].lowBp = rom.readVram((tileId<<4)|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i].lowBp;
+                    spriteFIFO[i].lowBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
             }
             
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
@@ -708,6 +720,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i].highBp = rom.readVram((tileId<<4)|8|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i].highBp;
+                    spriteFIFO[i].highBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
                 
                 // XXX: When should I initialize the sprite FIFO?
                 spriteFIFO[i].downCounter = Byte
@@ -779,6 +802,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+3].lowBp = rom.readVram((tileId<<4)|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i+3].lowBp;
+                    spriteFIFO[i+3].lowBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
             }
             
             if(preRender && (mask&MASK_BACKGROUND) != 0){
@@ -799,6 +833,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+3].highBp = rom.readVram((tileId<<4)|8|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i+3].highBp;
+                    spriteFIFO[i+3].highBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
                 
                 // XXX: When should I initialize the sprite FIFO?
                 spriteFIFO[i+3].downCounter = Byte
@@ -850,6 +895,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+6].lowBp = rom.readVram((tileId<<4)|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i+6].lowBp;
+                    spriteFIFO[i+6].lowBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
             }
             
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
@@ -860,6 +916,17 @@ public class PPU {
             
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+6].highBp = rom.readVram((tileId<<4)|8|bpLine);
+                if((attr&(1<<6)) != 0){
+                    byte l = spriteFIFO[i+6].highBp;
+                    spriteFIFO[i+6].highBp = (byte)(((l>>7)&1)|
+                            ((l>>5)&2)|
+                            ((l>>3)&4)|
+                            ((l>>1)&8)|
+                            ((l<<1)&16)|
+                            ((l<<3)&32)|
+                            ((l<<5)&64)|
+                            ((l<<7)&128));
+                }
                 
                 // XXX: When should I initialize the sprite FIFO?
                 spriteFIFO[i+6].downCounter = Byte
@@ -1108,7 +1175,7 @@ public class PPU {
                     readBuffer = rom.readVram(v&0b11111111111111);
                     rom.ppuIOBus = readBuffer;
                 }else{
-                    v += ((ctrl&CTRL_INC)>>2)*31+1;
+                    v += (((ctrl&CTRL_INC)>>2)&1)*31+1;
                 }
                 
                 // Palette reads are unbuffered, if supported by the PPU
@@ -1263,7 +1330,7 @@ public class PPU {
                     // in the wiki correctly?
                     rom.ppuIOBus = rom.readVram(v&0b11111111111111);
                 }else{
-                    v += ((ctrl&CTRL_INC)>>2)*31+1;
+                    v += (((ctrl&CTRL_INC)>>2)&1)*31+1;
                 }
                 
                 break;
