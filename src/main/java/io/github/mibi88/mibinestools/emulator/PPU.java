@@ -149,7 +149,7 @@ public class PPU {
             int index = -1;
 
             for(int i=8;i-- > 0;){
-                if(spriteFIFO[i].downCounter <= 0){
+                if(spriteFIFO[i].downCounter <= 1){
                     int color = (spriteFIFO[i].lowBp>>7)&1;
                     color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
 
