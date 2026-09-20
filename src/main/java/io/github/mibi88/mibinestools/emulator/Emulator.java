@@ -80,6 +80,9 @@ public class Emulator extends Editor {
     public Emulator(Window window) {
         super(window, new BorderLayout(), editorName);
         
+        setFocusable(true);
+        requestFocus();
+        
         this.window = window;
         
         mappers = new HashMap<Integer, Class>();
@@ -108,14 +111,14 @@ public class Emulator extends Editor {
                 if(keyEvent == KeyEvent.KEY_PRESSED){
                     for(int i=0;i<8;i++){
                         if(keyCode == player1Keys[i]){
-                            System.out.printf("Button %d pressed!\n", i);
+                            // System.out.printf("Button %d pressed!\n", i);
                             player1Buttons |= 1<<i;
                         }
                     }
                 }else if(keyEvent == KeyEvent.KEY_RELEASED){
                     for(int i=0;i<8;i++){
                         if(keyCode == player1Keys[i]){
-                            System.out.printf("Button %d released!\n", i);
+                            // System.out.printf("Button %d released!\n", i);
                             player1Buttons &= ~(1<<i);
                         }
                     }

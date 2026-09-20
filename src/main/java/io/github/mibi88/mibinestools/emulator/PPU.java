@@ -128,43 +128,56 @@ public class PPU {
         // cycleCount++;
     }
     
-    private void outputAPixel() {
+    private void outputAPixel(boolean isLastPixel) {
+        if((mask&MASK_RENDER) == 0){
+            if((v&0x7F00) == 0x3F00) screen.putPixel(rom.readVram(v));
+            else screen.putPixel(rom.readVram(0x3F00));
+        }
+        
         int attribute = (attr1Shift>>(7-x))&1|(((attr2Shift>>(7-x))&1)<<1);
-        int bgColor = ((lowShift>>(15-x))&1)|(((highShift>>(15-x))&1)<<1);
+        int bgColor = (mask&MASK_BACKGROUND) != 0 ?
+                ((lowShift>>(15-x))&1)|(((highShift>>(15-x))&1)<<1) : 0;
         
         int spriteColor = 0;
         
         int spritePalette = 0;
         int spritePriority = 0;
         
-        int index = -1;
-        
-        for(int i=8;i-- > 0;){
-            if(spriteFIFO[i].downCounter <= 0){
-                int color = (spriteFIFO[i].lowBp>>7)&1;
-                color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
-                
-                spriteFIFO[i].lowBp <<= 1;
-                spriteFIFO[i].highBp <<= 1;
-                
-                if(color != 0){
-                    spriteColor = color;
-                    spritePalette = spriteFIFO[i].flags&2;
-                    spritePriority = spriteFIFO[i].flags&(1<<5);
-                    
-                    index = i;
+        if((mask&MASK_SPRITES) != 0){
+            int index = -1;
+
+            for(int i=8;i-- > 0;){
+                if(spriteFIFO[i].downCounter <= 0){
+                    int color = (spriteFIFO[i].lowBp>>7)&1;
+                    color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
+
+                    spriteFIFO[i].lowBp <<= 1;
+                    spriteFIFO[i].highBp <<= 1;
+
+                    if(color != 0){
+                        spriteColor = color;
+                        spritePalette = spriteFIFO[i].flags&2;
+                        spritePriority = spriteFIFO[i].flags&(1<<5);
+
+                        index = i;
+                    }
+                }else{
+                    spriteFIFO[i].downCounter--;
                 }
-            }else{
-                spriteFIFO[i].downCounter--;
+            }
+
+            int colorIndex = 0;
+
+            // FIXME: Make sprite 0 hit detection accurate.
+            if(index == 0 && spriteColor != 0 && bgColor != 0 && !isLastPixel){
+                sprite0Hit = true;
             }
         }
         
-        int colorIndex = 0;
-        
         byte color;
-        // FIXME: Make sprite 0 hit detection accurate.
-        if(index == 0 && spriteColor != 0 && bgColor != 0) sprite0Hit = true;
-        if(spriteColor == 0 || spritePriority != 0){
+        
+        if(spriteColor == 0 || (spritePriority != 0 && bgColor != 0)){
+            if(bgColor == 0) attribute = 0; // XXX: This probably isn't accurate
             color = rom.readVram(0x3F00+4*attribute+bgColor);
         }else{
             color = rom.readVram(0x3F00+4*(spritePalette+4)+spriteColor);
@@ -249,6 +262,7 @@ public class PPU {
                 secondaryOAM[secondaryOAMAddr++] = spriteValue;
                 spriteEvalState++;
                 oamAddr++;
+                oamAddr &= 0xFF;
                 
                 break;
                 
@@ -280,6 +294,7 @@ public class PPU {
                         Byte.toUnsignedInt(spriteValue)+8 > scanline){
                     spriteOverflow = true;
                     oamAddr++;
+                    oamAddr &= 0xFF;
                     
                     spriteEvalState = 5;
                 }else{
@@ -298,12 +313,14 @@ public class PPU {
             case 5:
             case 6:
                 oamAddr++;
+                oamAddr &= 0xFF;
                 spriteEvalState++;
                 
                 break;
                 
             case 7:
                 oamAddr++;
+                oamAddr &= 0xFF;
                 spriteEvalState = 4;
                 
                 break;
@@ -334,7 +351,7 @@ public class PPU {
         secondaryOAMAddr = 0;
 
         for(int i=0;i<8;i++){
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -347,11 +364,11 @@ public class PPU {
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
             }
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -365,11 +382,11 @@ public class PPU {
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
             }
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -383,11 +400,11 @@ public class PPU {
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
             }
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -419,7 +436,7 @@ public class PPU {
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
             }
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
         }
@@ -432,7 +449,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -447,7 +464,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -455,7 +472,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -471,7 +488,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -479,7 +496,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -495,7 +512,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -503,7 +520,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
 
@@ -536,7 +553,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
         }
@@ -546,7 +563,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -560,7 +577,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -568,7 +585,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -584,7 +601,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -592,7 +609,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -608,7 +625,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -616,7 +633,7 @@ public class PPU {
                 spriteReadCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(false);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
             
@@ -663,7 +680,7 @@ public class PPU {
                 spriteWriteCycle(scanline);
             }
             
-            if(!preRender) outputAPixel();
+            if(!preRender) outputAPixel(true);
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
             onCycle();
         }
@@ -1322,7 +1339,7 @@ public class PPU {
                     
                     t &= ~0b11111;
                     t |= (value>>3);
-                    x = value;
+                    x = (byte)(value&0b111);
                     w = true;
                 }
                 
