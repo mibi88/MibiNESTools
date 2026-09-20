@@ -226,10 +226,12 @@ public class PPU {
                     secondaryOAMAddr++;
                     spriteEvalState = 1;
                     oamAddr++;
+                    oamAddr &= 0xFF;
                 }else{
                     oamAddr += 4;
-                
-                    if(oamAddr >= 256){
+                    oamAddr &= 0xFF;
+                    
+                    if(oamAddr == 0){
                         // All sprites got evaluated
                         
                         oamAddr = 0;
@@ -291,8 +293,9 @@ public class PPU {
                 secondaryOAM[secondaryOAMAddr++] = spriteValue;
                 spriteEvalState++;
                 oamAddr++;
+                oamAddr &= 0xFF;
                 
-                if(oamAddr >= 256){
+                if(oamAddr == 0){
                     // All sprites got evaluated
                     
                     oamAddr = 0;
@@ -1329,7 +1332,7 @@ public class PPU {
                 
                 // TODO: Emulate corruption
                 
-                oamAddr = value;
+                oamAddr = Byte.toUnsignedInt(value);
                 
                 break;
                 
@@ -1338,6 +1341,7 @@ public class PPU {
                 
                 oam[oamAddr] = value;
                 oamAddr++;
+                oamAddr &= 0xFF;
                 
                 break;
                 

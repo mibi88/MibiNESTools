@@ -98,7 +98,7 @@ public class CPU {
         
         rdy = true;
         
-        irqPin = false;
+        irqPin = true;
         nmiPin = false;
         nmiPinLast = false;
         
@@ -722,8 +722,9 @@ public class CPU {
                 
                 if(shouldBranch){
                     tmp1 = pc+(byte)t;
+                    tmp1 &= 0xFFFF;
                     
-                    pc = (tmp&0xFF)|(pc&0xFF00);
+                    pc = (tmp1&0xFF)|(pc&0xFF00);
                     if(pc != tmp1){
                         // Check for interrupts
                         
