@@ -1081,6 +1081,48 @@ public class PPU {
         isEven = !isEven;
         
         // System.out.println(cycleCount);
+        if(false){
+            System.out.println("CHR");
+            for(int i=0;i<8192;i+=256){
+                int n;
+                for(n=0;n<255;n++){
+                    System.out.printf("%02x ", rom.readVram(i+n));
+                }
+                System.out.printf("%02x\n", rom.readVram(i+n));
+            }
+            System.out.println("Nametable at $2000");
+            for(int i=0;i<1024;i+=32){
+                int n;
+                for(n=0;n<31;n++){
+                    System.out.printf("%02x ", rom.readVram(0x2000+i+n));
+                }
+                System.out.printf("%02x\n", rom.readVram(0x2000+i+n));
+            }
+            System.out.println("Nametable at $2400");
+            for(int i=0;i<1024;i+=32){
+                int n;
+                for(n=0;n<31;n++){
+                    System.out.printf("%02x ", rom.readVram(0x2400+i+n));
+                }
+                System.out.printf("%02x\n", rom.readVram(0x2400+i+n));
+            }
+            System.out.println("Nametable at $2800");
+            for(int i=0;i<1024;i+=32){
+                int n;
+                for(n=0;n<31;n++){
+                    System.out.printf("%02x ", rom.readVram(0x2800+i+n));
+                }
+                System.out.printf("%02x\n", rom.readVram(0x2800+i+n));
+            }
+            System.out.println("Nametable at $2C00");
+            for(int i=0;i<1024;i+=32){
+                int n;
+                for(n=0;n<31;n++){
+                    System.out.printf("%02x ", rom.readVram(0x2C00+i+n));
+                }
+                System.out.printf("%02x\n", rom.readVram(0x2C00+i+n));
+            }
+        }
     }
     
     public byte read(int register) {
@@ -1137,6 +1179,8 @@ public class PPU {
             case 7:
             {
                 // PPUDATA
+                
+                System.out.printf("Read to PPUDATA v: %04X\n", v);
                 
                 // XXX: Is it correct?
                 byte value = readBuffer;
@@ -1281,13 +1325,21 @@ public class PPU {
                     // 2nd write
                     
                     t &= ~0xFF;
-                    t |= value;
+                    t |= Byte.toUnsignedInt(value);
                     
                     v = t;
+                    
+                    // System.out.printf("Write to PPUADDR -- "
+                    //         + "2nd write v: %04X\n",
+                    //         v);
                     
                     w = false;
                 }else{
                     // First write
+                    
+                    // System.out.printf("Write to PPUADDR -- "
+                    //         + "1st write byte: %02X\n",
+                    //         v);
                     
                     t &= 0xFF;
                     t |= (value&0b111111)<<8;
@@ -1299,6 +1351,9 @@ public class PPU {
                 
             case 7:
                 // PPUDATA
+                
+                // System.out.printf("Write to PPUDATA v: %04X byte: %02X\n", v,
+                //         value);
                 
                 rom.writeVram(v&0b11111111111111, value);
                 
