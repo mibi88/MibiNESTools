@@ -132,6 +132,8 @@ public class PPU {
         if((mask&MASK_RENDER) == 0){
             if((v&0x7F00) == 0x3F00) screen.putPixel(rom.readVram(v));
             else screen.putPixel(rom.readVram(0x3F00));
+            
+            return;
         }
         
         int attribute = (attr1Shift>>(7-x))&1|(((attr2Shift>>(7-x))&1)<<1);
