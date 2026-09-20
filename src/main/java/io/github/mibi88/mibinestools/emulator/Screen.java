@@ -20,7 +20,9 @@ package io.github.mibi88.mibinestools.emulator;
 
 import io.github.mibi88.mibinestools.palette_editor.ColorList;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -32,51 +34,49 @@ public class Screen extends JPanel {
     protected final int width = 256;
     protected final int height = 240;
     
-    private int scale;
+    private int x;
+    private int y;
     
-    private byte[] pixels;
-    private int currentPixel;
+    private BufferedImage image;
     
     /**
      * Create a new screen.
      */
-    public Screen(int scale) {
+    public Screen() {
         super();
         
-        this.scale = scale;
-        this.scale = 2;
+        image = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+        
         reset();
     }
     
     public void reset() {
-        pixels = new byte[width*height];
-        currentPixel = 0;
+        x = 0;
+        y = 0;
     }
     
     public void putPixel(byte color) {
-        pixels[currentPixel++] = color;
-        if(currentPixel >= width*height) {
-            currentPixel = 0;
-            Screen thisScreen = this;
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    thisScreen.repaint();
-                }
-            });
-        }
-    }
-    
-    public void setScale(int scale) {
-        this.scale = scale;
-        Screen thisScreen = this;
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                thisScreen.repaint();
+        int[] rgbColor = getColor(Byte.toUnsignedInt(color));
+        image.setRGB(x, y, (rgbColor[0]<<16)|(rgbColor[1]<<8)|rgbColor[2]);
+        
+        x++;
+        
+        if(x >= width){
+            x = 0;
+            y++;
+            
+            if(y >= height) {
+                y = 0;
+                
+                Screen thisScreen = this;
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        thisScreen.repaint();
+                    }
+                });
             }
-        });
-        this.scale = 2;
+        }
     }
     
     /**
@@ -86,12 +86,26 @@ public class Screen extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for(int y=0;y<height;y++){
-            for(int x=0;x<width;x++){
-                int[] color = getColor(Byte.toUnsignedInt(pixels[y*width+x]));
-                g.setColor(new Color(color[0], color[1], color[2]));
-                g.fillRect(x*scale, y*scale, scale, scale);
-            }
+        
+        Dimension size = getSize();
+        
+        int w = (int)size.getWidth();
+        int h = (int)size.getHeight();
+        
+        int sw = (5*height*w)/(6*width);
+        
+        if(sw < h){
+            int dy = (h-sw)/2;
+            
+            g.drawImage(image, 0, dy, w, dy+sw, 0, 0, width, height,
+                    Color.BLACK, null);
+        }else{
+            int sh = (6*width*h)/(5*height);
+            
+            int dx = (w-sh)/2;
+            
+            g.drawImage(image, dx, 0, dx+sh, h, 0, 0, width, height,
+                    Color.BLACK, null);
         }
     }
     

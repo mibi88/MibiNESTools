@@ -143,6 +143,8 @@ public class PPU {
         int spritePalette = 0;
         int spritePriority = 0;
         
+        boolean spriteZero = false;
+        
         if((mask&MASK_SPRITES) != 0){
             int index = -1;
 
@@ -158,6 +160,8 @@ public class PPU {
                         spriteColor = color;
                         spritePalette = spriteFIFO[i].flags&2;
                         spritePriority = spriteFIFO[i].flags&(1<<5);
+                        
+                        spriteZero = (spriteFIFO[i].flags&4) != 0;
 
                         index = i;
                     }
@@ -169,7 +173,9 @@ public class PPU {
             int colorIndex = 0;
 
             // FIXME: Make sprite 0 hit detection accurate.
-            if(index == 0 && spriteColor != 0 && bgColor != 0 && !isLastPixel){
+            // NOTE: spriteZero is only set if spriteColor != 0 so we don't need
+            //       to check that
+            if(spriteZero && bgColor != 0 && !isLastPixel){
                 sprite0Hit = true;
             }
         }
@@ -257,8 +263,22 @@ public class PPU {
                 break;
                 
             case 1:
+                // Copy the remaining bytes
+                secondaryOAM[secondaryOAMAddr++] = spriteValue;
+                spriteEvalState++;
+                oamAddr++;
+                oamAddr &= 0xFF;
+                
+                break;
+                
             case 2:
                 // Copy the remaining bytes
+                
+                // XXX: How does the PPU actually know which sprite is
+                //      sprite zero?
+                spriteValue &= ~4;
+                if(oamAddr == 2) spriteValue |= 4;
+                
                 secondaryOAM[secondaryOAMAddr++] = spriteValue;
                 spriteEvalState++;
                 oamAddr++;

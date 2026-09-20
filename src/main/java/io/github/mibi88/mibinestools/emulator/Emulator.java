@@ -92,7 +92,7 @@ public class Emulator extends Editor {
         try {
             romFromFile(null);
             
-            screen = new Screen(window.getScale());
+            screen = new Screen();
             add(screen, BorderLayout.CENTER);
             
             hardReset();
@@ -256,6 +256,7 @@ public class Emulator extends Editor {
      */
     @Override
     public void setScale(int scale) {
-        screen.setScale(scale);
+        super.setScale(scale);
+        // Do nothing
     }
 }
