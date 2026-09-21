@@ -83,6 +83,8 @@ public class PPU {
     private boolean isRendering;
     
     private static final byte CTRL_INC = (byte)(1<<2);
+    private static final byte CTRL_SPRITE_CHR = (byte)(1<<3);
+    private static final byte CTRL_BACKGROUND_CHR = (byte)(1<<3);
     private static final byte CTRL_BIG_SPRITES = (byte)(1<<5);
     private static final byte CTRL_NMI = (byte)(1<<7);
     
@@ -151,7 +153,7 @@ public class PPU {
             int index = -1;
 
             for(int i=8;i-- > 0;){
-                if(spriteFIFO[i].downCounter <= 1){
+                if(spriteFIFO[i].downCounter <= 0){
                     int color = (spriteFIFO[i].lowBp>>7)&1;
                     color |= ((spriteFIFO[i].highBp>>7)&1)<<1;
 
@@ -160,7 +162,7 @@ public class PPU {
 
                     if(color != 0){
                         spriteColor = color;
-                        spritePalette = spriteFIFO[i].flags&2;
+                        spritePalette = spriteFIFO[i].flags&3;
                         spritePriority = spriteFIFO[i].flags&(1<<5);
                         
                         spriteZero = (spriteFIFO[i].flags&4) != 0;
@@ -220,7 +222,8 @@ public class PPU {
                 // range
                 secondaryOAM[secondaryOAMAddr] = spriteValue;
                 if(Byte.toUnsignedInt(spriteValue) <= scanline &&
-                        Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                        Byte.toUnsignedInt(spriteValue)+
+                        ((ctrl&CTRL_BIG_SPRITES) != 0 ? 16 : 8) > scanline){
                     if(false){
                         System.out.printf("%03d: Sprite at %02X in range!\n",
                                 scanline, oamAddr);
@@ -247,7 +250,9 @@ public class PPU {
                         
                         // NOTE: The following code is the same as in case 4
                         if(Byte.toUnsignedInt(spriteValue) <= scanline &&
-                                Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                                Byte.toUnsignedInt(spriteValue)+
+                                ((ctrl&CTRL_BIG_SPRITES) != 0 ?
+                                16 : 8) > scanline){
                             spriteOverflow = true;
 
                             spriteEvalState = 5;
@@ -316,7 +321,8 @@ public class PPU {
                 
             case 4:
                 if(Byte.toUnsignedInt(spriteValue) <= scanline &&
-                        Byte.toUnsignedInt(spriteValue)+8 > scanline){
+                        Byte.toUnsignedInt(spriteValue)+
+                        ((ctrl&CTRL_BIG_SPRITES) != 0 ? 16 : 8) > scanline){
                     spriteOverflow = true;
                     oamAddr++;
                     oamAddr &= 0xFF;
@@ -385,6 +391,7 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
+                if((ctrl&CTRL_BACKGROUND_CHR) != 0) tileId += 0x100;
             }
             if(!preRender && (mask&MASK_SPRITES) != 0){
                 secondaryOAM[secondaryOAMAddr++] = (byte)0xFF;
@@ -483,6 +490,7 @@ public class PPU {
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|
                         (v&0x0FFF)));
+                if((ctrl&CTRL_BACKGROUND_CHR) != 0) tileId += 0x100;
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -596,6 +604,7 @@ public class PPU {
             int tileId = 0;
             if((mask&MASK_BACKGROUND) != 0){
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
+                if((ctrl&CTRL_BACKGROUND_CHR) != 0) tileId += 0x100;
             }
             
             if(!preRender && (mask&MASK_SPRITES) != 0){
@@ -748,6 +757,16 @@ public class PPU {
             
             int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
+            if((ctrl&CTRL_BIG_SPRITES) != 0){
+                int bank = (tileId&1)<<8;
+                tileId &= ~1;
+                tileId |= bank;
+                tileId |= scanline-y >= 8 ? 1 : 0;
+                tileId ^= (attr>>7)&1;
+            }else if((ctrl&CTRL_SPRITE_CHR) != 0){
+                tileId += 0x100;
+            }
+            
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i].lowBp = rom.readVram((tileId<<4)|bpLine);
                 if((attr&(1<<6)) != 0){
@@ -851,6 +870,16 @@ public class PPU {
             
             int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
+            if((ctrl&CTRL_BIG_SPRITES) != 0){
+                int bank = (tileId&1)<<8;
+                tileId &= ~1;
+                tileId |= bank;
+                tileId |= scanline-y >= 8 ? 1 : 0;
+                tileId ^= (attr>>7)&1;
+            }else if((ctrl&CTRL_SPRITE_CHR) != 0){
+                tileId += 0x100;
+            }
+            
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+3].lowBp = rom.readVram((tileId<<4)|bpLine);
                 if((attr&(1<<6)) != 0){
@@ -944,6 +973,16 @@ public class PPU {
             
             int bpLine = ((scanline-y)&7)^(((attr>>7)&1)*7);
             
+            if((ctrl&CTRL_BIG_SPRITES) != 0){
+                int bank = (tileId&1)<<8;
+                tileId &= ~1;
+                tileId |= bank;
+                tileId |= scanline-y >= 8 ? 1 : 0;
+                tileId ^= (attr>>7)&1;
+            }else if((ctrl&CTRL_SPRITE_CHR) != 0){
+                tileId += 0x100;
+            }
+            
             if((mask&MASK_SPRITES) != 0){
                 spriteFIFO[i+6].lowBp = rom.readVram((tileId<<4)|bpLine);
                 if((attr&(1<<6)) != 0){
@@ -993,8 +1032,8 @@ public class PPU {
         
         for(int i=0;i<2;i++){
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int tileId = 0;
@@ -1002,12 +1041,12 @@ public class PPU {
                 tileId = Byte.toUnsignedInt(rom.readVram(0x2000|(v&0x0FFF)));
             }
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int attr = 0;
@@ -1017,12 +1056,12 @@ public class PPU {
                                 ((v>>2)&7)));
             }
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             // XXX: What value should it contain when rendering is disabled?
             int lowBp = 0;
@@ -1032,12 +1071,12 @@ public class PPU {
                                 ((v>>12)&7)));
             }
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
 
             if((mask&MASK_BACKGROUND) != 0){
                 int highBp = Byte.toUnsignedInt(
@@ -1065,8 +1104,8 @@ public class PPU {
             }
 
             if((mask&MASK_SPRITES) != 0) oamAddr = 0;
-            onCycle();
             if((mask&MASK_BACKGROUND) != 0) shiftBackground();
+            onCycle();
         }
         
         // Dummy nametable fetches
